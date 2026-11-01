@@ -24,6 +24,7 @@ RAW = ROOT / "data" / "raw"
 OUT = ROOT / "site" / "data" / "reel_tablo.json"
 OUT_LEVELS = ROOT / "site" / "data" / "seviyeler.json"
 OUT_GROUPS = ROOT / "site" / "data" / "tufe_gruplari.json"
+OUT_RATES = ROOT / "site" / "data" / "reel_faiz.json"
 WEIGHTS_CSV = ROOT / "data" / "manual" / "tufe_agirliklari.csv"
 
 # Series the in-browser "nominal illusion" calculator needs, as raw monthly levels.
@@ -56,7 +57,7 @@ def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
     return raw
 
 
-def build(allow_sample: bool) -> tuple[dict, dict, dict]:
+def build(allow_sample: bool) -> tuple[dict, dict, dict, dict]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
@@ -100,7 +101,9 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict]:
     levels["generated_at"] = tablo["generated_at"]
     groups = build_cpi_groups(data, is_sample, end, weights, weights_sample)
     groups["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups
+    rates = build_real_rates(data, is_sample, end)
+    rates["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -156,6 +159,45 @@ def build_cpi_groups(data: dict, is_sample: dict, end: str, weights: dict, weigh
     }
 
 
+def build_real_rates(data: dict, is_sample: dict, end: str, months: int = 36) -> dict:
+    """Trailing and ex-post real deposit/credit rates for the last `months` months, newest first."""
+    cpi = data["cpi_tr"]
+    cut = lambda d: {m: v for m, v in d.items() if e._month_index(m) <= e._month_index(end)}
+    dep, cre = cut(data["deposit_rate"]), cut(data["credit_rate"])
+    dep_tr, cre_tr = e.trailing_real_rates(dep, cpi), e.trailing_real_rates(cre, cpi)
+    dep_ep, cre_ep = e.ex_post_real_rates(dep, cpi), e.ex_post_real_rates(cre, cpi)
+    rows = []
+    for k in range(months):
+        m = e.shift_month(end, -k)
+        try:
+            infl = e.window_return(cpi, m, 12)
+        except e.SeriesError:
+            infl = None
+        rows.append({
+            "month": m,
+            "deposit_rate": dep.get(m),
+            "credit_rate": cre.get(m),
+            "cpi_12m": infl,
+            "deposit_real_trailing": dep_tr.get(m),
+            "credit_real_trailing": cre_tr.get(m),
+            "deposit_rate_12m_ago": dep.get(e.shift_month(m, -12)),
+            "credit_rate_12m_ago": cre.get(e.shift_month(m, -12)),
+            "deposit_real_ex_post": dep_ep.get(m),
+            "credit_real_ex_post": cre_ep.get(m),
+        })
+    used = ("deposit_rate", "credit_rate", "cpi_tr")
+    return {
+        "end_month": end,
+        "sample": any(is_sample[n] for n in used),
+        "ex_ante": None,   # needs TCMB Market Participants Survey expectations; not added yet
+        "sources": {
+            n: {k: SERIES[n][k] for k in ("label", "source", "code", "verified")} | {"sample": is_sample[n]}
+            for n in used
+        },
+        "rows": rows,
+    }
+
+
 def build_levels(data: dict, is_sample: dict, end: str) -> dict:
     """Monthly levels for the browser calculator, up to the common end month.
 
@@ -201,13 +243,14 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups = build(args.sample)
+    result, levels, groups, rates = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
     write_if_changed(OUT_GROUPS, groups)
+    write_if_changed(OUT_RATES, rates)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

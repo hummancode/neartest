@@ -1,0 +1,126 @@
+---
+import Base from "../layouts/Base.astro";
+import Sparkline from "../components/Sparkline.astro";
+import { realRates, type RateRow } from "../lib/rates.ts";
+import { monthLabel, pct, pctPlain } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const r = realRates;
+const latest = r.rows[0];
+const oldestFirst = [...r.rows].reverse();
+const series = (k: keyof RateRow) => oldestFirst.map((x) => x[k]).filter((v): v is number => typeof v === "number");
+const shortMonth = (ym: string) => {
+  const names = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+  return `${names[Number(ym.slice(5)) - 1]} ${ym.slice(0, 4)}`;
+};
+const tiles = [
+  { key: "deposit_real_trailing", title: "Reel mevduat faizi", sub: "güncel faiz, son 12 ay enflasyonuna göre", raw: latest.deposit_rate, rawLabel: "nominal" },
+  { key: "credit_real_trailing", title: "Reel kredi faizi", sub: "güncel faiz, son 12 ay enflasyonuna göre", raw: latest.credit_rate, rawLabel: "nominal" },
+  { key: "deposit_real_ex_post", title: "Gerçekleşen reel mevduat", sub: "12 ay önceki faiz, sonraki 12 ayın enflasyonuna göre", raw: latest.deposit_rate_12m_ago, rawLabel: "12 ay önceki faiz" },
+  { key: "credit_real_ex_post", title: "Gerçekleşen reel kredi", sub: "12 ay önceki faiz, sonraki 12 ayın enflasyonuna göre", raw: latest.credit_rate_12m_ago, rawLabel: "12 ay önceki faiz" },
+] as const;
+---
+<Base title="Reel Faiz Tablosu" description="Mevduat ve kredi faizlerinin enflasyonla karşılaştırması: son enflasyona göre ve gerçekleşen (ex-post) reel faiz." sample={r.sample}>
+  <h1>Reel faiz</h1>
+  <p class="lead">
+    Faizin enflasyonun üstünde mi altında mı kaldığını iki şekilde gösteriyoruz: bugünkü faizi geçen yılın
+    enflasyonuyla, ve bir yıl önceki faizi o yıl gerçekleşen enflasyonla karşılaştırarak.
+  </p>
+  <p class="muted small">Son veri: <strong>{monthLabel(r.end_month)}</strong> · TÜFE yıllık değişimi: <strong>{pctPlain(latest.cpi_12m)}</strong></p>
+
+  <div class="tiles">
+    {tiles.map((t) => (
+      <section class="card tile">
+        <h2 class="tile-title">{t.title}</h2>
+        <p class="tile-value">{pct(latest[t.key])}</p>
+        <p class="muted small">{t.sub}{t.raw !== null ? ` · ${t.rawLabel} ${pctPlain(t.raw)}` : ""}</p>
+        <Sparkline values={series(t.key)} label={`${t.title}, son ${series(t.key).length} ay`} width={220} height={40} />
+      </section>
+    ))}
+  </div>
+  <p class="muted small">Çizgiler son 36 ayın seyridir; ölçek her kutuda ayrıdır.</p>
+
+  <h2>Aylık tablo</h2>
+  <div class="card scroll-x">
+    <table class="data rates">
+      <thead>
+        <tr>
+          <th scope="col" rowspan="2">Ay</th>
+          <th scope="colgroup" colspan="2">Reel · son enflasyona göre</th>
+          <th scope="colgroup" colspan="2">Reel · gerçekleşen (ex-post)</th>
+          <th scope="colgroup" colspan="3">Nominal (yıllık)</th>
+        </tr>
+        <tr>
+          <th scope="col">Mevduat</th><th scope="col">Kredi</th>
+          <th scope="col">Mevduat</th><th scope="col">Kredi</th>
+          <th scope="col">Mevduat</th><th scope="col">Kredi</th><th scope="col">TÜFE 12 ay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {r.rows.map((row) => (
+          <tr>
+            <th scope="row">{shortMonth(row.month)}</th>
+            <td class="strong">{pct(row.deposit_real_trailing)}</td>
+            <td class="strong">{pct(row.credit_real_trailing)}</td>
+            <td class="strong">{pct(row.deposit_real_ex_post)}</td>
+            <td class="strong">{pct(row.credit_real_ex_post)}</td>
+            <td>{pctPlain(row.deposit_rate)}</td>
+            <td>{pctPlain(row.credit_rate)}</td>
+            <td>{pctPlain(row.cpi_12m)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Nasıl okunur?</h2>
+  <div class="explain">
+    <div class="card">
+      <h3>Son enflasyona göre</h3>
+      <p class="formula">(1 + faiz<sub>bu ay</sub>) / (1 + TÜFE<sub>son 12 ay</sub>) − 1</p>
+      <p class="muted small">Bugün açıklanan faiz, geçmiş 12 ayın enflasyonuyla karşılaştırılır. Geriye bakar; önümüzdeki yılın enflasyonu farklı olabilir.</p>
+    </div>
+    <div class="card">
+      <h3>Gerçekleşen (ex-post)</h3>
+      <p class="formula">(1 + faiz<sub>12 ay önce</sub>) / (1 + TÜFE<sub>o 12 ay</sub>) − 1</p>
+      <p class="muted small">Bir yıl önce o faizle mevduat açan (veya kredi çeken) birinin, sonradan gerçekleşen enflasyona göre reel sonucu.</p>
+    </div>
+    <div class="card">
+      <h3>Beklentiye göre (ex-ante)</h3>
+      <p class="muted small">TCMB Piyasa Katılımcıları Anketi'ndeki 12 ay sonrası enflasyon beklentisiyle hesaplanır. Bu veri henüz eklenmedi.</p>
+    </div>
+  </div>
+  <p>
+    Faizler TCMB'nin yayımladığı yıllık ağırlıklı ortalama faizlerdir ve olduğu gibi kullanılır (bileşik etki eklenmez).
+    Aylık bileşik mevduat getirisi <a href="/">Reel Tablo</a>'dadır. Ayrıntılar: <a href="/metodoloji#reelfaiz">Metodoloji</a>.
+  </p>
+
+  <h3>Kaynaklar</h3>
+  <ul class="small">
+    {Object.values(r.sources).map((s) => (
+      <li>{s.label}: {s.source}{s.code ? <> (<code>{s.code}</code>)</> : null}{s.verified ? "" : " · doğrulanmadı"}{s.sample ? " · ÖRNEK VERİ" : ""}</li>
+    ))}
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+
+<style>
+  .tiles { display: grid; gap: 12px; margin-top: 16px; }
+  @media (min-width: 640px) { .tiles { grid-template-columns: 1fr 1fr; } }
+  .tile-title { font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; margin: 0; color: var(--ink-2); letter-spacing: 0; }
+  .tile-value { font-family: var(--font-head); font-size: clamp(2.4rem, 11vw, 3.2rem); margin: 0; line-height: 1.15; }
+  .tile p.small { margin: 2px 0 8px; }
+  .tile :global(svg) { max-width: 100%; height: auto; }
+  .scroll-x { overflow-x: auto; padding: 4px 8px; }
+  .rates { min-width: 720px; font-size: 0.88rem; }
+  .rates thead th { text-align: right; }
+  .rates thead tr:first-child th { text-align: center; border-bottom: 1px solid var(--line); }
+  .rates thead th[rowspan] { text-align: left; vertical-align: bottom; }
+  .rates tbody th { position: sticky; left: 0; background: var(--surface); white-space: nowrap; font-weight: 600; }
+  .rates td.strong { font-weight: 600; color: var(--ink); }
+  .rates td { color: var(--ink-2); }
+  .explain { display: grid; gap: 12px; }
+  @media (min-width: 860px) { .explain { grid-template-columns: repeat(3, 1fr); } }
+  .explain h3 { margin: 0 0 6px; font-size: 1.2rem; }
+  .explain .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; margin: 0 0 6px; }
+</style>

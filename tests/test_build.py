@@ -19,7 +19,7 @@ def test_levels_cut_at_common_end_month():
 
 
 def test_sample_build_flags_everything_as_sample():
-    tablo, levels, groups = build.build(allow_sample=True)
+    tablo, levels, groups, _ = build.build(allow_sample=True)
     if not build.RAW.exists():
         assert tablo["sample"] is True and levels["sample"] is True
     assert tablo["end_month"] == levels["end_month"]
@@ -38,7 +38,7 @@ def test_generated_at_kept_when_content_unchanged(tmp_path):
 
 
 def test_cpi_groups_output():
-    tablo, levels, groups = build.build(allow_sample=True)
+    tablo, levels, groups, _ = build.build(allow_sample=True)
     assert len(groups["groups"]) == 12
     assert groups["end_month"] == tablo["end_month"]
     if not build.WEIGHTS_CSV.exists():
@@ -55,3 +55,19 @@ def test_group_change_is_12_month_window():
     assert abs(out["headline_change_12m"] - 0.5) < 1e-12
     assert all(abs(g["change_12m"] - 0.4) < 1e-12 for g in out["groups"])
     assert out["sample"] is False
+
+
+def test_real_rates_rows():
+    data = {
+        "cpi_tr": {"2024-01": 100.0, "2025-01": 140.0},
+        "deposit_rate": {"2024-01": 0.45, "2025-01": 0.50},
+        "credit_rate": {"2024-01": 0.55, "2025-01": 0.60},
+    }
+    is_sample = {n: False for n in data}
+    out = build.build_real_rates(data, is_sample, "2025-01", months=13)
+    first = out["rows"][0]
+    assert first["month"] == "2025-01"
+    assert abs(first["deposit_real_trailing"] - (1.5 / 1.4 - 1)) < 1e-12
+    assert abs(first["credit_real_ex_post"] - (1.55 / 1.4 - 1)) < 1e-12
+    assert out["rows"][12]["month"] == "2024-01" and out["rows"][12]["cpi_12m"] is None
+    assert out["sample"] is False and out["ex_ante"] is None

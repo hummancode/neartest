@@ -34,6 +34,13 @@ SERIES = {
         "verified": False,
         "unit": "% yıllık",
     },
+    "credit_rate": {
+        "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
+        "source": "TCMB EVDS",
+        "code": None,             # which loan type (consumer / commercial) is still to be decided
+        "verified": False,
+        "unit": "% yıllık",
+    },
     "gold_gram_tl": {
         "label": "Gram altın",
         "source": "Belirlenecek",
@@ -61,6 +68,7 @@ SERIES = {
 # turn raw series into a TL price level.
 ASSETS = [
     {"id": "deposit", "label": "TL Mevduat", "kind": "rate", "series": "deposit_rate"},
+    {"id": "credit", "label": "TL Kredi (borç maliyeti)", "kind": "rate", "series": "credit_rate"},
     {"id": "usd", "label": "Dolar", "kind": "tl_level", "series": "usdtry"},
     {"id": "eur", "label": "Euro", "kind": "tl_level", "series": "eurtry"},
     {"id": "gold", "label": "Gram Altın", "kind": "tl_level", "series": "gold_gram_tl"},

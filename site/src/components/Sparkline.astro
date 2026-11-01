@@ -13,10 +13,12 @@ let last: [number, number] | null = null;
 if (values.length >= 2) {
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const span = max - min || 1;
+  const span = max - min;
+  // Treat float noise on a flat series as flat, instead of magnifying it into a zigzag.
+  const flat = span <= 1e-9 * Math.max(Math.abs(max), Math.abs(min), 1);
   const pts = values.map((v, i) => {
     const x = pad + (i / (values.length - 1)) * (width - 2 * pad);
-    const y = pad + (1 - (v - min) / span) * (height - 2 * pad);
+    const y = flat ? height / 2 : pad + (1 - (v - min) / span) * (height - 2 * pad);
     return [x, y] as [number, number];
   });
   d = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");

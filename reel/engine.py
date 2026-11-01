@@ -209,3 +209,43 @@ def personal_inflation(amounts: dict[str, float], group_changes: dict[str, float
     This is a personal estimate with the user's own weights, not an official index.
     """
     return sum(inflation_contributions(amounts, group_changes).values())
+
+
+# ---------------------------------------------------------------------------
+# Real interest rates (Aşama 6)
+# ---------------------------------------------------------------------------
+# Rates are quoted annual rates (0.50 = 50 % per year), used as quoted:
+# no compounding adjustment. Compounded deposit returns are in the Reel Tablo.
+
+def trailing_real_rates(rates: dict[str, float], cpi: dict[str, float]) -> dict[str, float]:
+    """Rate quoted in month m vs. CPI inflation over the 12 months ending in m.
+
+    "Today's rate against the latest annual inflation" - backward-looking.
+    """
+    out = {}
+    for m in sorted(rates, key=_month_index):
+        try:
+            inflation = window_return(cpi, m, 12)
+        except SeriesError:
+            continue
+        out[m] = real_return(rates[m], inflation)
+    return out
+
+
+def ex_post_real_rates(rates: dict[str, float], cpi: dict[str, float]) -> dict[str, float]:
+    """Rate quoted in month m-12 vs. the CPI inflation that followed (m-12 -> m).
+
+    Keyed by m, the month the 12-month period ends. This is the realised (ex-post)
+    real rate for someone who locked in the rate a year earlier.
+    """
+    out = {}
+    for m in sorted(cpi, key=_month_index):
+        start = shift_month(m, -12)
+        if start not in rates:
+            continue
+        try:
+            inflation = window_return(cpi, m, 12)
+        except SeriesError:
+            continue
+        out[m] = real_return(rates[start], inflation)
+    return out

@@ -26,6 +26,7 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#trend">Trend çizgisi</a></li>
         <li><a href="#illuzyon">Nominal illüzyon makinesi</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
+        <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
         <li><a href="#varsayim">Varsayımlar</a></li>
         <li><a href="#sinir">Bilinen sınırlar</a></li>
@@ -134,7 +135,19 @@ import { DISCLAIMER } from "../config.ts";
       <li><strong>Bu bir kişisel hesaptır; resmi enflasyon iddiası değildir.</strong> Site kendi enflasyon endeksini üretmez ve yayımlamaz.</li>
     </ul>
 
-    <h2 id="kaynak">10. Veri kaynakları</h2>
+    <h2 id="reelfaiz">10. Reel faiz</h2>
+    <p>TCMB'nin yayımladığı yıllık ağırlıklı ortalama TL mevduat ve kredi faizleri <em>f</em> olduğu gibi (yıllık, bileşik etki eklenmeden) kullanılır.</p>
+    <p class="formula card">Son enflasyona göre: (1 + f<sub>m</sub>) / (1 + π<sub>m−12→m</sub>) − 1</p>
+    <p class="formula card">Gerçekleşen (ex-post): (1 + f<sub>m−12</sub>) / (1 + π<sub>m−12→m</sub>) − 1</p>
+    <ul>
+      <li>π, TÜFE'nin aynı 12 aydaki değişimidir (aylık ortalama endeks).</li>
+      <li>“Son enflasyona göre” geriye bakar: bugünkü faizi, geçmiş yılın enflasyonuyla karşılaştırır.</li>
+      <li>“Gerçekleşen” değer, bir yıl önce o faizi kilitleyen birinin sonradan gerçekleşen enflasyona göre reel sonucudur; vade, yenileme ve stopaj dikkate alınmaz.</li>
+      <li>Beklentiye dayalı (ex-ante) reel faiz, TCMB Piyasa Katılımcıları Anketi verisi eklendiğinde gösterilecektir.</li>
+      <li>Kredi faizinin hangi kredi türünü (ör. ihtiyaç, ticari) temsil edeceği henüz seçilmedi; seri doğrulanınca etiket netleşecektir.</li>
+    </ul>
+
+    <h2 id="kaynak">11. Veri kaynakları</h2>
     <div class="card scroll-x">
       <table class="data">
         <thead><tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Doğrulandı</th><th scope="col">Şu an örnek veri</th></tr></thead>
@@ -152,7 +165,7 @@ import { DISCLAIMER } from "../config.ts";
       Örnek veri gerçek değildir ve hiçbir karar için kullanılmamalıdır.
     </p>
 
-    <h2 id="varsayim">11. Varsayımlar</h2>
+    <h2 id="varsayim">12. Varsayımlar</h2>
     <ul>
       <li>EVDS'den çekilen seriler <strong>aylık ortalama</strong> olarak alınır. Ay sonu değerleriyle yapılan hesaplardan biraz farklı sonuç verebilir.</li>
       <li>Tüm seriler aynı bitiş ayında kesilir: verisi en geç güncellenen serinin son ayı.</li>
@@ -162,7 +175,7 @@ import { DISCLAIMER } from "../config.ts";
       <li>Enflasyon ölçüsü TÜİK'in yayımladığı TÜFE'dir. Site kendi enflasyon endeksini üretmez.</li>
     </ul>
 
-    <h2 id="sinir">12. Bilinen sınırlar</h2>
+    <h2 id="sinir">13. Bilinen sınırlar</h2>
     <ul>
       <li>Geçmiş getiriler gelecekteki getirileri göstermez.</li>
       <li>TÜFE ortalama bir sepeti ölçer; kişisel enflasyonunuz farklı olabilir.</li>

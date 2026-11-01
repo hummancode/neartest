@@ -172,3 +172,30 @@ def test_contributions_sum_to_personal_inflation():
     # 0.75 * 0.40 = 0.30 and 0.25 * 0.80 = 0.20
     c = e.inflation_contributions({"a": 750, "b": 250}, {"a": 0.40, "b": 0.80})
     assert close(c["a"], 0.30) and close(c["b"], 0.20)
+
+
+# --- real interest rates (Aşama 6) ------------------------------------------
+
+def test_trailing_real_rate():
+    # Rate quoted 2025-01 = 50 %, CPI over 2024-01 -> 2025-01 = +40 %: 1.5/1.4 - 1 = 0.0714285...
+    rates = {"2024-01": 0.45, "2025-01": 0.50}
+    cpi = {"2024-01": 100.0, "2025-01": 140.0}
+    out = e.trailing_real_rates(rates, cpi)
+    assert list(out) == ["2025-01"]          # 2024-01 has no CPI a year earlier
+    assert close(out["2025-01"], 1.5 / 1.4 - 1)
+
+
+def test_ex_post_real_rate():
+    # Rate quoted 2024-01 = 45 %, CPI over the following year = +40 %: 1.45/1.4 - 1 = 0.0357142...
+    rates = {"2024-01": 0.45, "2025-01": 0.50}
+    cpi = {"2024-01": 100.0, "2025-01": 140.0}
+    out = e.ex_post_real_rates(rates, cpi)
+    assert list(out) == ["2025-01"]          # keyed by the month the year ends
+    assert close(out["2025-01"], 1.45 / 1.4 - 1)
+
+
+def test_real_rates_skip_months_without_data():
+    rates = {"2025-01": 0.50}                # no rate a year earlier -> no ex-post value
+    cpi = {"2024-01": 100.0, "2025-01": 150.0}
+    assert e.ex_post_real_rates(rates, cpi) == {}
+    assert close(e.trailing_real_rates(rates, cpi)["2025-01"], 0.0)   # 1.5/1.5 - 1
