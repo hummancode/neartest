@@ -1,0 +1,176 @@
+---
+import Base from "../layouts/Base.astro";
+import { tablo } from "../lib/data.ts";
+import { monthLabel } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+---
+<Base title="Metodoloji" description="Reel getiri hesaplarının formülleri, veri kaynakları, varsayımlar ve bilinen sınırlar." sample={tablo.sample}>
+  <article class="prose">
+    <h1>Metodoloji</h1>
+    <p class="lead">
+      Bu sayfa, sitedeki her rakamın nasıl hesaplandığını anlatır. Amaç, aynı veriyle aynı
+      sonuca herkesin ulaşabilmesidir. Hesaplar, test edilmiş Python fonksiyonlarıyla
+      (<code>reel/engine.py</code>) yapılır; tarayıcıdaki hesaplayıcılar aynı formüllerin
+      aynı test vakalarıyla doğrulanmış TypeScript kopyasını kullanır.
+    </p>
+    <p class="muted small">Güncel veri bitiş ayı: {monthLabel(tablo.end_month)}.</p>
+
+    <nav class="toc card" aria-label="İçindekiler">
+      <ol>
+        <li><a href="#tanimlar">Tanımlar</a></li>
+        <li><a href="#reel">Reel getiri</a></li>
+        <li><a href="#usd">USD bazlı getiri</a></li>
+        <li><a href="#yillik">Yıllıklandırma</a></li>
+        <li><a href="#mevduat">Mevduat endeksi</a></li>
+        <li><a href="#usdvarlik">Dolar fiyatlı varlıklar</a></li>
+        <li><a href="#trend">Trend çizgisi</a></li>
+        <li><a href="#illuzyon">Nominal illüzyon makinesi</a></li>
+        <li><a href="#kaynak">Veri kaynakları</a></li>
+        <li><a href="#varsayim">Varsayımlar</a></li>
+        <li><a href="#sinir">Bilinen sınırlar</a></li>
+      </ol>
+    </nav>
+
+    <h2 id="tanimlar">1. Tanımlar</h2>
+    <p>
+      Getiriler ondalık oran olarak hesaplanır ve yüzde olarak gösterilir (0,25 = %25).
+      Tüm seriler aylıktır. Bir pencere, veri bitiş ayından geriye doğru sayılır:
+      bitiş ayı Eylül 2026 ise 1 yıllık pencere Eylül 2025 → Eylül 2026'dır.
+    </p>
+    <p>Bir varlığın iki ay arasındaki <strong>kümülatif nominal getirisi</strong>:</p>
+    <p class="formula card">n = P<sub>bitiş</sub> / P<sub>başlangıç</sub> − 1</p>
+    <p>
+      Pencerenin iki ucundan biri için veri yoksa o pencere <strong>hesaplanmaz</strong> ve tabloda
+      “—” görünür. Eksik veri tahminle doldurulmaz.
+    </p>
+
+    <h2 id="reel">2. Reel getiri</h2>
+    <p>Aynı penceredeki TÜFE değişimi <em>i</em> ise reel (enflasyondan arındırılmış) getiri:</p>
+    <p class="formula card">r = (1 + n) / (1 + i) − 1</p>
+    <p>
+      Bu, Fisher ilişkisinin tam hâlidir. Sık kullanılan <code>n − i</code> yaklaşımı yüksek
+      enflasyonda ciddi hata verir. Örnek: %50 nominal getiri ve %40 enflasyonda reel getiri
+      %10 değil, 1,5 / 1,4 − 1 = <strong>%7,1</strong>'dir.
+    </p>
+
+    <h2 id="usd">3. USD bazlı getiri</h2>
+    <p>
+      USD/TRY kurunun aynı penceredeki değişimi <em>k</em> ise (ör. 30 → 33 TL için k = %10),
+      TL cinsinden <em>n</em> getirisi sağlayan bir varlığın dolar cinsinden getirisi:
+    </p>
+    <p class="formula card">u = (1 + n) / (1 + k) − 1</p>
+    <p>
+      Formül reel getiriyle aynı yapıdadır; burada “fiyat endeksi” yerine dolar kuru kullanılır.
+      Dolar satırının USD getirisinin her pencerede sıfır olması bu yüzdendir.
+    </p>
+
+    <h2 id="yillik">4. Yıllıklandırma</h2>
+    <p><em>R</em> kümülatif getiri, <em>y</em> yıl sayısıysa yıllık bileşik getiri:</p>
+    <p class="formula card">a = (1 + R)<sup>1/y</sup> − 1</p>
+    <p>
+      Örnek: 2 yılda iki katına çıkan bir varlık için yıllık getiri √2 − 1 ≈ %41,4'tür, %50 değil.
+      Kümülatif kayıp %100 ise yıllık getiri de −%100 olarak verilir. Reel ve USD yıllık getiriler,
+      kümülatif reel ve USD getirilerinin yıllıklandırılmasıyla bulunur.
+    </p>
+
+    <h2 id="mevduat">5. Mevduat endeksi</h2>
+    <p>
+      Mevduatın bir fiyatı yoksa, TCMB'nin yayımladığı yıllık ağırlıklı ortalama TL mevduat
+      faizinden bir “servet endeksi” üretilir. Endeks 100'den başlar; <em>m</em> ayı için açıklanan
+      yıllık faiz <em>f<sub>m</sub></em>, bir sonraki ay boyunca aylık <em>f<sub>m</sub></em>/12 oranında kazanılır:
+    </p>
+    <p class="formula card">E<sub>m+1</sub> = E<sub>m</sub> × (1 + f<sub>m</sub> / 12)</p>
+    <p>
+      Yani mevduatın her ay, o ayın ortalama faiziyle bir aylık vadeye yeniden yatırıldığı varsayılır.
+      <strong>Stopaj ve diğer vergiler düşülmez</strong>; gerçek net getiri daha düşüktür. Faiz serisinde
+      ay atlanmışsa endeks üretilmez, hata verilir.
+    </p>
+
+    <h2 id="usdvarlik">6. Dolar fiyatlı varlıklar</h2>
+    <p>
+      S&amp;P 500 gibi dolar cinsinden fiyatlanan varlıklar, her ay aynı ayın USD/TRY kuruyla TL'ye
+      çevrilir (P<sub>TL</sub> = P<sub>USD</sub> × USD/TRY). Ardından TL fiyat serisine yukarıdaki formüller uygulanır.
+      Temettüler dahil değildir (fiyat endeksi kullanılır).
+    </p>
+
+    <h2 id="trend">7. Trend çizgisi</h2>
+    <p>
+      Her satırın yanındaki küçük çizgi, son 60 ayda varlığın TL değerinin TÜFE'ye bölünmüş hâlidir
+      (P<sub>TL</sub> / TÜFE). Yalnızca şekli gösterir; ölçeği yoktur, satırlar arasında yükseklik karşılaştırılamaz.
+      Rakamlar için tabloya bakın.
+    </p>
+
+    <h2 id="illuzyon">8. Nominal illüzyon makinesi</h2>
+    <p>
+      Geçmişteki bir ayda <em>T</em> TL'nin bugünkü karşılığı, seçilen ölçünün iki aydaki seviyesiyle bulunur:
+    </p>
+    <p class="formula card">Bugünkü karşılık = T × Seviye<sub>bugün</sub> / Seviye<sub>o ay</sub></p>
+    <ul>
+      <li><strong>TÜFE ile:</strong> seviye TÜFE endeksidir. Sonuç, aynı sepeti bugün almak için gereken TL'dir.</li>
+      <li><strong>Dolar ile:</strong> seviye USD/TRY kurudur. O ay T TL ile alınabilecek dolar (T / kur) bugünkü kurla TL'ye çevrilir.</li>
+      <li><strong>Gram altın ile:</strong> seviye gram altının TL fiyatıdır; hesap dolar ile aynıdır.</li>
+    </ul>
+    <p>
+      “Bugün”, veri bitiş ayıdır. Hesap tarayıcınızda yapılır; girdiğiniz tutar ve tarih hiçbir yere gönderilmez.
+      Asgari ücret karşılığı, seri henüz eklenmediği için gösterilmiyor.
+    </p>
+
+    <h2 id="kaynak">9. Veri kaynakları</h2>
+    <div class="card scroll-x">
+      <table class="data">
+        <thead><tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Doğrulandı</th><th scope="col">Şu an örnek veri</th></tr></thead>
+        <tbody>
+          {Object.values(tablo.sources).map((s) => (
+            <tr><th scope="row">{s.label}</th><td>{s.source}</td><td><code>{s.code ?? "—"}</code></td><td>{s.verified ? "Evet" : "Hayır"}</td><td>{s.sample ? "Evet" : "Hayır"}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Seri kodları TCMB EVDS üzerinden gerçekten sorgulanıp doğrulanmadan “doğrulandı” olarak işaretlenmez.
+      Kaynağı henüz belirlenmemiş ya da doğrulanmamış seriler yerine <strong>sentetik örnek veri</strong> kullanılıyorsa
+      sayfanın üstünde kırmızı “ÖRNEK VERİ” bandı görünür ve ilgili satırlar “örnek” etiketi taşır.
+      Örnek veri gerçek değildir ve hiçbir karar için kullanılmamalıdır.
+    </p>
+
+    <h2 id="varsayim">10. Varsayımlar</h2>
+    <ul>
+      <li>EVDS'den çekilen seriler <strong>aylık ortalama</strong> olarak alınır. Ay sonu değerleriyle yapılan hesaplardan biraz farklı sonuç verebilir.</li>
+      <li>Tüm seriler aynı bitiş ayında kesilir: verisi en geç güncellenen serinin son ayı.</li>
+      <li>Vergi (stopaj dahil), komisyon, saklama ücreti ve alış-satış makası dahil değildir.</li>
+      <li>Mevduatta aylık bileşik yeniden yatırım varsayılır.</li>
+      <li>Hisse endekslerinde temettü yoktur; fiyat endeksi kullanılır.</li>
+      <li>Enflasyon ölçüsü TÜİK'in yayımladığı TÜFE'dir. Site kendi enflasyon endeksini üretmez.</li>
+    </ul>
+
+    <h2 id="sinir">11. Bilinen sınırlar</h2>
+    <ul>
+      <li>Geçmiş getiriler gelecekteki getirileri göstermez.</li>
+      <li>TÜFE ortalama bir sepeti ölçer; kişisel enflasyonunuz farklı olabilir.</li>
+      <li>Aylık ortalama kullanıldığı için ay içi zirve ve dipler görünmez.</li>
+      <li>Endeks baz yılı veya yöntem değişirse seriler birleştirilmek zorunda kalabilir; böyle bir durumda yöntem bu sayfada açıklanır.</li>
+      <li>Ağırlıklı ortalama mevduat faizi, tek bir bankanın ya da vadenin faizi değildir; gerçek bir hesabın getirisi farklı olur.</li>
+      <li>BIST 100, S&amp;P 500 ve gram altın için kaynak henüz seçilmedi; bu satırlar şu an örnek veridir.</li>
+    </ul>
+
+    <p class="disclaimer"><strong>{DISCLAIMER}</strong> Bu sayfadaki hiçbir hesap alım, satım veya elde tutma önerisi değildir.</p>
+  </article>
+</Base>
+
+<style>
+  .prose { max-width: 760px; }
+  .prose p, .prose li { color: var(--ink-2); }
+  .prose strong { color: var(--ink); }
+  .formula {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.05rem; color: var(--ink) !important; padding: 12px 16px; overflow-x: auto;
+  }
+  .toc { margin: 20px 0; padding: 12px 16px; }
+  .toc ol { margin: 0; padding-left: 1.3em; columns: 2; column-gap: 24px; }
+  @media (max-width: 520px) { .toc ol { columns: 1; } }
+  .toc a { text-decoration: none; }
+  .scroll-x { overflow-x: auto; padding: 8px 12px; }
+  .scroll-x table { min-width: 560px; font-size: 0.9rem; }
+  .scroll-x th, .scroll-x td { text-align: left; }
+  .disclaimer { margin-top: 2em; }
+</style>

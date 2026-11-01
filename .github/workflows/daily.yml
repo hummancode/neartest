@@ -29,6 +29,14 @@ jobs:
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
 
+      # Make sure the site still builds with the new data before committing it.
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: site/package-lock.json }
+      - run: npm ci
+        working-directory: site
+      - run: npm run build
+        working-directory: site
+
       - name: commit data if changed
         run: |
           git config user.name "data-bot"

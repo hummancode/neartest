@@ -1,0 +1,162 @@
+---
+import Base from "../layouts/Base.astro";
+import Sparkline from "../components/Sparkline.astro";
+import { tablo, YEARS, type Row } from "../lib/data.ts";
+import { monthLabel, pct } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const end = monthLabel(tablo.end_month);
+const measures = [
+  { key: "nominal_tl", label: "Nominal TL", short: "Nom. TL" },
+  { key: "usd", label: "USD", short: "USD" },
+  { key: "real_tl", label: "Reel TL", short: "Reel" },
+] as const;
+
+function win(row: Row, years: number) {
+  return row.windows.find((w) => w.years === years);
+}
+function sparkLabel(row: Row) {
+  const t = row.real_trend_5y;
+  if (t.length < 2) return `${row.label}: reel seyir verisi yok`;
+  return `${row.label}: son ${t.length} ayın reel (TÜFE'den arındırılmış) seyri, başlangıca göre ${pct(t[t.length - 1] / t[0] - 1)}`;
+}
+---
+<Base title="Reel Tablo" sample={tablo.sample}>
+  <h1>Reel Tablo</h1>
+  <p class="lead">
+    Nominal getiriyi herkes gösterir. Burada aynı getiriyi enflasyondan (TÜFE) ve kurdan
+    arındırılmış hâliyle, hesabını açıkça göstererek görüyorsunuz.
+  </p>
+  <p class="muted small">
+    Veri bitişi: <strong>{end}</strong> · Pencereler bu aya kadar geriye doğru sayılır ·
+    Büyük rakam <strong>kümülatif</strong>, altındaki küçük rakam <strong>yıllık bileşik</strong> getiridir.
+  </p>
+
+  <div class="assets">
+    {tablo.rows.map((row) => (
+      <section class="card asset" aria-labelledby={`h-${row.id}`}>
+        <div class="asset-head">
+          <h3 id={`h-${row.id}`}>{row.label}{row.sample && <span class="tag">örnek</span>}</h3>
+          <figure class="trend">
+            <Sparkline values={row.real_trend_5y} label={sparkLabel(row)} />
+            <figcaption class="muted">reel seyir, 5 yıl</figcaption>
+          </figure>
+        </div>
+        <table class="data">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Ölçü</span></th>
+              {YEARS.map((y) => <th scope="col">{y} yıl</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {measures.map((m) => (
+              <tr class={m.key === "real_tl" ? "real" : undefined}>
+                <th scope="row"><span class="lbl-long">{m.label}</span><span class="lbl-short" aria-hidden="true">{m.short}</span></th>
+                {YEARS.map((y) => {
+                  const w = win(row, y);
+                  return w ? (
+                    <td>
+                      <span class="cum">{pct(w[m.key])}</span>
+                      <span class="ann"><span class="ann-word">yıllık </span>{pct(w[`${m.key}_annual`])}</span>
+                    </td>
+                  ) : (
+                    <td><span class="cum muted" title="Bu pencere için yeterli veri yok">—</span></td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))}
+  </div>
+
+  <aside class="card cta">
+    <div>
+      <h3>Nominal illüzyon makinesi</h3>
+      <p class="muted">Geçmişteki bir TL tutarının bugün TÜFE, dolar ve gram altın cinsinden karşılığını hesaplayın.</p>
+    </div>
+    <a class="btn" href="/nominal-illuzyon">Hesapla →</a>
+  </aside>
+
+  <h2>Kaynaklar</h2>
+  <div class="card scroll-x">
+    <table class="data sources">
+      <thead>
+        <tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Doğrulandı</th><th scope="col">Örnek veri</th></tr>
+      </thead>
+      <tbody>
+        {Object.entries(tablo.sources).map(([key, s]) => (
+          <tr>
+            <th scope="row">{s.label}</th>
+            <td>{s.source}</td>
+            <td><code>{s.code ?? "—"}</code></td>
+            <td>{s.verified ? "Evet" : "Hayır"}</td>
+            <td>{s.sample ? "Evet" : "Hayır"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">Veri bitiş ayı: {end}. JSON üretim zamanı: <time datetime={tablo.generated_at}>{tablo.generated_at.replace("T", " ").replace("+00:00", " UTC")}</time>.</p>
+
+  <h2>Notlar</h2>
+  <ul class="notes">
+    {tablo.notes.map((n) => <li>{n}</li>)}
+  </ul>
+  <p>Formüller ve varsayımlar: <a href="/metodoloji">Metodoloji</a>.</p>
+  <p class="disclaimer"><strong>{DISCLAIMER}</strong></p>
+</Base>
+
+<style>
+  .assets { display: grid; gap: 16px; margin-top: 20px; }
+  @media (min-width: 860px) { .assets { grid-template-columns: 1fr 1fr; } }
+  .assets > * { min-width: 0; }
+  .asset { padding: 14px 10px 8px; }
+  .asset-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+  .asset-head h3 { margin: 0; font-size: 1.6rem; }
+  .tag {
+    font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px;
+    padding: 1px 5px; margin-left: 8px; vertical-align: middle;
+  }
+  .trend { margin: 0; text-align: right; }
+  .trend figcaption { font-size: 0.7rem; }
+  .data td { vertical-align: top; }
+  .data tbody th { font-size: 0.85rem; font-weight: 600; color: var(--ink-2); white-space: nowrap; padding-right: 6px; }
+  .cum { display: block; font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
+  .ann { display: block; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  tr.real th { color: var(--ink); }
+  tr.real .cum { font-weight: 700; font-size: 1.02rem; }
+  @media (max-width: 520px) {
+    .ann-word { display: none; }
+    .data th, .data td { padding: 6px 2px; }
+    .data tbody th { font-size: 0.78rem; padding-right: 4px; }
+    .cum { font-size: 0.84rem; }
+    tr.real .cum { font-size: 0.9rem; }
+    .ann { font-size: 0.68rem; }
+  }
+  .lbl-short { display: none; }
+  @media (max-width: 360px) {
+    .lbl-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .lbl-short { display: inline; }
+    .asset { padding: 12px 6px 6px; }
+    .asset-head h3 { font-size: 1.35rem; }
+    .trend :global(svg) { width: 100px; }
+    .data tbody th { font-size: 0.72rem; }
+    .cum { font-size: 0.72rem; letter-spacing: -0.01em; }
+    tr.real .cum { font-size: 0.76rem; }
+    .ann { font-size: 0.62rem; }
+  }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
+  .cta h3 { margin: 0 0 4px; }
+  .cta p { margin: 0; }
+  .scroll-x { overflow-x: auto; padding: 8px 12px; }
+  .sources { min-width: 560px; font-size: 0.9rem; }
+  .sources th, .sources td { text-align: left; }
+  .sources tbody th { font-weight: 600; }
+  .notes { padding-left: 1.2em; }
+  .disclaimer { font-size: 1.05rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

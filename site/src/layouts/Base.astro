@@ -1,0 +1,76 @@
+---
+import "../styles/global.css";
+import { SITE_NAME, DISCLAIMER } from "../config.ts";
+
+interface Props {
+  title: string;
+  description?: string;
+  sample?: boolean;
+}
+const { title, description = "Enflasyon ve kurdan arındırılmış reel finans verisi.", sample = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const nav = [
+  { href: "/", label: "Reel Tablo" },
+  { href: "/nominal-illuzyon", label: "Nominal İllüzyon" },
+  { href: "/metodoloji", label: "Metodoloji" },
+];
+---
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {SITE_NAME}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        const t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (_) {}
+    </script>
+  </head>
+  <body>
+    {sample && <div class="warn-band" role="alert">ÖRNEK VERİ — gerçek değildir</div>}
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">{SITE_NAME}</a>
+        <nav class="site-nav" aria-label="Ana menü">
+          {nav.map((n) => (
+            <a href={n.href} aria-current={path === n.href ? "page" : undefined}>{n.label}</a>
+          ))}
+          <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Temayı değiştir">Tema</button>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="wrap">
+        <slot />
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p><strong>{DISCLAIMER}</strong> Bu site hesaplar, karşılaştırır ve varsayımlarını gösterir; karar sizindir.</p>
+        <p>Hesaplayıcılar tarayıcınızda çalışır; girdiğiniz hiçbir bilgi bir sunucuya gönderilmez.</p>
+      </div>
+    </footer>
+    <script is:inline>
+      (function () {
+        const btn = document.getElementById("theme-toggle");
+        const root = document.documentElement;
+        const current = () =>
+          root.dataset.theme ||
+          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        const label = () => { btn.textContent = current() === "dark" ? "Açık tema" : "Koyu tema"; };
+        label();
+        btn.addEventListener("click", () => {
+          const next = current() === "dark" ? "light" : "dark";
+          root.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (_) {}
+          label();
+        });
+      })();
+    </script>
+  </body>
+</html>
