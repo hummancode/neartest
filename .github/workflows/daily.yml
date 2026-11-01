@@ -1,26 +1,42 @@
 name: daily-data
 on:
   schedule:
-    - cron: "0 6 * * *"   # 09:00 Istanbul
+    - cron: "0 6 * * *"   # 06:00 UTC = 09:00 Istanbul
   workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push the data commit
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
       - run: pytest -q
-      - run: python -m pipeline.fetch
-        env:
-          EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
+
+      - name: fetch from EVDS
+        if: ${{ env.EVDS_API_KEY != '' }}
+        run: python -m pipeline.fetch
+      - name: no API key
+        if: ${{ env.EVDS_API_KEY == '' }}
+        run: echo "::warning::EVDS_API_KEY secret yok; yalnızca örnek veri kullanılacak."
+
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
-      - name: commit data
+
+      - name: commit data if changed
         run: |
           git config user.name "data-bot"
           git config user.email "data-bot@users.noreply.github.com"
           git add site/data
-          git diff --cached --quiet || git commit -m "data: daily update"
-          git push
+          if git diff --cached --quiet; then
+            echo "site/data değişmedi"
+          else
+            git commit -m "data: daily update"
+            git push
+          fi

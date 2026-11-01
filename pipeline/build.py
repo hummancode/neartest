@@ -89,13 +89,31 @@ def build(allow_sample: bool) -> dict:
     }
 
 
+def write_if_changed(path: Path, result: dict) -> None:
+    """Write JSON, but keep the old `generated_at` when nothing else changed.
+
+    Otherwise the daily job would commit a new file every day even when the
+    data is identical.
+    """
+    if path.exists():
+        try:
+            old = json.loads(path.read_text())
+        except ValueError:
+            old = None
+        if old is not None:
+            strip = lambda d: {k: v for k, v in d.items() if k != "generated_at"}
+            if strip(old) == strip(result):
+                result["generated_at"] = old.get("generated_at", result["generated_at"])
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=1))
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
     result = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1))
+    write_if_changed(OUT, result)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: {OUT.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
     return 0
