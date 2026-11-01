@@ -1,0 +1,26 @@
+name: daily-data
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 09:00 Istanbul
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+      - run: python -m pipeline.fetch
+        env:
+          EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
+      # Until every series has a verified source, missing ones are filled with flagged sample data.
+      - run: python -m pipeline.build --sample
+      - name: commit data
+        run: |
+          git config user.name "data-bot"
+          git config user.email "data-bot@users.noreply.github.com"
+          git add site/data
+          git diff --cached --quiet || git commit -m "data: daily update"
+          git push

@@ -1,0 +1,4 @@
+evds>=0.4
+pandas
+requests
+pytest
