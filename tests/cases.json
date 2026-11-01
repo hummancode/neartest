@@ -1,0 +1,345 @@
+{
+ "_doc": "Shared engine test cases. Run by tests/test_shared_cases.py (Python) and site/tests/engine.test.ts (TypeScript). Expected values come from the hand formulas in `note` / tests/test_engine.py, not from running the engine. Expected lists/objects of windows are subset matches.",
+ "cases": [
+  {
+   "name": "total_return doubling",
+   "fn": "total_return",
+   "args": [
+    100,
+    200
+   ],
+   "expect": 1.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "total_return rejects non-positive start",
+   "fn": "total_return",
+   "args": [
+    0,
+    10
+   ],
+   "raises": true
+  },
+  {
+   "name": "annualize doubling over two years",
+   "fn": "annualize",
+   "args": [
+    1.0,
+    2
+   ],
+   "expect": 0.41421356237309515,
+   "tol": 1e-12,
+   "note": "sqrt(2) - 1"
+  },
+  {
+   "name": "annualize total loss",
+   "fn": "annualize",
+   "args": [
+    -1.0,
+    5
+   ],
+   "expect": -1.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "real_return is Fisher",
+   "fn": "real_return",
+   "args": [
+    0.5,
+    0.4
+   ],
+   "expect": 0.0714285714285714,
+   "tol": 1e-12,
+   "note": "1.5/1.4 - 1, not 0.10"
+  },
+  {
+   "name": "real_return zero when n == i",
+   "fn": "real_return",
+   "args": [
+    0.65,
+    0.65
+   ],
+   "expect": 0.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "house example (USD return)",
+   "fn": "currency_return",
+   "args": [
+    9.0,
+    4.609919871605754
+   ],
+   "expect": 0.782556654795437,
+   "tol": 1e-12,
+   "note": "1M -> 10M TL while USD/TRY 8.4739 -> 47.5379"
+  },
+  {
+   "name": "shift_month back across year",
+   "fn": "shift_month",
+   "args": [
+    "2024-01",
+    -1
+   ],
+   "expect": "2023-12",
+   "tol": 1e-12
+  },
+  {
+   "name": "shift_month back 12",
+   "fn": "shift_month",
+   "args": [
+    "2024-03",
+    -12
+   ],
+   "expect": "2023-03",
+   "tol": 1e-12
+  },
+  {
+   "name": "shift_month forward across year",
+   "fn": "shift_month",
+   "args": [
+    "2023-12",
+    1
+   ],
+   "expect": "2024-01",
+   "tol": 1e-12
+  },
+  {
+   "name": "shift_month rejects month 13",
+   "fn": "shift_month",
+   "args": [
+    "2024-13",
+    0
+   ],
+   "raises": true
+  },
+  {
+   "name": "window_return 12 months",
+   "fn": "window_return",
+   "args": [
+    {
+     "2024-01": 100.0,
+     "2025-01": 130.0
+    },
+    "2025-01",
+    12
+   ],
+   "expect": 0.3,
+   "tol": 1e-12
+  },
+  {
+   "name": "window_return requires both ends",
+   "fn": "window_return",
+   "args": [
+    {
+     "2024-01": 100.0,
+     "2025-01": 130.0
+    },
+    "2025-01",
+    24
+   ],
+   "raises": true
+  },
+  {
+   "name": "deposit_index compounds monthly",
+   "fn": "deposit_index",
+   "args": [
+    {
+     "2024-01": 0.12,
+     "2024-02": 0.12,
+     "2024-03": 0.12
+    }
+   ],
+   "expect": {
+    "2024-01": 100.0,
+    "2024-02": 101.0,
+    "2024-03": 102.01
+   },
+   "tol": 1e-12,
+   "note": "100 -> 101 -> 102.01"
+  },
+  {
+   "name": "deposit_index rejects gaps",
+   "fn": "deposit_index",
+   "args": [
+    {
+     "2024-01": 0.1,
+     "2024-03": 0.1
+    }
+   ],
+   "raises": true
+  },
+  {
+   "name": "asset_windows known values",
+   "fn": "asset_windows",
+   "args": [
+    {
+     "2024-06": 100.0,
+     "2025-06": 200.0
+    },
+    {
+     "2024-06": 1000.0,
+     "2025-06": 1600.0
+    },
+    {
+     "2024-06": 32.0,
+     "2025-06": 40.0
+    },
+    "2025-06",
+    [
+     1
+    ]
+   ],
+   "expect": [
+    {
+     "years": 1,
+     "nominal_tl": 1.0,
+     "real_tl": 0.25,
+     "usd": 0.6000000000000001,
+     "real_tl_annual": 0.25
+    }
+   ],
+   "tol": 1e-12,
+   "note": "asset +100%, CPI +60%, USD/TRY +25%: real 0.25, usd 0.60"
+  },
+  {
+   "name": "asset_windows skips uncovered windows",
+   "fn": "asset_windows",
+   "args": [
+    {
+     "$flat": [
+      "2022-01",
+      36,
+      100,
+      0.01
+     ]
+    },
+    {
+     "$flat": [
+      "2022-01",
+      36,
+      100,
+      0.02
+     ]
+    },
+    {
+     "$flat": [
+      "2022-01",
+      36,
+      10,
+      0.015
+     ]
+    },
+    "2025-01"
+   ],
+   "expect": [
+    {
+     "years": 1
+    },
+    {
+     "years": 3
+    }
+   ],
+   "tol": 1e-12,
+   "note": "only 1- and 3-year windows exist"
+  },
+  {
+   "name": "asset matching inflation has zero real and usd return",
+   "fn": "asset_windows",
+   "args": [
+    {
+     "$flat": [
+      "2020-01",
+      60,
+      100,
+      0.03
+     ]
+    },
+    {
+     "$flat": [
+      "2020-01",
+      60,
+      100,
+      0.03
+     ]
+    },
+    {
+     "$flat": [
+      "2020-01",
+      60,
+      100,
+      0.03
+     ]
+    },
+    "2025-01"
+   ],
+   "expect": [
+    {
+     "years": 1,
+     "real_tl": 0.0,
+     "usd": 0.0
+    },
+    {
+     "years": 3,
+     "real_tl": 0.0,
+     "usd": 0.0
+    },
+    {
+     "years": 5,
+     "real_tl": 0.0,
+     "usd": 0.0
+    }
+   ],
+   "tol": 1e-12
+  },
+  {
+   "name": "to_tl",
+   "fn": "to_tl",
+   "args": [
+    {
+     "2024-01": 10.0
+    },
+    {
+     "2024-01": 30.0
+    }
+   ],
+   "expect": {
+    "2024-01": 300.0
+   },
+   "tol": 1e-12
+  },
+  {
+   "name": "value_today CPI",
+   "fn": "value_today",
+   "args": [
+    100,
+    500,
+    1500
+   ],
+   "expect": 300.0,
+   "tol": 1e-12,
+   "note": "100 TL at CPI 500 = 300 TL at CPI 1500"
+  },
+  {
+   "name": "value_today via USD/TRY",
+   "fn": "value_today",
+   "args": [
+    1000,
+    8.0,
+    40.0
+   ],
+   "expect": 5000.0,
+   "tol": 1e-12,
+   "note": "1000 TL = 125 USD at 8.0; 125 USD at 40.0 = 5000 TL"
+  },
+  {
+   "name": "value_today rejects non-positive level",
+   "fn": "value_today",
+   "args": [
+    100,
+    0,
+    1500
+   ],
+   "raises": true
+  }
+ ]
+}

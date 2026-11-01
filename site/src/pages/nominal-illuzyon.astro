@@ -1,0 +1,240 @@
+---
+import Base from "../layouts/Base.astro";
+import { levels } from "../lib/levels.ts";
+import { monthLabel } from "../lib/format.ts";
+import { SITE_NAME, DISCLAIMER } from "../config.ts";
+
+const s = levels.series;
+// Months where every series has a value; the form only offers these.
+const months = Object.keys(s.cpi_tr).filter((m) => m in s.usdtry && m in s.gold_gram_tl).sort();
+const first = months[0];
+const end = levels.end_month;
+const years = [...new Set(months.map((m) => Number(m.slice(0, 4))))];
+const [endY, endM] = end.split("-").map(Number);
+const defaultMonth = months.includes(`${endY - 10}-${String(endM).padStart(2, "0")}`)
+  ? `${endY - 10}-${String(endM).padStart(2, "0")}`
+  : first;
+const MONTHS_TR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
+---
+<Base title="Nominal İllüzyon Makinesi" description="Geçmişteki bir TL tutarının bugün TÜFE, dolar ve gram altın cinsinden karşılığı." sample={levels.sample}>
+  <h1>Nominal illüzyon makinesi</h1>
+  <p class="lead">
+    Geçmişteki bir TL tutarı bugün neye denk geliyor? Bir ay ve tutar seçin; bugünkü karşılığını
+    TÜFE, dolar ve gram altın cinsinden görün.
+  </p>
+  <p class="privacy small">
+    🔒 Hesap tamamen tarayıcınızda yapılır. Girdiğiniz tutar ve tarih hiçbir sunucuya gönderilmez, kaydedilmez.
+  </p>
+
+  <form id="calc" class="card form" novalidate onsubmit="return false">
+    <div class="field">
+      <label for="amount">Tutar (TL)</label>
+      <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" value="1.000" />
+    </div>
+    <div class="field">
+      <label for="month">Ay</label>
+      <select id="month" name="month">
+        {MONTHS_TR.map((name, i) => (
+          <option value={String(i + 1).padStart(2, "0")} selected={Number(defaultMonth.slice(5)) === i + 1}>{name}</option>
+        ))}
+      </select>
+    </div>
+    <div class="field">
+      <label for="year">Yıl</label>
+      <select id="year" name="year">
+        {years.map((y) => <option value={String(y)} selected={Number(defaultMonth.slice(0, 4)) === y}>{y}</option>)}
+      </select>
+    </div>
+    <p class="muted small range">Seçilebilir aralık: {monthLabel(first)} – {monthLabel(end)}. “Bugün” = {monthLabel(end)} (en son veri).</p>
+  </form>
+
+  <p id="error" class="error" role="alert" hidden></p>
+
+  <section id="result" class="result" aria-live="polite">
+    <p class="then"><span id="r-then-month"></span> · <strong id="r-then-amount"></strong></p>
+    <p class="muted">bugün ({monthLabel(end)}) şunlara denk geliyor:</p>
+    <div class="grid">
+      <div class="card r">
+        <h2 class="r-label">TÜFE ile</h2>
+        <p class="r-value" id="r-cpi"></p>
+        <p class="muted small" id="r-cpi-note"></p>
+      </div>
+      <div class="card r">
+        <h2 class="r-label">Dolar ile</h2>
+        <p class="r-value" id="r-usd"></p>
+        <p class="muted small" id="r-usd-note"></p>
+      </div>
+      <div class="card r">
+        <h2 class="r-label">Gram altın ile</h2>
+        <p class="r-value" id="r-gold"></p>
+        <p class="muted small" id="r-gold-note"></p>
+      </div>
+      <div class="card r missing">
+        <h2 class="r-label">Asgari ücret ile</h2>
+        <p class="r-value muted">—</p>
+        <p class="muted small">Asgari ücret serisi henüz eklenmedi.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" id="download">Kartı indir (PNG)</button>
+      <span class="muted small">1200×1500, paylaşıma uygun.</span>
+    </div>
+  </section>
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <p class="formula card">Bugünkü karşılık = Tutar × Seviye<sub>bugün</sub> / Seviye<sub>o ay</sub></p>
+  <p>
+    Seviye; TÜFE için endeks, dolar için USD/TRY kuru, altın için gram altının TL fiyatıdır (aylık ortalama).
+    Ayrıntılar: <a href="/metodoloji#illuzyon">Metodoloji</a>.
+  </p>
+  <h3>Kaynaklar</h3>
+  <ul class="small">
+    {Object.values(levels.sources).map((src) => (
+      <li>{src.label}: {src.source}{src.code ? <> (<code>{src.code}</code>)</> : null}{src.verified ? "" : " · doğrulanmadı"}{src.sample ? " · ÖRNEK VERİ" : ""}</li>
+    ))}
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="levels-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { valueToday, SeriesError } from "../lib/engine.ts";
+  import { parseAmount, drawCard, type CardData } from "../lib/card.ts";
+
+  const data = JSON.parse(document.getElementById("levels-data")!.textContent!);
+  const S = data.series as Record<string, Record<string, number>>;
+  const END: string = data.end_month;
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (ym: string) => `${MONTHS[Number(ym.slice(5)) - 1]} ${ym.slice(0, 4)}`;
+  const tlFmt = (x: number) =>
+    new Intl.NumberFormat("tr-TR", { maximumFractionDigits: Math.abs(x) < 100 ? 2 : 0 }).format(x) + " TL";
+  const amtFmt = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(x) + " TL";
+  const n2 = (x: number) => new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(x);
+  const times = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(x);
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const amountEl = $<HTMLInputElement>("amount");
+  const monthEl = $<HTMLSelectElement>("month");
+  const yearEl = $<HTMLSelectElement>("year");
+  const errEl = $("error");
+  const resEl = $("result");
+  const btn = $<HTMLButtonElement>("download");
+
+  let current: CardData | null = null;
+
+  function fail(msg: string) {
+    errEl.textContent = msg;
+    errEl.hidden = false;
+    resEl.classList.add("stale");
+    btn.disabled = true;
+    current = null;
+  }
+
+  function update() {
+    const amount = parseAmount(amountEl.value);
+    const then = `${yearEl.value}-${monthEl.value}`;
+    if (amount === null) return fail("Geçerli bir tutar girin (ör. 1.000 veya 2500,50).");
+    if (!(then in S.cpi_tr && then in S.usdtry && then in S.gold_gram_tl)) {
+      return fail(`${label(then)} için veri yok. ${label(Object.keys(S.cpi_tr)[0])} ile ${label(END)} arasında bir ay seçin.`);
+    }
+    let cpi: number, usd: number, gold: number;
+    try {
+      cpi = valueToday(amount, S.cpi_tr[then], S.cpi_tr[END]);
+      usd = valueToday(amount, S.usdtry[then], S.usdtry[END]);
+      gold = valueToday(amount, S.gold_gram_tl[then], S.gold_gram_tl[END]);
+    } catch (e) {
+      if (e instanceof SeriesError) return fail("Bu ay için hesap yapılamadı.");
+      throw e;
+    }
+    errEl.hidden = true;
+    resEl.classList.remove("stale");
+    btn.disabled = false;
+
+    const usdThen = amount / S.usdtry[then];
+    const gramThen = amount / S.gold_gram_tl[then];
+    $("r-then-month").textContent = label(then);
+    $("r-then-amount").textContent = amtFmt(amount);
+    $("r-cpi").textContent = tlFmt(cpi);
+    $("r-cpi-note").textContent = `Fiyatlar ${times(S.cpi_tr[END] / S.cpi_tr[then])} kat arttı; aynı sepet için gereken tutar.`;
+    $("r-usd").textContent = tlFmt(usd);
+    $("r-usd-note").textContent = `O gün ${n2(usdThen)} $ ediyordu (kur ${n2(S.usdtry[then])} → ${n2(S.usdtry[END])}).`;
+    $("r-gold").textContent = tlFmt(gold);
+    $("r-gold-note").textContent = `O gün ${n2(gramThen)} gram ediyordu (gram ${n2(S.gold_gram_tl[then])} → ${n2(S.gold_gram_tl[END])} TL).`;
+
+    current = {
+      siteName: data.site_name,
+      disclaimer: data.disclaimer,
+      sample: data.sample,
+      thenLabel: label(then),
+      endLabel: label(END),
+      amount: amtFmt(amount),
+      rows: [
+        { label: "TÜFE ile", value: tlFmt(cpi) },
+        { label: "Dolar ile", value: tlFmt(usd) },
+        { label: "Gram altın ile", value: tlFmt(gold) },
+      ],
+      sources: Object.values(data.sources as Record<string, { label: string; source: string; sample: boolean }>)
+        .map((s) => `${s.label}: ${s.source}${s.sample ? " (örnek)" : ""}`),
+    };
+  }
+
+  for (const el of [amountEl, monthEl, yearEl]) el.addEventListener("input", update);
+  amountEl.addEventListener("blur", () => {
+    const a = parseAmount(amountEl.value);
+    if (a !== null) amountEl.value = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(a);
+  });
+
+  btn.addEventListener("click", async () => {
+    if (!current) return;
+    btn.disabled = true;
+    try {
+      const canvas = await drawCard(current);
+      const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/png"));
+      if (!blob) throw new Error("PNG üretilemedi");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nominal-illuzyon-${yearEl.value}-${monthEl.value}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  update();
+</script>
+
+<style>
+  .privacy { color: var(--ink-2); }
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .field:first-child { grid-column: 1 / -1; }
+  @media (min-width: 720px) {
+    .form { grid-template-columns: 2fr 1fr 1fr; }
+    .field:first-child { grid-column: auto; }
+  }
+  .field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; color: var(--ink-2); }
+  .field input, .field select {
+    width: 100%; font: inherit; font-size: 1.1rem; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .range { grid-column: 1 / -1; margin: 0; }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .result { margin-top: 24px; transition: opacity 0.15s; }
+  .result.stale { opacity: 0.35; }
+  .then { font-size: 1.15rem; margin: 0; }
+  .then strong { font-family: var(--font-head); font-weight: 400; font-size: 2rem; letter-spacing: 0.01em; }
+  .grid { display: grid; gap: 12px; margin-top: 8px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .r-label { font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; margin: 0; color: var(--ink-2); text-transform: none; letter-spacing: 0; }
+  .r-value { font-family: var(--font-head); font-size: clamp(2.2rem, 10vw, 3rem); margin: 2px 0 4px; line-height: 1.1; overflow-wrap: anywhere; }
+  .r p { margin-bottom: 0; }
+  .missing { border-style: dashed; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }
+  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 12px 16px; overflow-x: auto; }
+</style>

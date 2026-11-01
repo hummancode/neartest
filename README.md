@@ -12,5 +12,6 @@ Plan ve kurallar: CLAUDE.md. Değişiklikler: CHANGELOG.md.
 
     cd site
     npm install
+    npm test           # TS motoru, Python ile aynı vakalar (tests/cases.json)
     npm run build      # çıktı: site/dist (Cloudflare Pages: build komutu `npm run build`, kök `site`, çıktı `dist`)
     npm run preview    # http://localhost:4321

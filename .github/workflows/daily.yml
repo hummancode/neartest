@@ -34,6 +34,8 @@ jobs:
         with: { node-version: "22", cache: npm, cache-dependency-path: site/package-lock.json }
       - run: npm ci
         working-directory: site
+      - run: npm test       # TS engine vs. tests/cases.json (same cases as Python)
+        working-directory: site
       - run: npm run build
         working-directory: site
 

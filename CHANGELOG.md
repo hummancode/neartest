@@ -10,3 +10,8 @@
   nominal TL · USD · reel TL, kümülatif + yıllık, 5 yıllık reel trend çizgisi), örnek veri bandı,
   kaynaklar/notlar, Metodoloji sayfası; koyu/açık tema, Anton + Inter (yerel barındırılan).
   320–1280 px'te taşma yok. Workflow artık siteyi de derliyor. Cloudflare yayını henüz yok.
+- 2026-11-01 — Adım 2 / Aşama 4: Nominal illüzyon makinesi (`/nominal-illuzyon`). Ay + TL tutarı →
+  bugünkü karşılık TÜFE, dolar, gram altın cinsinden; hesap tarayıcıda, veri gönderilmez.
+  Motor TypeScript'e taşındı (`site/src/lib/engine.ts`); Python ve TS aynı 22 vakayı
+  (`tests/cases.json`) koşuyor. 1200×1500 PNG kart (örnek veriyse kartta da uyarı).
+  Builder artık `site/data/seviyeler.json` da üretiyor. Asgari ücret serisi eksik.
