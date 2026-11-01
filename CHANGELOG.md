@@ -25,3 +25,8 @@
   Builder `site/data/reel_faiz.json` üretiyor (son 36 ay; hesap Python'da, sayfa sadece gösteriyor).
   Kredi faizi serisi ve Reel Tablo'ya "TL Kredi (borç maliyeti)" satırı eklendi (kod doğrulanmadı,
   kredi türü seçilmedi). Ex-ante (beklenti anketi) henüz yok. Trend çizgisi düz serilerde gürültüyü büyütmüyor.
+- 2026-11-01 — Aşama 7: Bülten sayfası (platform seçilince `config.ts`'e form adresi yazılır; 3. taraf
+  script yok) + arşiv düzeni, Yasal uyarı ve KVKK gizlilik metni (TASLAK, hukuki inceleme gerekli),
+  404, `_headers`, robots.txt, alt menü. Kaynak tablosunda her serinin son veri ayı. `npm run check`
+  (bağımlılıksız derleme sonrası kontrol) workflow'a eklendi. Tüm sayfalar 320/1280 px, açık/koyu
+  temada konsol hatası ve taşma olmadan test edildi. README yeniden yazıldı (Cloudflare adımları).

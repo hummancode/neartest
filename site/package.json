@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "check": "node scripts/check.mjs"
   },
   "dependencies": {
     "@fontsource/anton": "5.3.0",

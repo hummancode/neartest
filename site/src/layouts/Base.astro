@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { SITE_NAME, DISCLAIMER } from "../config.ts";
+import { SITE_NAME, DISCLAIMER, CF_ANALYTICS_TOKEN } from "../config.ts";
 
 interface Props {
   title: string;
@@ -55,6 +55,12 @@ const nav = [
       <div class="wrap">
         <p><strong>{DISCLAIMER}</strong> Bu site hesaplar, karşılaştırır ve varsayımlarını gösterir; karar sizindir.</p>
         <p>Hesaplayıcılar tarayıcınızda çalışır; girdiğiniz hiçbir bilgi bir sunucuya gönderilmez.</p>
+        <nav class="foot-nav" aria-label="Alt menü">
+          <a href="/metodoloji">Metodoloji</a>
+          <a href="/bulten">Bülten</a>
+          <a href="/yasal-uyari">Yasal uyarı</a>
+          <a href="/gizlilik">Gizlilik ve KVKK</a>
+        </nav>
       </div>
     </footer>
     <script is:inline>
@@ -74,5 +80,8 @@ const nav = [
         });
       })();
     </script>
+    {CF_ANALYTICS_TOKEN && (
+      <script defer is:inline src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: CF_ANALYTICS_TOKEN })}></script>
+    )}
   </body>
 </html>

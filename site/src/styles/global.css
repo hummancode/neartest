@@ -91,6 +91,8 @@ main { padding: 24px 0 48px; }
 
 .site-footer { border-top: 1px solid var(--line); padding: 20px 0 32px; color: var(--muted); font-size: 0.875rem; }
 .site-footer strong { color: var(--ink); }
+.foot-nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; }
+.foot-nav a { color: var(--ink-2); }
 
 .card {
   background: var(--surface);

@@ -1,17 +1,44 @@
 # [MARKA] — reel finans verisi
 
+Plan ve kurallar: `CLAUDE.md`. Değişiklikler: `CHANGELOG.md`.
+
+## Veri hattı (Python)
+
     pip install -r requirements.txt
-    pytest -q                              # motor testleri
-    python -m pipeline.build --sample      # örnek (sentetik) veriyle JSON üret
-    EVDS_API_KEY=... python -m pipeline.discover "Tüketici Fiyat" "Mevduat"
+    pytest -q                              # motor + builder testleri
+    python -m pipeline.build --sample      # eksik serileri ÖRNEK (sentetik) veriyle doldurarak JSON üret
+    EVDS_API_KEY=... python -m pipeline.discover "Tüketici Fiyat" "Mevduat" "Altın"
     EVDS_API_KEY=... python -m pipeline.fetch && python -m pipeline.build
 
-Plan ve kurallar: CLAUDE.md. Değişiklikler: CHANGELOG.md.
+Çıktılar `site/data/`: `reel_tablo.json`, `seviyeler.json`, `tufe_gruplari.json`, `reel_faiz.json`.
+Seri kodları `pipeline/series.py`'de; doğrulanmadan `verified=True` yapılmaz.
+
+TÜFE grup ağırlıkları elle girilir: `data/manual/tufe_agirliklari.csv`
+
+    id,weight
+    food,...
+    housing,...
+    (pipeline/series.py içindeki CPI_GROUPS id'lerinin hepsi)
 
 ## Site (Astro)
 
     cd site
     npm install
     npm test           # TS motoru, Python ile aynı vakalar (tests/cases.json)
-    npm run build      # çıktı: site/dist (Cloudflare Pages: build komutu `npm run build`, kök `site`, çıktı `dist`)
+    npm run build      # çıktı: site/dist
+    npm run check      # derleme sonrası: kırık bağlantı, çapa, uyarı metni, örnek bandı
     npm run preview    # http://localhost:4321
+
+Sahibin karar vermesi gereken ayarlar tek dosyada: `site/src/config.ts`
+(marka adı, KVKK iletişim/veri sorumlusu, bülten form adresi, Cloudflare Web Analytics token'ı,
+yasal metinlerin taslak uyarısı).
+
+## Cloudflare Pages'a yayın
+
+1. Cloudflare → Workers & Pages → Create → Pages → Connect to Git → bu repo.
+2. Production branch: `main`. Build command: `npm run build`. Build output: `dist`. Root directory: `site`.
+3. Environment variable: `NODE_VERSION` = `22`.
+4. `site/public/_headers` güvenlik başlıklarını ve önbellek ayarını içerir.
+
+Günlük veri işi (`.github/workflows/daily.yml`) yalnızca varsayılan dalda zamanlanır ve
+`EVDS_API_KEY` repo secret'ı gerektirir; yoksa yalnızca örnek veriyle derler.

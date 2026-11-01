@@ -71,3 +71,9 @@ def test_real_rates_rows():
     assert abs(first["credit_real_ex_post"] - (1.55 / 1.4 - 1)) < 1e-12
     assert out["rows"][12]["month"] == "2024-01" and out["rows"][12]["cpi_12m"] is None
     assert out["sample"] is False and out["ex_ante"] is None
+
+
+def test_sources_carry_last_month():
+    tablo, *_ = build.build(allow_sample=True)
+    for src in tablo["sources"].values():
+        assert len(src["last_month"]) == 7 and src["last_month"][4] == "-"

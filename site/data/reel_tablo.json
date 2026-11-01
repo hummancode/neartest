@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-01T21:46:12+00:00",
+ "generated_at": "2026-11-01T21:48:30+00:00",
  "end_month": "2026-09",
  "sample": true,
  "sources": {
@@ -8,56 +8,64 @@
    "source": "TCMB EVDS",
    "code": "TP.DK.USD.A.YTL",
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "eurtry": {
    "label": "EUR/TRY",
    "source": "TCMB EVDS",
    "code": "TP.DK.EUR.A.YTL",
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "cpi_tr": {
    "label": "TÜFE (2003=100)",
    "source": "TÜİK, TCMB EVDS üzerinden",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "deposit_rate": {
    "label": "TL mevduat faizi (ağırlıklı ortalama, yıllık)",
    "source": "TCMB EVDS",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "credit_rate": {
    "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
    "source": "TCMB EVDS",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "gold_gram_tl": {
    "label": "Gram altın",
    "source": "Belirlenecek",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "bist100": {
    "label": "BIST 100",
    "source": "Belirlenecek",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   },
   "sp500_usd": {
    "label": "S&P 500",
    "source": "Belirlenecek",
    "code": null,
    "verified": false,
-   "sample": true
+   "sample": true,
+   "last_month": "2026-09"
   }
  },
  "notes": [

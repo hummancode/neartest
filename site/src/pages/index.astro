@@ -98,7 +98,7 @@ function sparkLabel(row: Row) {
   <div class="card scroll-x">
     <table class="data sources">
       <thead>
-        <tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Doğrulandı</th><th scope="col">Örnek veri</th></tr>
+        <tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Son veri</th><th scope="col">Doğrulandı</th><th scope="col">Örnek veri</th></tr>
       </thead>
       <tbody>
         {Object.entries(tablo.sources).map(([key, s]) => (
@@ -106,6 +106,7 @@ function sparkLabel(row: Row) {
             <th scope="row">{s.label}</th>
             <td>{s.source}</td>
             <td><code>{s.code ?? "—"}</code></td>
+            <td>{monthLabel(s.last_month)}</td>
             <td>{s.verified ? "Evet" : "Hayır"}</td>
             <td>{s.sample ? "Evet" : "Hayır"}</td>
           </tr>
@@ -168,7 +169,7 @@ function sparkLabel(row: Row) {
   .cta h3 { margin: 0 0 4px; }
   .cta p { margin: 0; }
   .scroll-x { overflow-x: auto; padding: 8px 12px; }
-  .sources { min-width: 560px; font-size: 0.9rem; }
+  .sources { min-width: 640px; font-size: 0.9rem; }
   .sources th, .sources td { text-align: left; }
   .sources tbody th { font-weight: 600; }
   .notes { padding-left: 1.2em; }

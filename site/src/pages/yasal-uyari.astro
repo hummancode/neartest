@@ -1,0 +1,51 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE_NAME, LEGAL_DRAFT } from "../config.ts";
+---
+<Base title="Yasal Uyarı" description="Yatırım tavsiyesi değildir: sitenin kapsamı ve sınırları.">
+  <article class="prose">
+    <h1>Yasal uyarı</h1>
+    {LEGAL_DRAFT && <p class="draft">Bu metin taslaktır; yayından önce hukuki olarak gözden geçirilecektir.</p>}
+
+    <h2>Yatırım tavsiyesi değildir</h2>
+    <p>
+      {SITE_NAME} sitesinde ve bülteninde yer alan bilgi, tablo, grafik ve hesaplamalar yalnızca genel bilgilendirme
+      amaçlıdır. Bunlar 6362 sayılı Sermaye Piyasası Kanunu ve ilgili mevzuat kapsamında yatırım danışmanlığı
+      değildir. Hiçbir içerik bir varlığın alınması, satılması veya elde tutulması yönünde öneri, hedef fiyat ya da
+      kişiye özel tavsiye içermez.
+    </p>
+    <p>
+      Yatırım danışmanlığı hizmeti; yetkili kuruluşlar ile kişiler arasında imzalanacak yatırım danışmanlığı
+      sözleşmesi çerçevesinde, kişinin risk ve getiri tercihleri dikkate alınarak sunulur. Buradaki içerikler bu
+      niteliği taşımaz ve mali durumunuza uygun olmayabilir. Yalnızca bu bilgilere dayanarak karar vermek
+      beklentilerinize uygun sonuç doğurmayabilir.
+    </p>
+
+    <h2>Verilerin doğruluğu</h2>
+    <p>
+      Veriler kamuya açık resmi kaynaklardan (öncelikle TCMB EVDS ve TÜİK) alınır ve hesaplama yöntemi
+      <a href="/metodoloji">Metodoloji</a> sayfasında açıklanır. Özen gösterilmekle birlikte verilerde gecikme,
+      eksiklik veya hata olabilir; kaynak kurumların sonradan yaptığı revizyonlar sonuçları değiştirebilir.
+      Doğrulanmamış veya örnek (sentetik) veri kullanılan yerler açıkça işaretlenir.
+    </p>
+    <p>Geçmiş getiriler gelecekteki getirilerin göstergesi değildir.</p>
+
+    <h2>Kişisel hesaplayıcılar</h2>
+    <p>
+      Kişisel enflasyon ve nominal illüzyon hesaplayıcıları, girdiğiniz değerlerle yapılan kişisel hesaplardır.
+      Sonuçlar resmi bir istatistik veya enflasyon göstergesi değildir. Site kendi enflasyon endeksini üretmez
+      ve yayımlamaz.
+    </p>
+
+    <h2>Sorumluluk</h2>
+    <p>
+      Bu sitedeki bilgilerin kullanımından doğabilecek doğrudan veya dolaylı zararlardan {SITE_NAME} sorumlu
+      tutulamaz. Kararlarınızı vermeden önce gerekirse yetkili bir uzmana danışın.
+    </p>
+  </article>
+</Base>
+<style>
+  .prose { max-width: 760px; }
+  .prose p { color: var(--ink-2); }
+  .draft { border: 1px dashed var(--warn-bg); color: var(--warn-bg) !important; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+</style>

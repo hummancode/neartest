@@ -1,0 +1,15 @@
+---
+// Layout for newsletter archive issues (src/pages/bulten/*.md).
+import Base from "./Base.astro";
+import { DISCLAIMER } from "../config.ts";
+const { frontmatter } = Astro.props;
+---
+<Base title={frontmatter.title} description={frontmatter.summary}>
+  <article class="prose">
+    <p class="muted small"><a href="/bulten">← Bülten arşivi</a> · {frontmatter.date}</p>
+    <h1>{frontmatter.title}</h1>
+    <slot />
+    <p><strong>{DISCLAIMER}</strong></p>
+  </article>
+</Base>
+<style>.prose { max-width: 720px; }</style>

@@ -85,7 +85,7 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict, dict]:
         "sample": any(r["sample"] for r in rows),
         "sources": {
             name: {k: SERIES[name][k] for k in ("label", "source", "code", "verified")}
-            | {"sample": is_sample[name]}
+            | {"sample": is_sample[name], "last_month": e.last_month(data[name])}
             for name in SERIES
         },
         "notes": [

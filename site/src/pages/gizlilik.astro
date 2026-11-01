@@ -1,0 +1,76 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE_NAME, LEGAL_DRAFT, CONTACT_EMAIL, DATA_CONTROLLER, NEWSLETTER, CF_ANALYTICS_TOKEN } from "../config.ts";
+const controller = DATA_CONTROLLER || "[veri sorumlusunun adı/unvanı eklenecek]";
+const contact = CONTACT_EMAIL || "[iletişim e-postası eklenecek]";
+const analytics = CF_ANALYTICS_TOKEN !== "";
+const newsletter = NEWSLETTER.formAction !== "";
+---
+<Base title="Gizlilik ve KVKK" description="Kişisel verilerin korunması: hangi veriler işlenir, hangileri işlenmez.">
+  <article class="prose">
+    <h1>Gizlilik ve KVKK aydınlatma metni</h1>
+    {LEGAL_DRAFT && <p class="draft">Bu metin taslaktır; yayından önce hukuki olarak gözden geçirilecektir.</p>}
+
+    <p>
+      Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında {SITE_NAME} sitesini
+      ziyaret edenleri bilgilendirmek için hazırlanmıştır.
+    </p>
+
+    <h2>Veri sorumlusu</h2>
+    <p>{controller} · İletişim: {contact}</p>
+
+    <h2>Hesaplayıcılar: veri toplanmaz</h2>
+    <p>
+      Nominal illüzyon ve kişisel enflasyon hesaplayıcıları <strong>tamamen tarayıcınızda çalışır</strong>.
+      Girdiğiniz tutarlar, tarihler ve harcama dağılımı hiçbir sunucuya gönderilmez, kaydedilmez ve bizim
+      tarafımızdan görülemez. İndirdiğiniz paylaşım kartı da tarayıcınızda üretilir.
+    </p>
+
+    <h2>Çerezler ve tarayıcı depolama</h2>
+    <p>
+      Site çerez kullanmaz. Yalnızca seçtiğiniz tema (koyu/açık) tercihi, tarayıcınızın yerel depolamasında
+      (localStorage) tutulur; bu bilgi cihazınızdan çıkmaz.
+    </p>
+
+    <h2>Barındırma ve sunucu kayıtları</h2>
+    <p>
+      Site statik dosyalar olarak bir barındırma/içerik dağıtım sağlayıcısı (Cloudflare) üzerinden sunulur.
+      Sağlayıcı, hizmetin güvenliği ve işletilmesi için IP adresi, tarayıcı bilgisi ve istek zamanı gibi
+      teknik kayıtları kendi politikaları çerçevesinde işleyebilir. Bu kayıtlar tarafımızca kişiyi tanımlamak
+      amacıyla kullanılmaz.
+    </p>
+
+    <h2>Ziyaret istatistikleri</h2>
+    {analytics ? (
+      <p>
+        Ziyaret sayılarını görmek için çerez kullanmayan Cloudflare Web Analytics kullanılır. Bu araç ziyaretçileri
+        tekil olarak izlemez ve çerez veya yerel depolama kullanmaz.
+      </p>
+    ) : (
+      <p>Şu anda herhangi bir ziyaret istatistiği aracı kullanılmamaktadır. Eklenirse yalnızca çerez kullanmayan bir araç tercih edilecek ve bu metin güncellenecektir.</p>
+    )}
+
+    <h2>Bülten</h2>
+    {newsletter ? (
+      <p>
+        Bültene kaydolursanız e-posta adresiniz, açık rızanıza dayanarak yalnızca bülten gönderimi amacıyla
+        {NEWSLETTER.provider ? ` ${NEWSLETTER.provider}` : " bülten platformu"} tarafından işlenir ve saklanır.
+        Platform yurt dışında bulunabilir; bu durumda verileriniz KVKK'nın yurt dışına aktarım hükümlerine uygun
+        şekilde aktarılır. Her e-postadaki bağlantıyla dilediğiniz an aboneliğinizi sonlandırabilirsiniz.
+      </p>
+    ) : (
+      <p>Bülten kaydı henüz açık değildir. Açıldığında hangi verinin, hangi platformda ve hangi amaçla işlendiği burada belirtilecektir.</p>
+    )}
+
+    <h2>KVKK kapsamındaki haklarınız</h2>
+    <p>KVKK'nın 11. maddesi uyarınca; kişisel verinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme,
+      işlenme amacını öğrenme, aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini,
+      silinmesini veya yok edilmesini isteme, itiraz etme ve zarara uğramanız hâlinde zararın giderilmesini talep
+      etme haklarına sahipsiniz. Taleplerinizi {contact} adresine iletebilirsiniz.</p>
+  </article>
+</Base>
+<style>
+  .prose { max-width: 760px; }
+  .prose p { color: var(--ink-2); }
+  .draft { border: 1px dashed var(--warn-bg); color: var(--warn-bg) !important; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+</style>

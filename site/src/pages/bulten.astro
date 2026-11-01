@@ -1,0 +1,66 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE_NAME, NEWSLETTER, DISCLAIMER } from "../config.ts";
+import { tablo } from "../lib/data.ts";
+
+// Past issues: Markdown files in src/pages/bulten/ (newest first by `date` in frontmatter).
+const issues = Object.values(
+  import.meta.glob<{ frontmatter: { title: string; date: string; summary?: string }; url: string }>("./bulten/*.md", { eager: true }),
+).sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date));
+const enabled = NEWSLETTER.formAction !== "";
+---
+<Base title="Bülten" description={`${SITE_NAME} haftalık reel finans bülteni.`} sample={tablo.sample}>
+  <h1>Haftalık bülten</h1>
+  <p class="lead">
+    Her hafta: Reel Tablo'da neler değişti, enflasyon ve faiz verilerinin reel hâli, hesabıyla birlikte.
+    Yorum yok, tavsiye yok; rakamlar ve yöntemleri.
+  </p>
+
+  <section class="card signup" aria-labelledby="signup-h">
+    <h2 id="signup-h">Kayıt ol</h2>
+    {enabled ? (
+      <form action={NEWSLETTER.formAction} method="post" target="_blank" class="form">
+        <label for="email">E-posta adresiniz</label>
+        <div class="row">
+          <input id="email" name="email" type="email" required autocomplete="email" placeholder="ad@ornek.com" />
+          <button class="btn" type="submit">Kaydol</button>
+        </div>
+        <p class="muted small">
+          E-posta adresiniz yalnızca bülten gönderimi için {NEWSLETTER.provider || "bülten platformu"} tarafından işlenir.
+          Her e-postadaki bağlantıyla aboneliğinizi sonlandırabilirsiniz. Ayrıntılar: <a href="/gizlilik">Gizlilik</a>.
+        </p>
+      </form>
+    ) : (
+      <p class="muted">Kayıt formu yakında açılacak.</p>
+    )}
+  </section>
+
+  <h2>Geçmiş sayılar</h2>
+  {issues.length === 0 ? (
+    <p class="muted">Henüz yayımlanmış sayı yok.</p>
+  ) : (
+    <ul class="issues">
+      {issues.map((i) => (
+        <li>
+          <a href={i.url}>{i.frontmatter.title}</a>
+          <span class="muted small"> · {i.frontmatter.date}</span>
+          {i.frontmatter.summary && <p class="muted small">{i.frontmatter.summary}</p>}
+        </li>
+      ))}
+    </ul>
+  )}
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+
+<style>
+  .signup { margin-top: 16px; }
+  .signup h2 { margin-top: 0; }
+  .form label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row input {
+    flex: 1 1 220px; font: inherit; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .issues { padding-left: 1.2em; }
+  .issues p { margin: 2px 0 10px; }
+</style>

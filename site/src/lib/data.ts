@@ -23,6 +23,7 @@ export interface Source {
   code: string | null;
   verified: boolean;
   sample: boolean;
+  last_month: string;
 }
 export interface ReelTablo {
   generated_at: string;
