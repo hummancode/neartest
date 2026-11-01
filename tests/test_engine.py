@@ -132,3 +132,43 @@ def test_to_tl():
 def test_value_today():
     # 100 TL when CPI was 500 is 300 TL when CPI is 1500.
     assert e.value_today(100, 500, 1500) == 300.0
+
+
+# --- personal inflation (Aşama 5) -------------------------------------------
+
+def test_normalize_shares():
+    # 750 + 250 = 1000 -> 0.75 / 0.25
+    assert e.normalize_shares({"a": 750, "b": 250}) == {"a": 0.75, "b": 0.25}
+
+
+def test_normalize_shares_rejects_negative_and_empty():
+    with pytest.raises(e.SeriesError):
+        e.normalize_shares({"a": -1, "b": 5})
+    with pytest.raises(e.SeriesError):
+        e.normalize_shares({"a": 0, "b": 0})
+
+
+def test_personal_inflation_equal_split():
+    # half in a group at +10 %, half at +30 % -> +20 %
+    assert close(e.personal_inflation({"a": 1, "b": 1}, {"a": 0.10, "b": 0.30}), 0.20)
+
+
+def test_personal_inflation_weighted():
+    # 0.75 * 0.40 + 0.25 * 0.80 = 0.30 + 0.20 = 0.50
+    assert close(e.personal_inflation({"a": 750, "b": 250}, {"a": 0.40, "b": 0.80}), 0.50)
+
+
+def test_personal_inflation_ignores_zero_share_without_data():
+    # group "c" has no price data, but the user spends nothing there
+    assert close(e.personal_inflation({"a": 100, "c": 0}, {"a": 0.35}), 0.35)
+
+
+def test_personal_inflation_requires_data_for_spent_groups():
+    with pytest.raises(e.SeriesError):
+        e.personal_inflation({"a": 100, "c": 50}, {"a": 0.35})
+
+
+def test_contributions_sum_to_personal_inflation():
+    # 0.75 * 0.40 = 0.30 and 0.25 * 0.80 = 0.20
+    c = e.inflation_contributions({"a": 750, "b": 250}, {"a": 0.40, "b": 0.80})
+    assert close(c["a"], 0.30) and close(c["b"], 0.20)

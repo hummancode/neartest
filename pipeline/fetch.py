@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 
-from pipeline.series import SERIES
+from pipeline.series import ALL_SERIES as SERIES
 
 RAW = Path(__file__).resolve().parent.parent / "data" / "raw"
 START = "01-01-2014"

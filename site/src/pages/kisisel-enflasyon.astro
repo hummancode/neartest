@@ -1,0 +1,271 @@
+---
+import Base from "../layouts/Base.astro";
+import { cpiGroups } from "../lib/groups.ts";
+import { monthLabel, pctPlain } from "../lib/format.ts";
+import { SITE_NAME, DISCLAIMER } from "../config.ts";
+
+const g = cpiGroups;
+const BUDGET = 30000; // example monthly budget used to prefill with official weights
+const prefill = (w: number | null) => (w ? Math.round((w * BUDGET) / 100) * 100 : 0);
+const period = `${monthLabel(g.start_month)} → ${monthLabel(g.end_month)}`;
+const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, end_label: monthLabel(g.end_month) };
+---
+<Base title="Kişisel Enflasyon Hesaplayıcı" description="Kendi harcama dağılımınızla son 12 ayın kişisel enflasyonunu hesaplayın ve resmi TÜFE ile karşılaştırın." sample={g.sample}>
+  <h1>Kişisel enflasyon</h1>
+  <p class="lead">
+    Resmi TÜFE ortalama bir hanenin sepetini ölçer. Sizin sepetiniz farklıysa, yaşadığınız enflasyon da farklıdır.
+    Aylık harcamanızı gruplara dağıtın; son 12 ayın kişisel enflasyonunu hesaplayalım.
+  </p>
+  <div class="notice card">
+    <strong>Bu kişisel bir hesaptır, resmi enflasyon değildir.</strong>
+    Grup fiyat değişimleri TÜİK'in TÜFE alt gruplarından gelir; ağırlıklar sizin girdiğiniz harcamalardır.
+    Hesap tarayıcınızda yapılır; girdiğiniz rakamlar hiçbir yere gönderilmez, kaydedilmez.
+  </div>
+
+  <section class="summary" aria-live="polite">
+    <div class="card stat">
+      <p class="stat-label">Kişisel enflasyonunuz</p>
+      <p class="stat-value" id="s-personal">—</p>
+      <p class="muted small">{period}, tahmini</p>
+    </div>
+    <div class="card stat">
+      <p class="stat-label">Resmi TÜFE</p>
+      <p class="stat-value">{pctPlain(g.headline_change_12m)}</p>
+      <p class="muted small">aynı dönem, yıllık değişim</p>
+    </div>
+    <div class="card stat">
+      <p class="stat-label">Fark</p>
+      <p class="stat-value" id="s-diff">—</p>
+      <p class="muted small">yüzde puan</p>
+    </div>
+  </section>
+  <p id="error" class="error" role="alert" hidden></p>
+
+  <form id="calc" class="card" novalidate onsubmit="return false">
+    <div class="form-head">
+      <h2>Aylık harcamanız (TL)</h2>
+      <div class="form-actions">
+        <button type="button" class="link-btn" id="reset">Resmi ağırlıklarla doldur</button>
+        <button type="button" class="link-btn" id="clear">Temizle</button>
+      </div>
+    </div>
+    <p class="muted small">
+      Başlangıçta {new Intl.NumberFormat("tr-TR").format(BUDGET)} TL'lik bir bütçe, {g.weights_sample ? "örnek" : "resmi TÜFE"} ağırlıklarıyla dağıtılmıştır.
+      Tutarların toplamı önemli değil; yalnızca oranları kullanılır.
+    </p>
+    <div class="scroll-x">
+      <table class="data groups">
+        <thead>
+          <tr>
+            <th scope="col">Harcama grubu</th>
+            <th scope="col">Tutar (TL)</th>
+            <th scope="col">Payınız</th>
+            <th scope="col">Resmi ağırlık</th>
+            <th scope="col">Grup enflasyonu</th>
+            <th scope="col">Katkı (puan)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {g.groups.map((grp) => (
+            <tr data-id={grp.id}>
+              <th scope="row"><label for={`in-${grp.id}`}>{grp.label}</label></th>
+              <td class="amount"><input id={`in-${grp.id}`} data-group={grp.id} type="text" inputmode="decimal" autocomplete="off" value={new Intl.NumberFormat("tr-TR").format(prefill(grp.weight))} /></td>
+              <td class="share" data-label="Payınız">—</td>
+              <td data-label="Resmi ağırlık">{pctPlain(grp.weight)}</td>
+              <td data-label="Grup enflasyonu">{pctPlain(grp.change_12m)}</td>
+              <td class="contrib" data-label="Katkı">—</td>
+              <td class="meta" aria-hidden="true">Pay <span class="m-share">—</span> · Grup {pctPlain(grp.change_12m)} · Katkı <span class="m-contrib">—</span> puan · Resmi ağırlık {pctPlain(grp.weight)}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Toplam</th><td id="t-total">—</td><td>%100</td><td></td><td></td><td id="t-contrib">—</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </form>
+
+  <div class="actions">
+    <button class="btn" type="button" id="download">Kartı indir (PNG)</button>
+    <span class="muted small">1200×1500, paylaşıma uygun.</span>
+  </div>
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <p class="formula card">Kişisel enflasyon = Σ (payınız<sub>k</sub> × grup enflasyonu<sub>k</sub>)</p>
+  <p>
+    Payınız, o gruba harcadığınız tutarın toplam harcamanıza oranıdır. Grup enflasyonu, TÜFE alt grup endeksinin{" "}
+    {period} arasındaki değişimidir (aylık ortalama). Resmi ağırlıklarla yapılan hesap bile resmi TÜFE ile birebir
+    aynı çıkmayabilir; nedenleri <a href="/metodoloji#kisisel">Metodoloji</a> sayfasında.
+  </p>
+  <h3>Kaynaklar</h3>
+  <ul class="small">
+    <li>{g.sources.cpi_tr.label}: {g.sources.cpi_tr.source}{g.sources.cpi_tr.verified ? "" : " · doğrulanmadı"}{g.sources.cpi_tr.sample ? " · ÖRNEK VERİ" : ""}</li>
+    <li>{g.sources.groups.label}: {g.sources.groups.source}{g.sources.groups.verified ? "" : " · seri kodları doğrulanmadı"}{g.sources.groups.sample ? " · ÖRNEK VERİ" : ""}</li>
+    <li>{g.sources.weights.label}: {g.sources.weights.source}{g.sources.weights.verified ? "" : " · doğrulanmadı"}{g.sources.weights.sample ? " · ÖRNEK AĞIRLIKLAR" : ""}</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="groups-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { personalInflation, inflationContributions, normalizeShares, SeriesError } from "../lib/engine.ts";
+  import { parseAmount, drawPersonalCard, downloadCanvas, type PersonalCardData } from "../lib/card.ts";
+
+  const data = JSON.parse(document.getElementById("groups-data")!.textContent!);
+  const changes: Record<string, number> = {};
+  const labels: Record<string, string> = {};
+  const weights: Record<string, number> = {};
+  for (const g of data.groups) {
+    labels[g.id] = g.label;
+    if (g.change_12m !== null) changes[g.id] = g.change_12m;
+    if (g.weight !== null) weights[g.id] = g.weight;
+  }
+  const official: number = data.headline_change_12m;
+  const pctFmt = new Intl.NumberFormat("tr-TR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const ptsFmt = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero" });
+  const tlFmt = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+
+  const inputs = [...document.querySelectorAll<HTMLInputElement>("input[data-group]")];
+  const errEl = document.getElementById("error")!;
+  const btn = document.getElementById("download") as HTMLButtonElement;
+  const $ = (id: string) => document.getElementById(id)!;
+  let card: PersonalCardData | null = null;
+
+  function setInvalid(msg: string) {
+    errEl.textContent = msg;
+    errEl.hidden = false;
+    $("s-personal").textContent = "—";
+    $("s-diff").textContent = "—";
+    btn.disabled = true;
+    card = null;
+  }
+
+  function update() {
+    const amounts: Record<string, number> = {};
+    let bad: string | null = null;
+    for (const el of inputs) {
+      const raw = el.value.trim();
+      const v = raw === "" || raw === "0" ? 0 : parseAmount(raw);
+      el.setAttribute("aria-invalid", v === null ? "true" : "false");
+      if (v === null) bad = labels[el.dataset.group!];
+      amounts[el.dataset.group!] = v ?? 0;
+    }
+    if (bad) return setInvalid(`“${bad}” için geçerli bir tutar girin.`);
+    let p: number, contrib: Record<string, number>, shares: Record<string, number>;
+    try {
+      shares = normalizeShares(amounts);
+      contrib = inflationContributions(amounts, changes);
+      p = personalInflation(amounts, changes);
+    } catch (e) {
+      if (e instanceof SeriesError) {
+        return setInvalid(e.message.includes("positive") ? "En az bir gruba harcama girin." : "Bazı gruplar için fiyat verisi yok; o gruplara harcama girmeyin.");
+      }
+      throw e;
+    }
+    errEl.hidden = true;
+    btn.disabled = false;
+    const total = Object.values(amounts).reduce((a, b) => a + b, 0);
+    for (const el of inputs) {
+      const id = el.dataset.group!;
+      const row = el.closest("tr")!;
+      row.querySelector(".share")!.textContent = pctFmt.format(shares[id]);
+      row.querySelector(".contrib")!.textContent = id in contrib ? ptsFmt.format(contrib[id] * 100) : "—";
+      row.querySelector(".m-share")!.textContent = pctFmt.format(shares[id]);
+      row.querySelector(".m-contrib")!.textContent = id in contrib ? ptsFmt.format(contrib[id] * 100) : "0";
+    }
+    $("t-total").textContent = tlFmt.format(total);
+    $("t-contrib").textContent = ptsFmt.format(p * 100);
+    $("s-personal").textContent = pctFmt.format(p);
+    const diff = (p - official) * 100;
+    $("s-diff").textContent = ptsFmt.format(diff);
+
+    const top = Object.entries(contrib).sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([id, c]) => ({ label: labels[id], value: `${ptsFmt.format(c * 100)} puan` }));
+    card = {
+      siteName: data.site_name,
+      disclaimer: data.disclaimer,
+      sample: data.sample,
+      period: data.period,
+      endLabel: data.end_label,
+      personal: pctFmt.format(p),
+      official: pctFmt.format(official),
+      diff: `${ptsFmt.format(diff)} puan`,
+      topGroups: top,
+      sources: [
+        `${data.sources.cpi_tr.label}: ${data.sources.cpi_tr.source}${data.sources.cpi_tr.sample ? " (örnek)" : ""}`,
+        `TÜFE alt grupları: ${data.sources.groups.source}${data.sources.groups.sample ? " (örnek)" : ""}`,
+        `Ağırlıklar: kullanıcının kendi harcaması`,
+      ],
+    };
+  }
+
+  function fill(fn: (id: string) => number) {
+    for (const el of inputs) el.value = tlFmt.format(fn(el.dataset.group!));
+    update();
+  }
+  document.getElementById("reset")!.addEventListener("click", () => fill((id) => Math.round(((weights[id] ?? 0) * 30000) / 100) * 100));
+  document.getElementById("clear")!.addEventListener("click", () => fill(() => 0));
+  for (const el of inputs) {
+    el.addEventListener("input", update);
+    el.addEventListener("blur", () => {
+      const v = parseAmount(el.value);
+      if (v !== null) el.value = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(v);
+    });
+  }
+  btn.addEventListener("click", async () => {
+    if (!card) return;
+    btn.disabled = true;
+    try {
+      await downloadCanvas(await drawPersonalCard(card), "kisisel-enflasyon.png");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  update();
+</script>
+
+<style>
+  .notice { margin: 16px 0; border-left: 4px solid var(--ink); color: var(--ink-2); }
+  .notice strong { color: var(--ink); display: block; margin-bottom: 4px; }
+  .summary { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin: 16px 0; }
+  .summary .stat:first-child { grid-column: 1 / -1; }
+  @media (min-width: 720px) { .summary { grid-template-columns: 2fr 1fr 1fr; } .summary .stat:first-child { grid-column: auto; } }
+  .stat-label { font-weight: 600; font-size: 0.9rem; color: var(--ink-2); margin: 0; }
+  .stat-value { font-family: var(--font-head); font-size: clamp(2.2rem, 10vw, 3.4rem); margin: 2px 0; line-height: 1.1; }
+  .summary .stat:first-child .stat-value { font-size: clamp(3rem, 14vw, 4.6rem); }
+  .stat p:last-child { margin: 0; }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .form-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .form-head h2 { margin: 0; font-size: 1.5rem; }
+  .form-actions { display: flex; gap: 12px; }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
+  .scroll-x { overflow-x: auto; }
+  .groups { font-size: 0.9rem; }
+  @media (min-width: 641px) { .groups { min-width: 620px; } }
+  /* Phones: each group becomes a block — label + input on one line, figures below. */
+  @media (max-width: 640px) {
+    .groups thead { display: none; }
+    .groups tbody tr {
+      display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--line);
+    }
+    .groups tbody th, .groups tbody td { border: 0; padding: 0; text-align: left; }
+    .groups tbody td.amount { text-align: right; }
+    .groups tbody td[data-label] { display: none; }  /* figures move into .meta */
+    .groups tbody tr .meta { grid-column: 1 / -1; font-size: 0.8rem; color: var(--muted); }
+    .groups tfoot tr { display: flex; justify-content: space-between; gap: 8px; }
+    .groups tfoot td:empty { display: none; }
+    .groups tfoot td:nth-child(3) { display: none; }
+  }
+  @media (min-width: 641px) { .groups .meta { display: none; } }
+  .groups tbody th { font-weight: 600; font-size: 0.88rem; }
+  .groups input {
+    width: 7.5em; text-align: right; font: inherit; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .groups input[aria-invalid="true"] { border-color: var(--warn-bg); }
+  .groups tfoot th, .groups tfoot td { font-weight: 700; border-top: 2px solid var(--line); padding-top: 8px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }
+  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 12px 16px; overflow-x: auto; }
+</style>

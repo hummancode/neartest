@@ -25,6 +25,7 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#usdvarlik">Dolar fiyatlı varlıklar</a></li>
         <li><a href="#trend">Trend çizgisi</a></li>
         <li><a href="#illuzyon">Nominal illüzyon makinesi</a></li>
+        <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
         <li><a href="#varsayim">Varsayımlar</a></li>
         <li><a href="#sinir">Bilinen sınırlar</a></li>
@@ -115,7 +116,25 @@ import { DISCLAIMER } from "../config.ts";
       Asgari ücret karşılığı, seri henüz eklenmediği için gösterilmiyor.
     </p>
 
-    <h2 id="kaynak">9. Veri kaynakları</h2>
+    <h2 id="kisisel">9. Kişisel enflasyon</h2>
+    <p>
+      Kullanıcı aylık harcamasını TÜFE ana harcama gruplarına dağıtır. Her grubun payı
+      s<sub>k</sub> = harcama<sub>k</sub> / toplam harcama'dır. Grup enflasyonu π<sub>k</sub>, TÜFE alt grup endeksinin son
+      12 aydaki değişimidir (aylık ortalama, veri bitiş ayına göre).
+    </p>
+    <p class="formula card">Kişisel enflasyon = Σ s<sub>k</sub> × π<sub>k</sub> &nbsp;&nbsp; katkı<sub>k</sub> = s<sub>k</sub> × π<sub>k</sub></p>
+    <ul>
+      <li>Harcama girilmeyen gruplar hesaba girmez; fiyat verisi olmayan bir gruba harcama girilirse hesap yapılmaz.</li>
+      <li>
+        Resmi ağırlıklarla yapılan hesap bile resmi TÜFE'den biraz farklı çıkabilir: TÜİK ağırlıkları her yıl
+        günceller ve endeksi zincirleme bağlar; ağırlıklar yıl içinde göreli fiyat değişimleriyle kayar; aylık ortalama
+        kullanılır. Bu sayfa resmi endeksi yeniden üretmeyi değil, kişisel bir karşılaştırma yapmayı amaçlar.
+      </li>
+      <li>Grup içi dağılım (ör. konut grubunda kira ile enerjinin oranı) ortalama hanenin dağılımıdır; sizinki farklı olabilir.</li>
+      <li><strong>Bu bir kişisel hesaptır; resmi enflasyon iddiası değildir.</strong> Site kendi enflasyon endeksini üretmez ve yayımlamaz.</li>
+    </ul>
+
+    <h2 id="kaynak">10. Veri kaynakları</h2>
     <div class="card scroll-x">
       <table class="data">
         <thead><tr><th scope="col">Seri</th><th scope="col">Kaynak</th><th scope="col">Seri kodu</th><th scope="col">Doğrulandı</th><th scope="col">Şu an örnek veri</th></tr></thead>
@@ -133,7 +152,7 @@ import { DISCLAIMER } from "../config.ts";
       Örnek veri gerçek değildir ve hiçbir karar için kullanılmamalıdır.
     </p>
 
-    <h2 id="varsayim">10. Varsayımlar</h2>
+    <h2 id="varsayim">11. Varsayımlar</h2>
     <ul>
       <li>EVDS'den çekilen seriler <strong>aylık ortalama</strong> olarak alınır. Ay sonu değerleriyle yapılan hesaplardan biraz farklı sonuç verebilir.</li>
       <li>Tüm seriler aynı bitiş ayında kesilir: verisi en geç güncellenen serinin son ayı.</li>
@@ -143,7 +162,7 @@ import { DISCLAIMER } from "../config.ts";
       <li>Enflasyon ölçüsü TÜİK'in yayımladığı TÜFE'dir. Site kendi enflasyon endeksini üretmez.</li>
     </ul>
 
-    <h2 id="sinir">11. Bilinen sınırlar</h2>
+    <h2 id="sinir">12. Bilinen sınırlar</h2>
     <ul>
       <li>Geçmiş getiriler gelecekteki getirileri göstermez.</li>
       <li>TÜFE ortalama bir sepeti ölçer; kişisel enflasyonunuz farklı olabilir.</li>
@@ -151,6 +170,7 @@ import { DISCLAIMER } from "../config.ts";
       <li>Endeks baz yılı veya yöntem değişirse seriler birleştirilmek zorunda kalabilir; böyle bir durumda yöntem bu sayfada açıklanır.</li>
       <li>Ağırlıklı ortalama mevduat faizi, tek bir bankanın ya da vadenin faizi değildir; gerçek bir hesabın getirisi farklı olur.</li>
       <li>BIST 100, S&amp;P 500 ve gram altın için kaynak henüz seçilmedi; bu satırlar şu an örnek veridir.</li>
+      <li>TÜFE grup yapısı (12 ana grup) ve grup ağırlıkları henüz TÜİK/EVDS'den doğrulanmadı; şu an örnek değerler kullanılıyor.</li>
     </ul>
 
     <p class="disclaimer"><strong>{DISCLAIMER}</strong> Bu sayfadaki hiçbir hesap alım, satım veya elde tutma önerisi değildir.</p>

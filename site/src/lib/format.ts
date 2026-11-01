@@ -38,3 +38,11 @@ export function tl(x: number): string {
 export function num2(x: number): string {
   return numFmt2.format(x);
 }
+
+const pctPlainFmt = new Intl.NumberFormat("tr-TR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Like pct() but without a forced "+" sign (for levels such as inflation rates or weights). */
+export function pctPlain(x: number | null | undefined): string {
+  if (x === null || x === undefined || !Number.isFinite(x)) return "—";
+  return pctPlainFmt.format(x);
+}

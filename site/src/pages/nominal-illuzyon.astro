@@ -102,7 +102,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
 
 <script>
   import { valueToday, SeriesError } from "../lib/engine.ts";
-  import { parseAmount, drawCard, type CardData } from "../lib/card.ts";
+  import { parseAmount, drawCard, downloadCanvas, type CardData } from "../lib/card.ts";
 
   const data = JSON.parse(document.getElementById("levels-data")!.textContent!);
   const S = data.series as Record<string, Record<string, number>>;
@@ -192,16 +192,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
     btn.disabled = true;
     try {
       const canvas = await drawCard(current);
-      const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/png"));
-      if (!blob) throw new Error("PNG üretilemedi");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `nominal-illuzyon-${yearEl.value}-${monthEl.value}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await downloadCanvas(canvas, `nominal-illuzyon-${yearEl.value}-${monthEl.value}.png`);
     } finally {
       btn.disabled = false;
     }

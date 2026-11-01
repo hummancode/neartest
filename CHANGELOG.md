@@ -15,3 +15,8 @@
   Motor TypeScript'e taşındı (`site/src/lib/engine.ts`); Python ve TS aynı 22 vakayı
   (`tests/cases.json`) koşuyor. 1200×1500 PNG kart (örnek veriyse kartta da uyarı).
   Builder artık `site/data/seviyeler.json` da üretiyor. Asgari ücret serisi eksik.
+- 2026-11-01 — Aşama 5: Kişisel enflasyon hesaplayıcı (`/kisisel-enflasyon`). Motor:
+  `normalize_shares`, `inflation_contributions`, `personal_inflation` (önce test; Python + TS aynı
+  30 ortak vaka). Builder `site/data/tufe_gruplari.json` üretiyor (12 TÜFE ana grubu, 12 aylık
+  değişim, ağırlıklar `data/manual/tufe_agirliklari.csv`'den, yoksa ÖRNEK). 1200×1500 kart,
+  "kişisel hesaptır, resmi enflasyon değildir" uyarısı sayfada ve kartta. Grup kodları/ağırlıkları doğrulanmadı.

@@ -144,3 +144,33 @@ export function valueToday(amount: number, levelThen: number, levelNow: number):
   if (levelThen <= 0) throw new SeriesError("cpi_then must be positive");
   return (amount * levelNow) / levelThen;
 }
+
+// --- personal inflation (Aşama 5) ------------------------------------------
+
+/** Spending amounts per group -> shares that sum to 1. */
+export function normalizeShares(amounts: Record<string, number>): Record<string, number> {
+  const vals = Object.values(amounts);
+  if (vals.some((v) => v < 0)) throw new SeriesError("spending amounts must be non-negative");
+  const total = vals.reduce((a, b) => a + b, 0);
+  if (!(total > 0)) throw new SeriesError("total spending must be positive");
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(amounts)) out[k] = v / total;
+  return out;
+}
+
+/** Each group's contribution (share x group inflation). Zero-spending groups need no data. */
+export function inflationContributions(amounts: Record<string, number>, groupChanges: Record<string, number>): Record<string, number> {
+  const shares = normalizeShares(amounts);
+  const out: Record<string, number> = {};
+  for (const [k, s] of Object.entries(shares)) {
+    if (s === 0) continue;
+    if (!(k in groupChanges)) throw new SeriesError(`no price data for group '${k}'`);
+    out[k] = s * groupChanges[k];
+  }
+  return out;
+}
+
+/** Spending-weighted average of group inflation rates: sum(s_k * pi_k). Personal estimate, not an official index. */
+export function personalInflation(amounts: Record<string, number>, groupChanges: Record<string, number>): number {
+  return Object.values(inflationContributions(amounts, groupChanges)).reduce((a, b) => a + b, 0);
+}

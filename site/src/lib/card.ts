@@ -79,24 +79,26 @@ async function ensureFonts() {
   ]);
 }
 
-export async function drawCard(d: CardData): Promise<HTMLCanvasElement> {
+const INK = "#f2f2f2";
+const MUTED = "#a3a3a3";
+const RED = "#c8102e";
+const MAX_W = W - 2 * PAD;
+
+interface Frame { c: HTMLCanvasElement; ctx: CanvasRenderingContext2D; y: number }
+
+/** Dark canvas, optional red sample band and a small kicker line. */
+async function frame(sample: boolean, kicker: string): Promise<Frame> {
   await ensureFonts();
   const c = document.createElement("canvas");
   c.width = W;
   c.height = H;
   const ctx = c.getContext("2d")!;
-  const ink = "#f2f2f2";
-  const muted = "#a3a3a3";
-  const red = "#c8102e";
-  const maxW = W - 2 * PAD;
-
   ctx.fillStyle = "#111214";
   ctx.fillRect(0, 0, W, H);
   ctx.textBaseline = "alphabetic";
-
   let y = 0;
-  if (d.sample) {
-    ctx.fillStyle = red;
+  if (sample) {
+    ctx.fillStyle = RED;
     ctx.fillRect(0, 0, W, 96);
     ctx.fillStyle = "#fff";
     ctx.font = `700 40px ${BODY}`;
@@ -105,79 +107,151 @@ export async function drawCard(d: CardData): Promise<HTMLCanvasElement> {
     ctx.textAlign = "left";
     y = 96;
   }
-
-  // Kicker
   y += 100;
-  ctx.fillStyle = muted;
+  ctx.fillStyle = MUTED;
   ctx.font = `600 34px ${BODY}`;
-  ctx.fillText(up("Nominal illüzyon"), PAD, y);
+  ctx.fillText(up(kicker), PAD, y);
+  return { c, ctx, y };
+}
 
-  // Headline: "<month year>" then the amount, big.
-  y += 110;
-  ctx.fillStyle = ink;
-  let size = fitFont(ctx, up(d.thenLabel), HEAD, 100, maxW);
-  ctx.font = `400 ${size}px ${HEAD}`;
-  ctx.fillText(up(d.thenLabel), PAD, y);
-
-  size = fitFont(ctx, up(d.amount), HEAD, 220, maxW);
-  y += size * 0.98;
-  ctx.font = `400 ${size}px ${HEAD}`;
-  ctx.fillText(up(d.amount), PAD, y);
-
-  y += 80;
-  ctx.fillStyle = muted;
-  ctx.font = `400 38px ${BODY}`;
-  ctx.fillText(`bugün (${d.endLabel}) şuna denk geliyor:`, PAD, y);
-
-  // Result rows
-  y += 40;
-  for (const row of d.rows) {
-    ctx.strokeStyle = "#2c2d31";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(PAD, y + 20);
-    ctx.lineTo(W - PAD, y + 20);
-    ctx.stroke();
-
-    y += 82;
-    ctx.fillStyle = muted;
-    ctx.font = `600 34px ${BODY}`;
-    ctx.fillText(row.label, PAD, y);
-
-    const vs = fitFont(ctx, up(row.value), HEAD, 110, maxW);
-    y += vs * 0.98;
-    ctx.fillStyle = ink;
-    ctx.font = `400 ${vs}px ${HEAD}`;
-    ctx.fillText(up(row.value), PAD, y);
-  }
-
-  // Bottom strip: sources, data end, disclaimer, site name.
+/** Bottom strip: sources, data end, disclaimer, site name. Returns the strip's top y. */
+function footer(ctx: CanvasRenderingContext2D, sample: boolean, sources: string[], endLabel: string, disclaimer: string, siteName: string): number {
   const stripH = 200;
   const top = H - stripH;
   ctx.fillStyle = "#1c1d21";
   ctx.fillRect(0, top, W, stripH);
-  ctx.fillStyle = muted;
+  ctx.fillStyle = MUTED;
   ctx.font = `400 24px ${BODY}`;
-  const srcLines = wrap(ctx, `Kaynak: ${d.sources.join(" · ")}`, maxW).slice(0, 3);
   let sy = top + 48;
-  for (const line of srcLines) {
+  for (const line of wrap(ctx, `Kaynak: ${sources.join(" · ")}`, MAX_W).slice(0, 3)) {
     ctx.fillText(line, PAD, sy);
     sy += 32;
   }
   ctx.font = `400 34px ${HEAD}`;
-  const nameW = ctx.measureText(up(d.siteName)).width;
+  const nameW = ctx.measureText(up(siteName)).width;
   ctx.textAlign = "right";
-  ctx.fillStyle = ink;
-  ctx.fillText(up(d.siteName), W - PAD, H - 44);
+  ctx.fillStyle = INK;
+  ctx.fillText(up(siteName), W - PAD, H - 44);
   ctx.textAlign = "left";
-  const foot = `Son veri: ${d.endLabel} (aylık ortalama) · ${d.disclaimer}`;
-  const fs = fitFont(ctx, foot, BODY, 26, maxW - nameW - 32, "600");
+  const foot = `Son veri: ${endLabel} (aylık ortalama) · ${disclaimer}`;
+  const fs = fitFont(ctx, foot, BODY, 26, MAX_W - nameW - 32, "600");
   ctx.font = `600 ${fs}px ${BODY}`;
   ctx.fillText(foot, PAD, H - 44);
-
-  if (d.sample) {
-    ctx.fillStyle = red;
+  if (sample) {
+    ctx.fillStyle = RED;
     ctx.fillRect(0, top - 8, W, 8);
   }
+  return top;
+}
+
+function bigLine(ctx: CanvasRenderingContext2D, text: string, y: number, max: number, color = INK): number {
+  const size = fitFont(ctx, text, HEAD, max, MAX_W);
+  const ny = y + size * 0.98;
+  ctx.fillStyle = color;
+  ctx.font = `400 ${size}px ${HEAD}`;
+  ctx.fillText(text, PAD, ny);
+  return ny;
+}
+
+function rule(ctx: CanvasRenderingContext2D, y: number) {
+  ctx.strokeStyle = "#2c2d31";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(PAD, y);
+  ctx.lineTo(W - PAD, y);
+  ctx.stroke();
+}
+
+export async function drawCard(d: CardData): Promise<HTMLCanvasElement> {
+  const { c, ctx, y: y0 } = await frame(d.sample, "Nominal illüzyon");
+  let y = y0 + 10;
+  y = bigLine(ctx, up(d.thenLabel), y, 100);
+  y = bigLine(ctx, up(d.amount), y, 220);
+
+  y += 80;
+  ctx.fillStyle = MUTED;
+  ctx.font = `400 38px ${BODY}`;
+  ctx.fillText(`bugün (${d.endLabel}) şuna denk geliyor:`, PAD, y);
+
+  y += 40;
+  for (const row of d.rows) {
+    rule(ctx, y + 20);
+    y += 82;
+    ctx.fillStyle = MUTED;
+    ctx.font = `600 34px ${BODY}`;
+    ctx.fillText(row.label, PAD, y);
+    y = bigLine(ctx, up(row.value), y, 110);
+  }
+  footer(ctx, d.sample, d.sources, d.endLabel, d.disclaimer, d.siteName);
   return c;
+}
+
+export interface PersonalCardData {
+  siteName: string;
+  disclaimer: string;
+  sample: boolean;
+  period: string;          // "Eylül 2025 → Eylül 2026"
+  endLabel: string;
+  personal: string;        // "%38,2"
+  official: string;        // "%33,0"
+  diff: string;            // "+5,2 puan"
+  topGroups: { label: string; value: string }[];
+  sources: string[];
+}
+
+export async function drawPersonalCard(d: PersonalCardData): Promise<HTMLCanvasElement> {
+  const { c, ctx, y: y0 } = await frame(d.sample, "Kişisel enflasyonum · tahmini");
+  let y = y0 + 20;
+  ctx.fillStyle = MUTED;
+  ctx.font = `400 34px ${BODY}`;
+  ctx.fillText(`Son 12 ay: ${d.period}`, PAD, y + 20);
+  y += 30;
+  y = bigLine(ctx, d.personal, y, 300);
+
+  y += 70;
+  ctx.fillStyle = MUTED;
+  ctx.font = `600 34px ${BODY}`;
+  ctx.fillText("Resmi TÜFE (aynı dönem)", PAD, y);
+  y = bigLine(ctx, d.official, y, 120);
+  y += 56;
+  ctx.fillStyle = INK;
+  ctx.font = `600 38px ${BODY}`;
+  ctx.fillText(`Fark: ${d.diff}`, PAD, y);
+
+  y += 40;
+  rule(ctx, y);
+  y += 56;
+  ctx.fillStyle = MUTED;
+  ctx.font = `600 30px ${BODY}`;
+  ctx.fillText("En çok katkı yapan harcamalarım", PAD, y);
+  ctx.font = `400 32px ${BODY}`;
+  for (const g of d.topGroups.slice(0, 3)) {
+    y += 52;
+    ctx.fillStyle = INK;
+    ctx.fillText(g.label, PAD, y);
+    ctx.textAlign = "right";
+    ctx.fillText(g.value, W - PAD, y);
+    ctx.textAlign = "left";
+  }
+
+  y += 64;
+  ctx.fillStyle = MUTED;
+  ctx.font = `400 26px ${BODY}`;
+  ctx.fillText("Bu kişisel bir hesaptır; resmi enflasyon değildir.", PAD, y);
+  footer(ctx, d.sample, d.sources, d.endLabel, d.disclaimer, d.siteName);
+  return c;
+}
+
+/** Trigger a PNG download of a canvas. */
+export async function downloadCanvas(canvas: HTMLCanvasElement, filename: string): Promise<void> {
+  const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/png"));
+  if (!blob) throw new Error("PNG üretilemedi");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

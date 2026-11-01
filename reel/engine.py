@@ -171,3 +171,41 @@ def value_today(amount: float, cpi_then: float, cpi_now: float) -> float:
     if cpi_then <= 0:
         raise SeriesError("cpi_then must be positive")
     return amount * cpi_now / cpi_then
+
+
+# ---------------------------------------------------------------------------
+# Personal inflation (Aşama 5)
+# ---------------------------------------------------------------------------
+
+def normalize_shares(amounts: dict[str, float]) -> dict[str, float]:
+    """Spending amounts per group -> shares that sum to 1."""
+    if any(v < 0 for v in amounts.values()):
+        raise SeriesError("spending amounts must be non-negative")
+    total = sum(amounts.values())
+    if total <= 0:
+        raise SeriesError("total spending must be positive")
+    return {k: v / total for k, v in amounts.items()}
+
+
+def inflation_contributions(amounts: dict[str, float], group_changes: dict[str, float]) -> dict[str, float]:
+    """Each group's contribution (share x group inflation) to personal inflation.
+
+    Groups with zero spending contribute nothing and need no price data.
+    """
+    shares = normalize_shares(amounts)
+    out = {}
+    for k, s in shares.items():
+        if s == 0:
+            continue
+        if k not in group_changes:
+            raise SeriesError(f"no price data for group {k!r}")
+        out[k] = s * group_changes[k]
+    return out
+
+
+def personal_inflation(amounts: dict[str, float], group_changes: dict[str, float]) -> float:
+    """Spending-weighted average of group inflation rates: sum(s_k * pi_k).
+
+    This is a personal estimate with the user's own weights, not an official index.
+    """
+    return sum(inflation_contributions(amounts, group_changes).values())

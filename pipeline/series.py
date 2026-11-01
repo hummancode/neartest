@@ -67,3 +67,45 @@ ASSETS = [
     {"id": "bist100", "label": "BIST 100", "kind": "tl_level", "series": "bist100"},
     {"id": "sp500", "label": "S&P 500", "kind": "usd_level", "series": "sp500_usd"},
 ]
+
+# CPI main expenditure groups (COICOP), used by the personal inflation page.
+# Codes are NOT verified: find them with `python -m pipeline.discover "Tüketici Fiyat"`.
+# TÜİK may publish a different group structure (e.g. COICOP 2018 with 13 groups);
+# confirm against EVDS before filling codes in. Never guess.
+CPI_GROUPS = [
+    {"id": "food", "label": "Gıda ve alkolsüz içecekler"},
+    {"id": "alcohol_tobacco", "label": "Alkollü içecekler ve tütün"},
+    {"id": "clothing", "label": "Giyim ve ayakkabı"},
+    {"id": "housing", "label": "Konut (kira, aidat, enerji, su)"},
+    {"id": "furnishing", "label": "Mobilya ve ev eşyası"},
+    {"id": "health", "label": "Sağlık"},
+    {"id": "transport", "label": "Ulaştırma"},
+    {"id": "communication", "label": "Haberleşme"},
+    {"id": "recreation", "label": "Eğlence ve kültür"},
+    {"id": "education", "label": "Eğitim"},
+    {"id": "restaurants", "label": "Lokanta ve oteller"},
+    {"id": "misc", "label": "Çeşitli mal ve hizmetler"},
+]
+
+CPI_GROUP_SERIES = {
+    f"cpi_{g['id']}": {
+        "label": f"TÜFE: {g['label']}",
+        "source": "TÜİK, TCMB EVDS üzerinden",
+        "code": None,
+        "verified": False,
+        "unit": "endeks",
+    }
+    for g in CPI_GROUPS
+}
+
+# Official group weights come from TÜİK's annual weight table. Until verified,
+# they are read from data/manual/tufe_agirliklari.csv (columns: id,weight) if
+# present, otherwise sample weights are used and flagged.
+CPI_WEIGHTS_SOURCE = {
+    "label": "TÜFE grup ağırlıkları",
+    "source": "TÜİK (elle girilen CSV: data/manual/tufe_agirliklari.csv)",
+    "code": None,
+    "verified": False,
+}
+
+ALL_SERIES = SERIES | CPI_GROUP_SERIES

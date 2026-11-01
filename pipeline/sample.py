@@ -35,9 +35,27 @@ def _path(start_value, annual_growth, wobble, phase):
     return out
 
 
+# Made-up group growth rates and weights. NOT real TÜİK figures.
+_GROUP_GROWTH = {
+    "food": 0.36, "alcohol_tobacco": 0.30, "clothing": 0.24, "housing": 0.42,
+    "furnishing": 0.31, "health": 0.29, "transport": 0.35, "communication": 0.22,
+    "recreation": 0.30, "education": 0.40, "restaurants": 0.39, "misc": 0.32,
+}
+SAMPLE_WEIGHTS = {
+    "food": 0.24, "alcohol_tobacco": 0.04, "clothing": 0.06, "housing": 0.15,
+    "furnishing": 0.08, "health": 0.03, "transport": 0.16, "communication": 0.03,
+    "recreation": 0.03, "education": 0.02, "restaurants": 0.09, "misc": 0.07,
+}
+
+
 def build_sample() -> dict[str, dict[str, float]]:
     rates = {m: 0.10 + 0.25 * max(0.0, math.sin(k / 30)) for k, m in enumerate(_months())}
-    return {
+    groups = {
+        f"cpi_{gid}": _path(100.0, g, 0.0, 0.0) for gid, g in _GROUP_GROWTH.items()
+    }
+    rates_credit = {m: r + 0.08 for m, r in rates.items()}
+    return groups | {
+        "credit_rate": rates_credit,
         "usdtry": _path(2.2, 0.30, 0.03, 0.0),
         "eurtry": _path(3.0, 0.29, 0.03, 0.5),
         "cpi_tr": _path(230.0, 0.33, 0.0, 0.0),

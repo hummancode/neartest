@@ -14,13 +14,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline import sample
-from pipeline.series import ASSETS, SERIES
+import csv
+
+from pipeline.series import ALL_SERIES, ASSETS, CPI_GROUPS, CPI_WEIGHTS_SOURCE, SERIES
 from reel import engine as e
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "site" / "data" / "reel_tablo.json"
 OUT_LEVELS = ROOT / "site" / "data" / "seviyeler.json"
+OUT_GROUPS = ROOT / "site" / "data" / "tufe_gruplari.json"
+WEIGHTS_CSV = ROOT / "data" / "manual" / "tufe_agirliklari.csv"
 
 # Series the in-browser "nominal illusion" calculator needs, as raw monthly levels.
 LEVEL_SERIES = ("cpi_tr", "usdtry", "gold_gram_tl")
@@ -30,7 +34,7 @@ def load_series(allow_sample: bool) -> tuple[dict, dict]:
     """Return (series_by_name, is_sample_by_name)."""
     synthetic = sample.build_sample() if allow_sample else {}
     data, is_sample = {}, {}
-    for name in SERIES:
+    for name in ALL_SERIES:
         path = RAW / f"{name}.json"
         if path.exists():
             data[name] = json.loads(path.read_text())
@@ -52,11 +56,12 @@ def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
     return raw
 
 
-def build(allow_sample: bool) -> tuple[dict, dict]:
+def build(allow_sample: bool) -> tuple[dict, dict, dict]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
     end = min(e.last_month(s) for s in data.values())
+    weights, weights_sample = load_weights(allow_sample)
 
     rows = []
     for asset in ASSETS:
@@ -93,7 +98,62 @@ def build(allow_sample: bool) -> tuple[dict, dict]:
     }
     levels = build_levels(data, is_sample, end)
     levels["generated_at"] = tablo["generated_at"]
-    return tablo, levels
+    groups = build_cpi_groups(data, is_sample, end, weights, weights_sample)
+    groups["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups
+
+
+def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
+    """Official CPI group weights from the manual CSV, or sample weights (flagged)."""
+    if WEIGHTS_CSV.exists():
+        with WEIGHTS_CSV.open(newline="", encoding="utf-8") as f:
+            weights = {row["id"]: float(row["weight"]) for row in csv.DictReader(f)}
+        missing = {g["id"] for g in CPI_GROUPS} - set(weights)
+        if missing:
+            raise SystemExit(f"{WEIGHTS_CSV} eksik gruplar: {sorted(missing)}")
+        total = sum(weights.values())
+        return {k: v / total for k, v in weights.items()}, False
+    if allow_sample:
+        return dict(sample.SAMPLE_WEIGHTS), True
+    raise SystemExit(f"Eksik: {WEIGHTS_CSV}. Örnek veri için --sample kullan.")
+
+
+def build_cpi_groups(data: dict, is_sample: dict, end: str, weights: dict, weights_sample: bool) -> dict:
+    """12-month inflation per CPI group plus headline, for the personal inflation page."""
+    groups = []
+    for g in CPI_GROUPS:
+        name = f"cpi_{g['id']}"
+        try:
+            change = e.window_return(data[name], end, 12)
+        except e.SeriesError:
+            change = None
+        groups.append({
+            "id": g["id"],
+            "label": g["label"],
+            "weight": weights.get(g["id"]),
+            "change_12m": change,
+            "sample": is_sample[name],
+        })
+    group_names = [f"cpi_{g['id']}" for g in CPI_GROUPS]
+    return {
+        "end_month": end,
+        "start_month": e.shift_month(end, -12),
+        "headline_change_12m": e.window_return(data["cpi_tr"], end, 12),
+        "sample": weights_sample or is_sample["cpi_tr"] or any(is_sample[n] for n in group_names),
+        "weights_sample": weights_sample,
+        "sources": {
+            "cpi_tr": {k: SERIES["cpi_tr"][k] for k in ("label", "source", "code", "verified")} | {"sample": is_sample["cpi_tr"]},
+            "groups": {
+                "label": "TÜFE ana harcama grupları",
+                "source": ALL_SERIES[group_names[0]]["source"],
+                "codes": {n: ALL_SERIES[n]["code"] for n in group_names},
+                "verified": all(ALL_SERIES[n]["verified"] for n in group_names),
+                "sample": any(is_sample[n] for n in group_names),
+            },
+            "weights": CPI_WEIGHTS_SOURCE | {"sample": weights_sample},
+        },
+        "groups": groups,
+    }
 
 
 def build_levels(data: dict, is_sample: dict, end: str) -> dict:
@@ -141,12 +201,13 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels = build(args.sample)
+    result, levels, groups = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
+    write_if_changed(OUT_GROUPS, groups)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

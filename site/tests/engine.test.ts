@@ -18,6 +18,9 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   to_tl: e.toTl,
   asset_windows: e.assetWindows,
   value_today: e.valueToday,
+  normalize_shares: e.normalizeShares,
+  inflation_contributions: e.inflationContributions,
+  personal_inflation: e.personalInflation,
 };
 
 function expand(arg: any): any {
