@@ -30,6 +30,11 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   same_direction_share: e.sameDirectionShare,
   holding_returns: e.holdingReturns,
   portfolio_summary: e.portfolioSummary,
+  irr: e.irr,
+  loan_cost: e.loanCost,
+  installment_vs_cash: e.installmentVsCash,
+  salary_analysis: e.salaryAnalysis,
+  event_study: e.eventStudy,
 };
 
 function expand(arg: any): any {

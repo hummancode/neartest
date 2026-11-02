@@ -158,3 +158,25 @@ def load_stocks(directory: Path | None = None) -> dict[str, tuple[dict[str, floa
         meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
         out[ticker] = (series, meta)
     return out
+
+
+def parse_events_csv(text: str) -> list[dict]:
+    """Events CSV (date, type, title) -> [{"month", "type", "title"}]. Header optional.
+
+    Only official, dated facts belong here (e.g. "PPK faiz kararı"); no commentary.
+    """
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return []
+    delimiter = ";" if ";" in lines[0] else ("\t" if "\t" in lines[0] else ",")
+    out = []
+    for i, row in enumerate(csv.reader(io.StringIO("\n".join(lines)), delimiter=delimiter)):
+        if len(row) < 3:
+            continue
+        month = parse_month(row[0])
+        if month is None:
+            if i == 0:
+                continue
+            raise ManualDataError(f"satır {i + 1}: tarih okunamadı: {row[0]!r}")
+        out.append({"month": month, "type": row[1].strip()[:30], "title": row[2].strip()[:120]})
+    return out

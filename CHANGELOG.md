@@ -70,3 +70,11 @@
   Motor: `holding_returns`, `portfolio_summary` (önce test; TS; 50 ortak vaka). `data/manual/stocks/`
   (kod doğrulamalı) → grafik aracı, borsa, portföy. Menü gruplandı (Piyasalar / Makro / Hesapla),
   ana sayfada araç ızgarası. Kaydırma kutularının dışına taşan erişilebilirlik etiketi hatası düzeltildi.
+- 2026-11-02 — Karar araçları ve olay penceresi: `/kredi` (akdi faiz + KKDF + BSMV + peşin/aylık masraf →
+  ödeme planı, gider dağılımı, iç verim oranıyla gerçek yıllık maliyet, "faiz × 12" ile fark, reel maliyet),
+  `/taksit` (taksitlerin bugünkü değeri, taksit planının gizli faizi, enflasyona göre toplam), `/maas`
+  (zam başına reel değişim, bugünkü TL / $ / gram altın / asgari ücret karşılığı, nominal-reel grafik;
+  tarayıcıda saklanır), `/olaylar` (politika faizi artış/indirim aylarından türetilen ve elle eklenen
+  olaylar etrafında ortalama/medyan yol). Motor: `irr`, `amortization`, `loan_cost`, `present_value`,
+  `installment_vs_cash`, `salary_analysis`, `event_study`, `derive_rate_events` (önce test; TS; 59
+  ortak vaka). Sayfa sonuçları Python ile birebir doğrulandı. Örnek politika faizi basamaklı hâle getirildi.

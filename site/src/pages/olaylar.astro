@@ -1,0 +1,158 @@
+---
+import Base from "../layouts/Base.astro";
+import { events } from "../lib/events.ts";
+import { macro } from "../lib/macro.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const monthly = macro.indicators.filter((i) => i.freq === "M");
+const typeLabel: Record<string, string> = { hike: "Politika faizi artışları", cut: "Politika faizi indirimleri" };
+const ORDER = ["hike", "cut"];
+const types = [...new Set(events.events.map((e) => e.type))]
+  .sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99));
+const payload = { events: events.events, indicators: monthly };
+---
+<Base title="Olay penceresi" description="Faiz kararları gibi olayların öncesinde ve sonrasında kur, borsa, altın ve CDS ortalama nasıl hareket etti?" sample={events.sample || macro.sample}>
+  <h1>Olay penceresi</h1>
+  <p class="lead">
+    Faiz artırılan aylardan sonra kur, borsa veya CDS ortalamada ne yaptı? Bir olay türü ve gösterge seçin;
+    olaydan önceki ve sonraki aylardaki ortalama hareketi görün.
+  </p>
+  <p class="callout card">
+    <strong>Geçmişteki ortalama hareket, gelecekte olacakları göstermez</strong> ve olayın etkisini tek başına ölçmez:
+    aynı dönemde başka gelişmeler de olur. Bu sayfa yorum veya tahmin içermez.
+  </p>
+
+  {events.events.length === 0 ? (
+    <section class="card"><p>Henüz olay yok. Olaylar politika faizi serisinden türetilir veya <code>data/manual/events.csv</code> ile eklenir.</p></section>
+  ) : (
+    <>
+      <section class="card controls" aria-label="Seçenekler">
+        <div class="form-grid three">
+          <div class="field"><label for="type">Olay</label>
+            <select id="type">{types.map((t) => <option value={t}>{typeLabel[t] ?? t} ({events.events.filter((e) => e.type === t).length})</option>)}</select></div>
+          <div class="field"><label for="ind">Gösterge</label>
+            <select id="ind">{monthly.map((i) => <option value={i.id} selected={i.id === "usdtry"}>{i.label}</option>)}</select></div>
+          <div class="field"><label for="win">Pencere</label>
+            <select id="win"><option value="3,6">3 ay önce → 6 ay sonra</option><option value="6,12" selected>6 ay önce → 12 ay sonra</option><option value="12,24">12 ay önce → 24 ay sonra</option></select></div>
+        </div>
+      </section>
+
+      <section class="stat-grid" aria-live="polite">
+        <div class="card stat"><p class="s-label">Olay sayısı</p><p class="s-value" id="o-n">—</p><p class="muted small" id="o-n-sub"></p></div>
+        <div class="card stat"><p class="s-label">Ortalama: 6 ay sonra</p><p class="s-value" id="o-6">—</p><p class="muted small">olaydan önceki aya göre</p></div>
+        <div class="card stat"><p class="s-label">Aynı yönde olay oranı</p><p class="s-value" id="o-share">—</p><p class="muted small" id="o-share-sub"></p></div>
+      </section>
+
+      <section class="card">
+        <h2 class="c-title" id="c-title"></h2>
+        <div id="chart" class="chart-box"></div>
+        <p class="muted small">0 = olay ayı; değerler olaydan bir önceki aya göre {"(seviyelerde % değişim, oranlarda puan farkı)"}. Aylık ortalama veri kullanılır.</p>
+        <details class="list">
+          <summary>Olaylar tek tek</summary>
+          <div class="scroll-x">
+            <table class="data" id="ev-table"><thead><tr><th scope="col">Ay</th><th scope="col">Olay</th><th scope="col">+3 ay</th><th scope="col">+6 ay</th><th scope="col">+12 ay</th></tr></thead><tbody></tbody></table>
+          </div>
+        </details>
+        <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+      </section>
+    </>
+  )}
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <ul>
+    <li>Faiz olayları, politika faizinin aylık ortalamasının bir önceki aya göre en az {events.threshold} puan değiştiği aylardır ({events.source?.source ?? "politika faizi serisi"}{events.sample ? ", şu an ÖRNEK VERİ" : ""}). Elle eklenen olaylar yalnızca resmî adı ve tarihiyle girilir.</li>
+    <li>Her olay için seçilen göstergenin olaydan bir önceki aydaki değeri temel alınır; ortalama ve medyan yol tüm olayların ortalamasıdır.</li>
+    <li>Pencerenin tamamı için verisi olmayan olaylar dışarıda bırakılır. Birbirine yakın olayların pencereleri örtüşür.</li>
+    <li>Ayrıntılar: <a href="/metodoloji#olaylar">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="ev-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { eventStudy } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
+  import { formatValue } from "../lib/macro.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  const data = JSON.parse(document.getElementById("ev-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const typeSel = $<HTMLSelectElement>("type"), indSel = $<HTMLSelectElement>("ind"), winSel = $<HTMLSelectElement>("win");
+  const byId: Record<string, any> = Object.fromEntries(data.indicators.map((i: any) => [i.id, i]));
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+  const pct0 = new Intl.NumberFormat("tr-TR", { style: "percent", maximumFractionDigits: 0 });
+
+  function fmtChange(ind: any, v: number): string {
+    if (ind.kind === "level") return new Intl.NumberFormat("tr-TR", { style: "percent", maximumFractionDigits: 1, minimumFractionDigits: 1, signDisplay: "exceptZero" }).format(v);
+    const s = formatValue(ind.unit, Math.abs(v)).replace("%", "");
+    const unit = ind.unit === "%" ? " puan" : "";
+    return (v > 0 ? "+" : v < 0 ? "−" : "") + s + unit;
+  }
+
+  function draw() {
+    if (!typeSel) return;
+    const [before, after] = winSel.value.split(",").map(Number);
+    const ind = byId[indSel.value];
+    writeHash({ t: typeSel.value, i: ind.id, w: winSel.value });
+    const evs = data.events.filter((e: any) => e.type === typeSel.value);
+    const series = Object.fromEntries(ind.points);
+    const r = eventStudy(series, ind.kind, evs.map((e: any) => e.month), before, after);
+    $("o-n").textContent = String(r.n);
+    $("o-n-sub").textContent = r.skipped.length ? `${r.skipped.length} olay pencere için yeterli veri olmadığından dışarıda` : "tümü dahil";
+    const i6 = r.offsets.indexOf(6);
+    $("o-6").textContent = r.n && i6 >= 0 ? fmtChange(ind, r.mean[i6]) : "—";
+    if (r.n && i6 >= 0) {
+      const sign = Math.sign(r.mean[i6]);
+      const same = r.paths.filter((p: number[]) => Math.sign(p[i6]) === sign && sign !== 0).length;
+      $("o-share").textContent = pct0.format(same / r.n);
+      $("o-share-sub").textContent = `olayların ${same}/${r.n}'inde 6 ay sonra ortalamayla aynı yönde`;
+    } else { $("o-share").textContent = "—"; $("o-share-sub").textContent = ""; }
+    $("c-title").textContent = `${ind.label}${ind.sample ? " (örnek veri)" : ""} — ${typeSel.options[typeSel.selectedIndex].text.replace(/ \(\d+\)$/, "")} etrafında`;
+    const box = $("chart");
+    if (r.n) {
+      const scale = ind.kind === "level" ? 100 : 1;
+      const xl = r.offsets.map((o: number) => (o > 0 ? `+${o}` : o < 0 ? `−${-o}` : "0"));
+      renderChart(box, {
+        months: r.offsets.map((o: number) => String(o)),
+        series: [
+          { key: "mean", label: "Ortalama", color: "var(--series-1)", values: r.mean.map((v: number) => v * scale) },
+          { key: "median", label: "Medyan", color: "var(--series-2)", values: r.median.map((v: number) => v * scale) },
+        ],
+      }, { baseline: 0, xLabels: xl, tickEvery: Math.max(1, Math.round(r.offsets.length / 8)), allowLog: false,
+           format: (v) => fmtChange(ind, v / scale) });
+    } else box.replaceChildren();
+    const tbody = document.querySelector("#ev-table tbody")!;
+    tbody.replaceChildren(...r.events.map((m: string, k: number) => {
+      const tr = document.createElement("tr");
+      const ev = evs.find((e: any) => e.month === m);
+      const cells = [label(m), ev.change != null ? `${ev.title} (${ev.change > 0 ? "+" : "−"}${Math.abs(ev.change)} puan)` : ev.title,
+        ...[3, 6, 12].map((o) => { const i = r.offsets.indexOf(o); return i >= 0 ? fmtChange(ind, r.paths[k][i]) : "—"; })];
+      for (const t of cells) { const td = document.createElement("td"); td.textContent = t; tr.appendChild(td); }
+      return tr;
+    }));
+  }
+
+  if (typeSel) {
+    const h = readHash();
+    if (h.get("t") && [...typeSel.options].some((o) => o.value === h.get("t"))) typeSel.value = h.get("t")!;
+    if (h.get("i") && byId[h.get("i")!]) indSel.value = h.get("i")!;
+    if (h.get("w") && [...winSel.options].some((o) => o.value === h.get("w"))) winSel.value = h.get("w")!;
+    [typeSel, indSel, winSel].forEach((s) => s.addEventListener("change", draw));
+    $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+    let lastW = 0;
+    new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 2) { lastW = w; draw(); } }).observe($("chart"));
+  }
+</script>
+
+<style>
+  .controls { margin-top: 4px; }
+  .c-title { font-size: 1.2rem; margin: 0 0 6px; }
+  .chart-box { min-height: 260px; }
+  .list { margin-top: 10px; }
+  .list summary { cursor: pointer; font-weight: 600; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  #ev-table { min-width: 520px; font-size: 0.88rem; }
+  #ev-table td:nth-child(2), #ev-table th:nth-child(2), #ev-table td:first-child { text-align: left; }
+  .actions { margin-top: 10px; }
+</style>

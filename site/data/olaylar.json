@@ -1,0 +1,224 @@
+{
+ "threshold": 1.0,
+ "sample": true,
+ "source": {
+  "label": "Politika faizi",
+  "source": "TCMB, EVDS",
+  "code": null,
+  "verified": false,
+  "sample": true
+ },
+ "events": [
+  {
+   "month": "2014-07",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2015-10",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2016-03",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2016-07",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2016-11",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2017-02",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2017-05",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2017-08",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2017-11",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2018-02",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2018-06",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2018-10",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2019-03",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2020-06",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2020-12",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2021-04",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2021-07",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2021-11",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2022-02",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2022-05",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2022-08",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2022-11",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2023-02",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2023-06",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2023-12",
+   "type": "cut",
+   "change": -2.5,
+   "title": "Politika faizi indirimi",
+   "origin": "derived"
+  },
+  {
+   "month": "2025-03",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2025-08",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2025-12",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2026-04",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  },
+  {
+   "month": "2026-07",
+   "type": "hike",
+   "change": 2.5,
+   "title": "Politika faizi artışı",
+   "origin": "derived"
+  }
+ ],
+ "generated_at": "2026-11-02T07:17:25+00:00"
+}

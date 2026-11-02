@@ -29,6 +29,10 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#kiravsal">Kirala mı, satın al mı?</a></li>
         <li><a href="#iliskiler">İlişkiler (korelasyon)</a></li>
         <li><a href="#portfoy">Portföyüm</a></li>
+        <li><a href="#kredi">Kredinin gerçek maliyeti</a></li>
+        <li><a href="#taksit">Taksitli mi, peşin mi?</a></li>
+        <li><a href="#maas">Reel maaş</a></li>
+        <li><a href="#olaylar">Olay penceresi</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
@@ -179,6 +183,40 @@ import { DISCLAIMER } from "../config.ts";
       <li>Toplam reel getiri para ağırlıklıdır: toplam değer / alım tutarlarının TÜFE ile bugüne taşınmış toplamı − 1.</li>
       <li>Fiyatlar aylık ortalamadır. Temettü, bölünme, komisyon, vergi ve mevduat stopajı dahil değildir.</li>
       <li>Pozisyonlar yalnızca tarayıcının yerel depolamasında tutulur; sunucuya gönderilmez.</li>
+    </ul>
+
+    <h2 id="kredi">Kredinin gerçek maliyeti</h2>
+    <p>Eşit taksitli plan; KKDF ve BSMV her ayın faizine eklenir:</p>
+    <p class="formula card">r<sub>etkin</sub> = r × (1 + KKDF + BSMV) &nbsp;&nbsp; Taksit = A × r<sub>etkin</sub> / (1 − (1 + r<sub>etkin</sub>)<sup>−n</sup>)</p>
+    <p>Gerçek maliyet, elinize geçen tutar (kredi − peşin masraflar) ile ödediğiniz her taksit ve aylık masrafı eşitleyen aylık oran <em>i</em>'dir (iç verim oranı):</p>
+    <p class="formula card">A − peşin masraf = Σ<sub>t=1..n</sub> (taksit<sub>t</sub> + aylık masraf) / (1 + i)<sup>t</sup> &nbsp;&nbsp; Yıllık maliyet = (1 + i)<sup>12</sup> − 1</p>
+    <ul>
+      <li>İlan edilen yıllık faiz, aylık akdi faiz × 12 olarak gösterilir; vergi, masraf ve bileşik etkiyi içermez.</li>
+      <li>KKDF ve BSMV oranları kredi türüne ve mevzuata göre değişir; site bu oranları sabit kabul etmez, kullanıcı ödeme planındaki oranı girer.</li>
+      <li>Reel yıllık maliyet = (1 + yıllık maliyet) / (1 + beklenen enflasyon) − 1.</li>
+    </ul>
+
+    <h2 id="taksit">Taksitli mi, peşin mi?</h2>
+    <p class="formula card">Bugünkü değer = Σ<sub>k=0..n−1</sub> taksit / (1 + g)<sup>ilk + k</sup>, &nbsp; g = (1 + yıllık getiri)<sup>1/12</sup> − 1</p>
+    <ul>
+      <li>Bugünkü değer peşin fiyattan düşükse taksit, yüksekse peşin daha ucuzdur.</li>
+      <li>Gizli faiz: peşin fiyatı taksitlere eşitleyen aylık oran (iç verim oranı); yıllık bileşik gösterilir. Taksitli toplam peşin fiyata eşitse gizli faiz sıfırdır.</li>
+      <li>“Bugünkü TL ile toplam” taksitleri beklenen enflasyonla indirger.</li>
+    </ul>
+
+    <h2 id="maas">Reel maaş</h2>
+    <ul>
+      <li>Bugünkü TL karşılığı = maaş × TÜFE<sub>bugün</sub> / TÜFE<sub>o ay</sub>; dolar = maaş / USD/TRY; gram altın = maaş / gram altın fiyatı (o ayın ortalaması).</li>
+      <li>Reel zam = (1 + nominal zam) / (1 + iki maaş ayı arasındaki TÜFE değişimi) − 1.</li>
+      <li>Grafikte maaş, bir sonraki zam ayına kadar aynı kabul edilir. Veriler yalnızca tarayıcıda saklanır.</li>
+    </ul>
+
+    <h2 id="olaylar">Olay penceresi</h2>
+    <p class="formula card">Yol<sub>o</sub> = X<sub>olay+o</sub> / X<sub>olay−1</sub> − 1 (seviye) &nbsp; veya &nbsp; X<sub>olay+o</sub> − X<sub>olay−1</sub> (oran)</p>
+    <ul>
+      <li>Ortalama ve medyan yol, pencerenin tamamında verisi olan olaylar üzerinden alınır.</li>
+      <li>Faiz olayları politika faizi serisinden türetilir (aylık ortalamanın bir önceki aya göre eşik kadar değiştiği aylar); karar günü değil, ay düzeyindedir.</li>
+      <li>Olay öncesi ve sonrası hareket, olayın nedensel etkisi değildir; aynı dönemdeki diğer gelişmeleri içerir.</li>
     </ul>
 
     <h2 id="kisisel">9. Kişisel enflasyon</h2>

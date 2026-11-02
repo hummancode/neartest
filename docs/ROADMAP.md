@@ -23,7 +23,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 |---|---|---|
 | ✅ | **Makro Pano** (örnek veriyle; seri kodları doğrulanacak): GSYH büyümesi, kişi başı GSYH ($), TÜFE, işsizlik, cari denge, rezervler, politika faizi, CDS, bütçe | TÜİK/TCMB/HMB via EVDS; **CDS**: resmi ücretsiz kaynak yok (lisanslı veri) → elle |
 | ✅ | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
-| ⬜ | Olay penceresi analizi: PPK kararları gibi tarihli resmi olaylar etrafında piyasaların ortalama hareketi | olay listesi elle, yalnızca resmi olay adı ve tarih (yorum yok) |
+| ✅ | Olay penceresi: faiz artış/indirim ayları (politika faizi serisinden) ve elle eklenen resmi olaylar etrafında ortalama/medyan hareket | `data/manual/events.csv`; ay düzeyinde (günlük veriyle iyileştirilebilir) |
 | ⬜ | Ülke karşılaştırması: Türkiye ve benzer ekonomiler (enflasyon, büyüme, borç/GSYH) | Dünya Bankası / IMF açık verileri (lisansları uygun) |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
@@ -32,11 +32,12 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | | Fikir | Veri / not |
 |---|---|---|
 | ✅ | Nominal illüzyon, kişisel enflasyon, kirala/satın al | — |
-| ⬜ | **Taksitli mi peşin mi?** Taksitlerin bugünkü değeri vs peşin indirim | faiz + enflasyon beklentisi, yeni veri gerekmez |
-| ⬜ | Reel maaş takibi: maaş artışın enflasyonu, doları, altını yendi mi? | TÜFE + kullanıcı girdisi (tarayıcıda) |
+| ✅ | **Taksitli mi peşin mi?** Bugünkü değer ve taksit planının gizli faizi | — |
+| ✅ | Reel maaş takibi: her zam enflasyona karşı, bugünkü TL / dolar / altın karşılığı | tarayıcıda saklanır |
 | ⬜ | Paranın erime hızı: TL'nin alım gücünün yarılanma süresi | TÜFE |
 | ⬜ | Birikim hedefi: reel hedefe ulaşmak için aylık birikim | varsayım girdileri |
-| ⬜ | Kredi kartı / ihtiyaç kredisi reel maliyeti | EVDS faizleri |
+| ✅ | Kredinin gerçek maliyeti: KKDF, BSMV, tahsis ücreti, sigorta → iç verim oranı, ödeme planı, reel maliyet | oranlar kullanıcıdan (mevzuat değişebilir) |
+| ⬜ | Kredi kartı asgari ödeme / nakit avans maliyeti, kredi yapılandırma karşılaştırması | — |
 
 ## 4. Platform
 | | Fikir | Not |

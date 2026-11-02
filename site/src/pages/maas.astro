@@ -1,0 +1,163 @@
+---
+import Base from "../layouts/Base.astro";
+import { levels } from "../lib/levels.ts";
+import { monthLabel } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const s = levels.series;
+const months = Object.keys(s.cpi_tr).filter((m) => m in s.usdtry && m in s.gold_gram_tl).sort();
+const years = [...new Set(months.map((m) => m.slice(0, 4)))];
+const payload = { end: levels.end_month, sample: levels.sample, series: levels.series };
+---
+<Base title="Reel maaş takibi" description="Maaş zamlarınız enflasyonu, doları ve altını yendi mi? Maaşınızın bugünkü TL karşılığı. Veriler tarayıcınızda kalır." sample={levels.sample}>
+  <h1>Reel maaş takibi</h1>
+  <p class="lead">
+    Maaşınız her yıl arttı; peki alım gücünüz? Geçmiş maaşlarınızı girin: her zammın enflasyonu yenip yenmediğini ve
+    maaşınızın bugünkü TL, dolar ve altın karşılığını görün.
+  </p>
+  <p class="callout card">🔒 Maaş bilgileriniz <strong>yalnızca bu tarayıcıda</strong> saklanır; hiçbir sunucuya gönderilmez.</p>
+
+  <form id="add" class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="m">Ay</label><select id="m">{["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"].map((n, i) => <option value={String(i + 1).padStart(2, "0")}>{n}</option>)}</select></div>
+      <div class="field"><label for="y">Yıl</label><select id="y">{years.map((y, i) => <option value={y} selected={i === Math.max(0, years.length - 4)}>{y}</option>)}</select></div>
+      <div class="field"><label for="salary">Net maaş (TL, aylık)</label><input id="salary" inputmode="decimal" placeholder="ör. 35.000" /></div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="add-btn">Ekle</button>
+      <button class="btn btn-ghost" type="button" id="clear">Tümünü sil</button>
+      <span id="err" class="error" role="alert" hidden></span>
+    </div>
+    <p class="muted small">Seçilebilir aralık: {monthLabel(months[0])} – {monthLabel(levels.end_month)}. Her zam ayı için bir satır yeterli; aradaki aylarda maaş aynı kabul edilir.</p>
+  </form>
+
+  <section class="stat-grid" id="summary" hidden aria-live="polite">
+    <div class="card stat"><p class="s-label">Alım gücündeki değişim</p><p class="s-value" id="o-real"></p><p class="muted small" id="o-real-sub"></p></div>
+    <div class="card stat"><p class="s-label">Son maaşınız dolar olarak</p><p class="s-value" id="o-usd"></p><p class="muted small" id="o-usd-sub"></p></div>
+    <div class="card stat"><p class="s-label">Son maaşınız gram altın olarak</p><p class="s-value" id="o-gold"></p><p class="muted small" id="o-gold-sub"></p></div>
+  </section>
+
+  <section class="card" id="chart-card" hidden>
+    <h2 class="c-title">Maaşınızın seyri</h2>
+    <div id="chart" class="chart-box"></div>
+    <p class="muted small">Reel çizgi: o ayki maaşınızın bugünkü ({monthLabel(levels.end_month)}) fiyatlarla karşılığı.</p>
+  </section>
+
+  <section class="card list">
+    <h2 class="c-title">Maaş geçmişi</h2>
+    <p class="muted" id="empty">Henüz maaş girilmedi.</p>
+    <div class="scroll-x">
+      <table class="data" id="rows" hidden>
+        <thead><tr><th scope="col">Ay</th><th scope="col">Net maaş</th><th scope="col">Zam</th><th scope="col">Arada enflasyon</th><th scope="col">Reel zam</th><th scope="col">Bugünkü TL ile</th><th scope="col">Dolar</th><th scope="col">Gram altın</th><th scope="col" id="mw-col" hidden>Asgari ücret</th><th scope="col"><span class="sr-only">Sil</span></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <p>Yöntem: reel zam = (1 + zam) / (1 + iki ay arasındaki TÜFE değişimi) − 1; bugünkü TL = maaş × TÜFE<sub>bugün</sub> / TÜFE<sub>o ay</sub>. <a href="/metodoloji#maas">Metodoloji</a>.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="m-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { salaryAnalysis, valueToday, shiftMonth, SeriesError } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { renderChart } from "../lib/chart.ts";
+
+  const data = JSON.parse(document.getElementById("m-data")!.textContent!);
+  const S = data.series, END: string = data.end;
+  const KEY = "maas.v1";
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const tl = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(x)) + " TL";
+  const n1 = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(x);
+  const pct = (x: number | null) => x === null ? "—" : new Intl.NumberFormat("tr-TR", { style: "percent", maximumFractionDigits: 1, minimumFractionDigits: 1, signDisplay: "exceptZero" }).format(x);
+
+  let points: Record<string, number> = {};
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
+    for (const [m, v] of Object.entries(raw)) if (/^\d{4}-\d{2}$/.test(m) && typeof v === "number" && v > 0 && m in S.cpi_tr) points[m] = v;
+  } catch { points = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(points)); } catch { /* storage unavailable */ } };
+
+  function cell(t: string, cls = "") { const td = document.createElement("td"); td.textContent = t; if (cls) td.className = cls; return td; }
+
+  function render() {
+    const has = Object.keys(points).length > 0;
+    $("rows").hidden = !has; $("empty").hidden = has; $("summary").hidden = !has; $("chart-card").hidden = !has;
+    const tbody = document.querySelector("#rows tbody")!;
+    tbody.replaceChildren();
+    if (!has) return;
+    let a;
+    try { a = salaryAnalysis(points, S.cpi_tr, END, S.usdtry, S.gold_gram_tl); } catch (e) { if (e instanceof SeriesError) return; throw e; }
+    const mw = S.min_wage_net;
+    $("mw-col").hidden = !mw;
+    for (const r of a.rows) {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th"); th.scope = "row"; th.textContent = label(r.month);
+      tr.append(th, cell(tl(r.salary)), cell(pct(r.raise_nominal)), cell(pct(r.inflation)),
+        cell(pct(r.raise_real), r.raise_real === null ? "" : r.raise_real >= 0 ? "pos" : "neg"),
+        cell(tl(r.today_tl)), cell(r.usd ? `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(r.usd)} $` : "—"),
+        cell(r.gold ? `${n1(r.gold)} g` : "—"));
+      if (mw) tr.appendChild(cell(r.month in mw ? `${n1(r.salary / mw[r.month])} ×` : "—"));
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "del"; del.textContent = "Sil";
+      del.setAttribute("aria-label", `${label(r.month)} maaşını sil`);
+      del.addEventListener("click", () => { delete points[r.month]; save(); render(); });
+      const td = document.createElement("td"); td.appendChild(del); tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+    const first = a.rows[0], last = a.rows[a.rows.length - 1];
+    $("o-real").textContent = pct(a.real_change_total);
+    $("o-real-sub").textContent = a.rows.length > 1
+      ? `${label(first.month)} maaşınız bugün ${tl(first.today_tl)} ederdi; ${label(last.month)} maaşınız ${tl(last.today_tl)}.`
+      : "Karşılaştırma için en az iki maaş girin.";
+    $("o-usd").textContent = last.usd ? `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(last.usd)} $` : "—";
+    $("o-usd-sub").textContent = first !== last && first.usd ? `${label(first.month)}: ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(first.usd)} $` : "";
+    $("o-gold").textContent = last.gold ? `${n1(last.gold)} g` : "—";
+    $("o-gold-sub").textContent = first !== last && first.gold ? `${label(first.month)}: ${n1(first.gold)} g` : "";
+    // Monthly path: salary carried forward until the next raise.
+    const months: string[] = [], nominal: number[] = [], real: number[] = [];
+    let cur = first.month, val = first.salary;
+    while (cur <= END) {
+      if (cur in points) val = points[cur];
+      if (cur in S.cpi_tr) { months.push(cur); nominal.push(val); real.push(valueToday(val, S.cpi_tr[cur], S.cpi_tr[END])); }
+      cur = shiftMonth(cur, 1);
+    }
+    if (months.length > 1) {
+      renderChart($("chart"), { months, series: [
+        { key: "nominal", label: "Nominal", color: "var(--series-2)", values: nominal },
+        { key: "real", label: "Bugünkü TL ile", color: "var(--series-1)", values: real },
+      ] }, { baseline: null, format: tl, allowLog: true });
+    } else { $("chart").replaceChildren(); }
+  }
+
+  $("add-btn").addEventListener("click", () => {
+    const v = parseAmount((document.getElementById("salary") as HTMLInputElement).value);
+    const m = `${(document.getElementById("y") as HTMLSelectElement).value}-${(document.getElementById("m") as HTMLSelectElement).value}`;
+    const err = $("err");
+    if (v === null) { err.textContent = "Geçerli bir maaş girin."; err.hidden = false; return; }
+    if (!(m in S.cpi_tr) || m > END) { err.textContent = `${label(m)} için TÜFE verisi yok.`; err.hidden = false; return; }
+    err.hidden = true;
+    points[m] = v; save();
+    (document.getElementById("salary") as HTMLInputElement).value = "";
+    render();
+  });
+  $("clear").addEventListener("click", () => { if (confirm("Tüm maaş kayıtları bu tarayıcıdan silinsin mi?")) { points = {}; save(); render(); } });
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 2 && !$("chart-card").hidden) { lastW = w; render(); } }).observe($("chart"));
+  render();
+</script>
+
+<style>
+  .actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .c-title { font-size: 1.4rem; margin: 0 0 8px; }
+  .chart-box { min-height: 260px; }
+  #chart-card, .list { margin-top: 16px; }
+  .scroll-x { overflow-x: auto; }
+  #rows { min-width: 760px; font-size: 0.88rem; }
+  #rows tbody th { text-align: left; font-weight: 600; }
+  #rows td.pos, #rows td.neg { font-weight: 700; color: var(--ink); }
+  .del { background: none; border: 1px solid var(--line); color: var(--ink-2); border-radius: 6px; font: inherit; font-size: 0.8rem; padding: 2px 8px; cursor: pointer; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

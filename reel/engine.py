@@ -517,3 +517,207 @@ def portfolio_summary(holdings: list[dict]) -> dict:
     inflated = sum(h["inflated_cost"] for h in holdings)
     return {"cost": cost, "value": value, "nominal": value / cost - 1.0,
             "real": value / inflated - 1.0, "inflation_gap_tl": value - inflated}
+
+
+# ---------------------------------------------------------------------------
+# Internal rate of return
+# ---------------------------------------------------------------------------
+
+def npv(rate: float, cashflows: list[float]) -> float:
+    return sum(cf / (1.0 + rate) ** k for k, cf in enumerate(cashflows))
+
+
+def irr(cashflows: list[float], lo: float = -0.99, hi: float = 10.0) -> float:
+    """Per-period rate that makes the NPV of `cashflows` zero (bisection).
+
+    cashflows[k] happens at period k. Needs a sign change in the NPV over [lo, hi].
+    """
+    if npv(0.0, cashflows) == 0.0:
+        return 0.0
+    f_lo, f_hi = npv(lo, cashflows), npv(hi, cashflows)
+    if f_lo * f_hi > 0:
+        raise SeriesError("no rate makes the cash flows balance")
+    for _ in range(300):
+        mid = (lo + hi) / 2.0
+        f_mid = npv(mid, cashflows)
+        if f_mid == 0.0 or hi - lo < 1e-15:
+            return mid
+        if f_lo * f_mid < 0:
+            hi, f_hi = mid, f_mid
+        else:
+            lo, f_lo = mid, f_mid
+    return (lo + hi) / 2.0
+
+
+# ---------------------------------------------------------------------------
+# Consumer loan true cost (Turkish loans: KKDF and BSMV are charged on interest)
+# ---------------------------------------------------------------------------
+
+def amortization(principal: float, monthly_rate: float, months: int, kkdf: float = 0.0, bsmv: float = 0.0) -> list[dict]:
+    """Equal-installment plan where taxes are added to each month's interest.
+
+    Installment = annuity at the tax-inclusive rate r x (1 + KKDF + BSMV).
+    """
+    if principal <= 0 or months <= 0:
+        raise SeriesError("principal and term must be positive")
+    r_eff = monthly_rate * (1.0 + kkdf + bsmv)
+    payment = mortgage_payment(principal, r_eff, months)
+    balance, rows = principal, []
+    for t in range(1, months + 1):
+        interest = balance * monthly_rate
+        k, b = interest * kkdf, interest * bsmv
+        princ = payment - interest - k - b
+        if t == months:
+            princ = balance                      # absorb float drift in the last month
+        balance -= princ
+        rows.append({"month": t, "installment": interest + k + b + princ, "interest": interest,
+                     "kkdf": k, "bsmv": b, "principal": princ, "balance": max(balance, 0.0)})
+    return rows
+
+
+def loan_cost(*, principal: float, monthly_rate: float, months: int, kkdf: float, bsmv: float,
+              upfront_fees: float, monthly_fees: float, inflation: float) -> dict:
+    """What the loan really costs: the IRR of money received vs. every payment.
+
+    upfront_fees: allocation fee, upfront insurance... deducted from what you receive.
+    monthly_fees: e.g. monthly insurance or account fees added to each installment.
+    annual_cost compounds the monthly IRR; advertised_annual is the bank's rate x 12.
+    """
+    rows = amortization(principal, monthly_rate, months, kkdf, bsmv)
+    payments = [r["installment"] + monthly_fees for r in rows]
+    m = irr([principal - upfront_fees] + [-p for p in payments])
+    annual = (1.0 + m) ** 12 - 1.0
+    return {
+        "schedule": rows,
+        "installment": rows[0]["installment"] + monthly_fees,
+        "total_paid": sum(payments) + upfront_fees,
+        "total_interest": sum(r["interest"] for r in rows),
+        "total_kkdf": sum(r["kkdf"] for r in rows),
+        "total_bsmv": sum(r["bsmv"] for r in rows),
+        "total_fees": upfront_fees + monthly_fees * months,
+        "advertised_annual": monthly_rate * 12,
+        "monthly_cost": m,
+        "annual_cost": annual,
+        "real_annual_cost": real_return(annual, inflation),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Installments vs cash
+# ---------------------------------------------------------------------------
+
+def present_value(payments: list[float], monthly_rate: float, first_offset: int = 1) -> float:
+    return sum(p / (1.0 + monthly_rate) ** (first_offset + k) for k, p in enumerate(payments))
+
+
+def installment_vs_cash(*, cash_price: float, installment: float, count: int, first_offset: int,
+                        annual_discount: float, inflation: float) -> dict:
+    """Compare paying `cash_price` now with `count` installments starting in `first_offset` months.
+
+    annual_discount: what your money earns elsewhere (e.g. deposit rate after tax).
+    hidden_monthly_rate: the interest rate the installment plan implies vs. the cash price.
+    """
+    if cash_price <= 0 or installment <= 0 or count <= 0 or first_offset < 0:
+        raise SeriesError("prices, installment and count must be positive")
+    md = (1.0 + annual_discount) ** (1 / 12) - 1.0
+    mi = (1.0 + inflation) ** (1 / 12) - 1.0
+    payments = [installment] * count
+    pv = present_value(payments, md, first_offset)
+    flows = [0.0] * (first_offset + count)
+    flows[0] += cash_price
+    for k in range(count):
+        flows[first_offset + k] -= installment
+    hidden = irr(flows)
+    if abs(pv - cash_price) < 1e-9:
+        cheaper = "equal"
+    else:
+        cheaper = "installments" if pv < cash_price else "cash"
+    return {
+        "nominal_total": installment * count,
+        "pv_installments": pv,
+        "real_total": present_value(payments, mi, first_offset),
+        "saving": cash_price - pv,
+        "cheaper": cheaper,
+        "hidden_monthly_rate": hidden,
+        "hidden_annual_rate": (1.0 + hidden) ** 12 - 1.0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Real salary
+# ---------------------------------------------------------------------------
+
+def salary_analysis(points: dict[str, float], cpi: dict[str, float], end: str,
+                    usd: dict[str, float] | None = None, gold: dict[str, float] | None = None) -> dict:
+    """Each salary point in today's TL, USD and grams of gold; every raise vs. inflation."""
+    months = sorted(points, key=_month_index)
+    if not months:
+        raise SeriesError("no salary points")
+    for m in months + [end]:
+        if m not in cpi:
+            raise SeriesError(f"no CPI for {m}")
+    rows = []
+    for k, m in enumerate(months):
+        row = {"month": m, "salary": points[m], "today_tl": value_today(points[m], cpi[m], cpi[end]),
+               "usd": points[m] / usd[m] if usd and m in usd else None,
+               "gold": points[m] / gold[m] if gold and m in gold else None,
+               "raise_nominal": None, "inflation": None, "raise_real": None}
+        if k:
+            prev = months[k - 1]
+            row["raise_nominal"] = total_return(points[prev], points[m])
+            row["inflation"] = total_return(cpi[prev], cpi[m])
+            row["raise_real"] = real_return(row["raise_nominal"], row["inflation"])
+        rows.append(row)
+    return {"rows": rows, "real_change_total": rows[-1]["today_tl"] / rows[0]["today_tl"] - 1.0}
+
+
+# ---------------------------------------------------------------------------
+# Event study
+# ---------------------------------------------------------------------------
+
+def _median(xs: list[float]) -> float:
+    s = sorted(xs)
+    n = len(s)
+    return s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2.0
+
+
+def event_study(series: dict[str, float], kind: str, events: list[str], before: int, after: int) -> dict:
+    """Average path of `series` around event months, relative to the month before each event.
+
+    level -> cumulative % change from that base month; rate -> change in points.
+    Events without data for the whole window are left out (and counted).
+    """
+    offsets = list(range(-before, after + 1))
+    paths, used, skipped = [], [], []
+    for ev in events:
+        base = shift_month(ev, -1)
+        months = [shift_month(ev, o) for o in offsets]
+        if base not in series or any(m not in series for m in months):
+            skipped.append(ev)
+            continue
+        b = series[base]
+        if kind == "level":
+            if b <= 0:
+                skipped.append(ev)
+                continue
+            paths.append([series[m] / b - 1.0 for m in months])
+        else:
+            paths.append([series[m] - b for m in months])
+        used.append(ev)
+    n = len(paths)
+    mean = [sum(p[i] for p in paths) / n for i in range(len(offsets))] if n else []
+    median = [_median([p[i] for p in paths]) for i in range(len(offsets))] if n else []
+    return {"offsets": offsets, "n": n, "events": used, "skipped": skipped, "paths": paths, "mean": mean, "median": median}
+
+
+def derive_rate_events(rate: dict[str, float], threshold: float) -> list[dict]:
+    """Months where a rate moved by at least `threshold` points vs. the month before."""
+    out = []
+    for m in sorted(rate, key=_month_index):
+        prev = shift_month(m, -1)
+        if prev not in rate:
+            continue
+        d = rate[m] - rate[prev]
+        if abs(d) >= threshold:
+            out.append({"month": m, "change": d, "type": "hike" if d > 0 else "cut"})
+    return out

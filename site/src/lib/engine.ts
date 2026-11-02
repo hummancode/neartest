@@ -344,3 +344,155 @@ export function portfolioSummary(holdings: { amount: number; value: number; infl
   const inflated = holdings.reduce((a, h) => a + h.inflated_cost, 0);
   return { cost, value, nominal: value / cost - 1.0, real: value / inflated - 1.0, inflation_gap_tl: value - inflated };
 }
+
+// --- IRR ---------------------------------------------------------------------
+
+export function npv(rate: number, cashflows: number[]): number {
+  return cashflows.reduce((a, cf, k) => a + cf / (1.0 + rate) ** k, 0);
+}
+
+/** Per-period rate that makes the NPV zero (bisection). Same as reel/engine.py irr. */
+export function irr(cashflows: number[], lo = -0.99, hi = 10.0): number {
+  if (npv(0.0, cashflows) === 0.0) return 0.0;
+  let fLo = npv(lo, cashflows);
+  const fHi = npv(hi, cashflows);
+  if (fLo * fHi > 0) throw new SeriesError("no rate makes the cash flows balance");
+  for (let i = 0; i < 300; i++) {
+    const mid = (lo + hi) / 2.0;
+    const fMid = npv(mid, cashflows);
+    if (fMid === 0.0 || hi - lo < 1e-15) return mid;
+    if (fLo * fMid < 0) hi = mid;
+    else { lo = mid; fLo = fMid; }
+  }
+  return (lo + hi) / 2.0;
+}
+
+// --- loan true cost ------------------------------------------------------------
+
+export interface AmortRow { month: number; installment: number; interest: number; kkdf: number; bsmv: number; principal: number; balance: number }
+
+export function amortization(principal: number, monthlyRate: number, months: number, kkdf = 0.0, bsmv = 0.0): AmortRow[] {
+  if (!(principal > 0) || !(months > 0)) throw new SeriesError("principal and term must be positive");
+  const payment = mortgagePayment(principal, monthlyRate * (1.0 + kkdf + bsmv), months);
+  let balance = principal;
+  const rows: AmortRow[] = [];
+  for (let t = 1; t <= months; t++) {
+    const interest = balance * monthlyRate;
+    const k = interest * kkdf, b = interest * bsmv;
+    let princ = payment - interest - k - b;
+    if (t === months) princ = balance;
+    balance -= princ;
+    rows.push({ month: t, installment: interest + k + b + princ, interest, kkdf: k, bsmv: b, principal: princ, balance: Math.max(balance, 0.0) });
+  }
+  return rows;
+}
+
+export interface LoanCostParams { principal: number; monthly_rate: number; months: number; kkdf: number; bsmv: number; upfront_fees: number; monthly_fees: number; inflation: number }
+
+export function loanCost(p: LoanCostParams) {
+  const rows = amortization(p.principal, p.monthly_rate, p.months, p.kkdf, p.bsmv);
+  const payments = rows.map((r) => r.installment + p.monthly_fees);
+  const m = irr([p.principal - p.upfront_fees, ...payments.map((x) => -x)]);
+  const annual = (1.0 + m) ** 12 - 1.0;
+  const sum = (f: (r: AmortRow) => number) => rows.reduce((a, r) => a + f(r), 0);
+  return {
+    schedule: rows,
+    installment: rows[0].installment + p.monthly_fees,
+    total_paid: payments.reduce((a, x) => a + x, 0) + p.upfront_fees,
+    total_interest: sum((r) => r.interest),
+    total_kkdf: sum((r) => r.kkdf),
+    total_bsmv: sum((r) => r.bsmv),
+    total_fees: p.upfront_fees + p.monthly_fees * p.months,
+    advertised_annual: p.monthly_rate * 12,
+    monthly_cost: m,
+    annual_cost: annual,
+    real_annual_cost: realReturn(annual, p.inflation),
+  };
+}
+
+// --- installments vs cash ------------------------------------------------------
+
+export function presentValue(payments: number[], monthlyRate: number, firstOffset = 1): number {
+  return payments.reduce((a, x, k) => a + x / (1.0 + monthlyRate) ** (firstOffset + k), 0);
+}
+
+export interface InstallmentParams { cash_price: number; installment: number; count: number; first_offset: number; annual_discount: number; inflation: number }
+
+export function installmentVsCash(p: InstallmentParams) {
+  if (!(p.cash_price > 0) || !(p.installment > 0) || !(p.count > 0) || p.first_offset < 0) {
+    throw new SeriesError("prices, installment and count must be positive");
+  }
+  const md = (1.0 + p.annual_discount) ** (1 / 12) - 1.0;
+  const mi = (1.0 + p.inflation) ** (1 / 12) - 1.0;
+  const payments = Array(p.count).fill(p.installment);
+  const pv = presentValue(payments, md, p.first_offset);
+  const flows = Array(p.first_offset + p.count).fill(0.0);
+  flows[0] += p.cash_price;
+  for (let k = 0; k < p.count; k++) flows[p.first_offset + k] -= p.installment;
+  const hidden = irr(flows);
+  const cheaper = Math.abs(pv - p.cash_price) < 1e-9 ? "equal" : pv < p.cash_price ? "installments" : "cash";
+  return {
+    nominal_total: p.installment * p.count,
+    pv_installments: pv,
+    real_total: presentValue(payments, mi, p.first_offset),
+    saving: p.cash_price - pv,
+    cheaper,
+    hidden_monthly_rate: hidden,
+    hidden_annual_rate: (1.0 + hidden) ** 12 - 1.0,
+  };
+}
+
+// --- real salary -----------------------------------------------------------------
+
+export function salaryAnalysis(points: Series, cpi: Series, end: string, usd: Series | null = null, gold: Series | null = null) {
+  const months = Object.keys(points).sort((a, b) => monthIndex(a) - monthIndex(b));
+  if (months.length === 0) throw new SeriesError("no salary points");
+  for (const m of [...months, end]) if (!(m in cpi)) throw new SeriesError(`no CPI for ${m}`);
+  const rows = months.map((m, k) => {
+    const row: Record<string, any> = {
+      month: m, salary: points[m], today_tl: valueToday(points[m], cpi[m], cpi[end]),
+      usd: usd && m in usd ? points[m] / usd[m] : null,
+      gold: gold && m in gold ? points[m] / gold[m] : null,
+      raise_nominal: null, inflation: null, raise_real: null,
+    };
+    if (k) {
+      const prev = months[k - 1];
+      row.raise_nominal = totalReturn(points[prev], points[m]);
+      row.inflation = totalReturn(cpi[prev], cpi[m]);
+      row.raise_real = realReturn(row.raise_nominal, row.inflation);
+    }
+    return row;
+  });
+  return { rows, real_change_total: rows[rows.length - 1].today_tl / rows[0].today_tl - 1.0 };
+}
+
+// --- event study -----------------------------------------------------------------
+
+function median(xs: number[]): number {
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length;
+  return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2.0;
+}
+
+export function eventStudy(series: Series, kind: string, events: string[], before: number, after: number) {
+  const offsets: number[] = [];
+  for (let o = -before; o <= after; o++) offsets.push(o);
+  const paths: number[][] = [], used: string[] = [], skipped: string[] = [];
+  for (const ev of events) {
+    const base = shiftMonth(ev, -1);
+    const months = offsets.map((o) => shiftMonth(ev, o));
+    if (!(base in series) || months.some((m) => !(m in series))) { skipped.push(ev); continue; }
+    const b = series[base];
+    if (kind === "level") {
+      if (b <= 0) { skipped.push(ev); continue; }
+      paths.push(months.map((m) => series[m] / b - 1.0));
+    } else {
+      paths.push(months.map((m) => series[m] - b));
+    }
+    used.push(ev);
+  }
+  const n = paths.length;
+  const mean = n ? offsets.map((_, i) => paths.reduce((a, p) => a + p[i], 0) / n) : [];
+  const med = n ? offsets.map((_, i) => median(paths.map((p) => p[i]))) : [];
+  return { offsets, n, events: used, skipped, paths, mean, median: med };
+}

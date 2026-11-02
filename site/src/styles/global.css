@@ -176,3 +176,22 @@ table { border-collapse: collapse; width: 100%; }
 /* Scroll containers must be positioned so absolutely positioned children (e.g. screen-reader-only
    labels inside tables) are clipped by them instead of widening the page. */
 .scroll-x { position: relative; }
+
+/* Shared calculator form fields */
+.form-grid { display: grid; gap: 12px; }
+@media (min-width: 720px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .form-grid.three { grid-template-columns: repeat(3, 1fr); } }
+.field label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--ink);
+}
+.field input[aria-invalid="true"] { border-color: var(--warn-bg); }
+.field small { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 3px; }
+.error { color: var(--warn-bg); font-weight: 600; }
+.stat-grid { display: grid; gap: 12px; margin: 16px 0; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
+.stat .s-label { font-weight: 600; font-size: 0.88rem; color: var(--ink-2); margin: 0; }
+.stat .s-value { font-family: var(--font-head); font-size: clamp(2rem, 9vw, 2.6rem); line-height: 1.15; margin: 2px 0; overflow-wrap: anywhere; }
+.stat p:last-child { margin-bottom: 0; }
+.callout { border-left: 4px solid var(--ink); color: var(--ink-2); margin: 16px 0; }

@@ -73,3 +73,11 @@ def test_load_stocks(tmp_path):
     assert list(out) == ["ABCD"]
     series, meta = out["ABCD"]
     assert series == {"2024-01": 11.0, "2024-02": 13.0} and meta["name"] == "Örnek A.Ş."
+
+
+def test_events_csv():
+    text = "Tarih;Tür;Başlık\n2024-03;karar;Kurul kararı\n15.06.2024;diğer;Başka olay\n"
+    assert manual.parse_events_csv(text) == [
+        {"month": "2024-03", "type": "karar", "title": "Kurul kararı"},
+        {"month": "2024-06", "type": "diğer", "title": "Başka olay"},
+    ]

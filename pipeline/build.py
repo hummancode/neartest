@@ -32,6 +32,7 @@ OUT_PRICES = ROOT / "site" / "data" / "fiyatlar.json"
 OUT_HOUSING = ROOT / "site" / "data" / "konut.json"
 OUT_MACRO = ROOT / "site" / "data" / "makro.json"
 OUT_STOCKS = ROOT / "site" / "data" / "borsa.json"
+OUT_EVENTS = ROOT / "site" / "data" / "olaylar.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -184,9 +185,10 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     stocks_out = build_stocks(data, is_sample, end, stocks)
     housing = build_housing(data, is_sample, end)
     macro = build_macro(data, is_sample, end)
-    for d in (prices, housing, macro, stocks_out):
+    events = build_events(data, is_sample)
+    for d in (prices, housing, macro, stocks_out, events):
         d["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -525,6 +527,32 @@ def build_macro(data: dict, is_sample: dict, end: str) -> dict:
     return {"end_month": end, "sample": any(i["sample"] for i in indicators), "indicators": indicators}
 
 
+def build_events(data: dict, is_sample: dict, threshold: float = 1.0) -> dict:
+    """Event months for the event-study page.
+
+    Derived: months where the policy rate moved by >= `threshold` points (from the
+    policy_rate series itself, so they are only as real as that series).
+    Manual: data/manual/events.csv (date; type; title) — official dated facts only.
+    """
+    events = []
+    if "policy_rate" in data:
+        for ev in e.derive_rate_events(data["policy_rate"], threshold):
+            events.append({"month": ev["month"], "type": ev["type"], "change": ev["change"],
+                           "title": f"Politika faizi {'artışı' if ev['type'] == 'hike' else 'indirimi'}",
+                           "origin": "derived"})
+    path = manual.MANUAL / "events.csv"
+    if path.exists():
+        for ev in manual.parse_events_csv(path.read_text(encoding="utf-8-sig")):
+            events.append(ev | {"change": None, "origin": "manual"})
+    events.sort(key=lambda x: e._month_index(x["month"]))
+    return {
+        "threshold": threshold,
+        "sample": is_sample.get("policy_rate", False),
+        "source": src("policy_rate", is_sample) if "policy_rate" in data else None,
+        "events": events,
+    }
+
+
 USED_BY = {
     "cpi_tr": "Tüm reel hesaplar", "usdtry": "USD getirisi, nominal illüzyon", "eurtry": "Reel Tablo",
     "deposit_rate": "Reel Tablo, reel faiz", "credit_rate": "Reel Tablo, reel faiz",
@@ -630,7 +658,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -642,8 +670,9 @@ def main() -> int:
     write_if_changed(OUT_HOUSING, housing)
     write_if_changed(OUT_MACRO, macro)
     write_if_changed(OUT_STOCKS, stocks_out)
+    write_if_changed(OUT_EVENTS, events)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (10 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (11 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

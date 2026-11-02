@@ -415,3 +415,97 @@ def test_portfolio_summary_weights_by_money():
     assert close(s["nominal"], 0.25)
     assert close(s["real"], 5000 / 6000 - 1)     # value / sum of inflated costs
     assert close(s["inflation_gap_tl"], -1000.0)
+
+
+# --- loan true cost (KKDF, BSMV, fees) ----------------------------------------
+
+def test_amortization_without_taxes_is_plain_annuity():
+    rows = e.amortization(1000, 0.01, 12)
+    a = 1000 * 0.01 / (1 - 1.01 ** -12)
+    assert all(close(r["installment"], a, tol=1e-9) for r in rows)
+    assert close(rows[0]["interest"], 10.0) and close(rows[-1]["balance"], 0.0, tol=1e-9)
+
+
+def test_amortization_taxes_on_interest():
+    # Taxes are charged on each interest payment: installment = annuity at r*(1+kkdf+bsmv)
+    rows = e.amortization(1000, 0.01, 12, kkdf=0.15, bsmv=0.15)
+    a = 1000 * 0.013 / (1 - 1.013 ** -12)
+    assert close(rows[0]["installment"], a, tol=1e-9)
+    assert close(rows[0]["kkdf"], 1.5) and close(rows[0]["bsmv"], 1.5)       # 15 % of 10 TL interest
+    assert close(sum(r["principal"] for r in rows), 1000.0, tol=1e-9)
+
+
+def test_irr_closed_form():
+    # receive 900, pay 500 twice: 500x^2 + 500x - 900 = 0, x = 1/(1+i)
+    x = (-500 + math.sqrt(500 ** 2 + 4 * 500 * 900)) / (2 * 500)
+    assert close(e.irr([900, -500, -500]), 1 / x - 1, tol=1e-10)
+    with pytest.raises(e.SeriesError):
+        e.irr([100, 50])                      # no sign change -> no rate
+
+
+def test_loan_cost_fee_raises_effective_rate():
+    r = e.loan_cost(principal=1000, monthly_rate=0.0, months=2, kkdf=0.0, bsmv=0.0,
+                    upfront_fees=100, monthly_fees=0.0, inflation=0.0)
+    x = (-500 + math.sqrt(500 ** 2 + 4 * 500 * 900)) / 1000
+    assert close(r["monthly_cost"], 1 / x - 1, tol=1e-10)
+    assert close(r["annual_cost"], (1 / x) ** 12 - 1, tol=1e-9)
+    assert r["advertised_annual"] == 0.0
+    assert close(r["total_paid"], 1100.0)
+
+
+def test_loan_cost_zero_everything():
+    r = e.loan_cost(principal=1200, monthly_rate=0.0, months=12, kkdf=0, bsmv=0, upfront_fees=0, monthly_fees=0, inflation=0.1)
+    assert close(r["annual_cost"], 0.0, tol=1e-9) and close(r["real_annual_cost"], 1 / 1.1 - 1, tol=1e-9)
+
+
+# --- installment vs cash ------------------------------------------------------
+
+def test_installment_vs_cash_hidden_rate():
+    # Cash 900 or 2 x 500 starting next month: hidden monthly rate solves the same quadratic.
+    r = e.installment_vs_cash(cash_price=900, installment=500, count=2, first_offset=1,
+                              annual_discount=0.0, inflation=0.0)
+    x = (-500 + math.sqrt(500 ** 2 + 4 * 500 * 900)) / 1000
+    assert close(r["hidden_monthly_rate"], 1 / x - 1, tol=1e-10)
+    assert close(r["pv_installments"], 1000.0) and r["cheaper"] == "cash"
+
+
+def test_zero_interest_installments_win_with_positive_discount():
+    r = e.installment_vs_cash(cash_price=1200, installment=100, count=12, first_offset=1,
+                              annual_discount=0.12, inflation=0.0)
+    m = 1.12 ** (1 / 12) - 1
+    assert close(r["pv_installments"], sum(100 / (1 + m) ** k for k in range(1, 13)))
+    assert r["cheaper"] == "installments" and r["hidden_monthly_rate"] == 0.0
+
+
+# --- real salary ----------------------------------------------------------------
+
+def test_salary_analysis():
+    cpi = {"2023-01": 100.0, "2024-01": 150.0, "2025-01": 180.0}
+    usd = {"2023-01": 20.0, "2024-01": 30.0, "2025-01": 36.0}
+    out = e.salary_analysis({"2023-01": 10000.0, "2024-01": 14000.0}, cpi, "2025-01", usd=usd)
+    first, second = out["rows"]
+    assert close(first["today_tl"], 18000.0)                 # 10000 * 180/100
+    assert close(second["raise_nominal"], 0.4)
+    assert close(second["raise_real"], 1.4 / 1.5 - 1)        # raise lost to 50 % inflation
+    assert close(first["usd"], 500.0)
+    assert close(out["real_change_total"], 14000 * 180 / 150 / 18000 - 1)
+
+
+# --- event study ----------------------------------------------------------------
+
+def test_event_study_level_and_rate():
+    s = {e.shift_month("2024-01", k): 100.0 + 10 * k for k in range(8)}   # 100,110,...,170
+    out = e.event_study(s, "level", ["2024-04"], before=1, after=2)
+    # base = month before event (2024-03 = 120): offsets -1..2 -> 120,130,140,150
+    assert out["offsets"] == [-1, 0, 1, 2]
+    assert out["mean"][0] == 0.0 and close(out["mean"][3], 150 / 120 - 1)
+    r = e.event_study(s, "rate", ["2024-04", "2024-05"], before=1, after=1)
+    assert r["n"] == 2 and r["mean"] == [0.0, 10.0, 20.0]
+    assert e.event_study(s, "rate", ["2024-08"], before=1, after=1)["n"] == 0   # not enough data after
+
+
+def test_derive_rate_events():
+    pr = {"2024-01": 45.0, "2024-02": 45.0, "2024-03": 50.0, "2024-04": 47.5}
+    ev = e.derive_rate_events(pr, threshold=1.0)
+    assert ev == [{"month": "2024-03", "change": 5.0, "type": "hike"},
+                  {"month": "2024-04", "change": -2.5, "type": "cut"}]

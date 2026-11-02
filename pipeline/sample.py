@@ -70,7 +70,8 @@ def build_sample() -> dict[str, dict[str, float]]:
         "unemployment": {m: wave(k, 10.5, 1.8, 14.0, 1.0) for k, m in enumerate(months)},
         "current_account": {m: wave(k, -25.0, 20.0, 16.0, 2.0) for k, m in enumerate(months)},
         "reserves": {m: 100 + 25 * math.sin(k / 20 + 0.5) + 0.3 * k for k, m in enumerate(months)},
-        "policy_rate": {m: max(5.0, wave(k, 20.0, 15.0, 18.0, 4.0)) for k, m in enumerate(months)},
+        # step-shaped like a real policy rate (moves in 2.5-point steps, holds in between)
+        "policy_rate": {m: max(5.0, round(wave(k, 20.0, 15.0, 18.0, 4.0) / 2.5) * 2.5) for k, m in enumerate(months)},
         "cds_5y": {m: wave(k, 380.0, 170.0, 15.0, 2.5) for k, m in enumerate(months)},
         "budget_balance_gdp": {m: wave(k, -2.5, 1.8, 12.0, 0.8) for k, m in enumerate(months) if m[5:] in ("03", "06", "09", "12")},
     }

@@ -70,6 +70,8 @@ export interface ChartOptions {
   baseline?: number | null;          // dashed reference line; 100 for index charts (default), 0 for changes, null for none
   format?: (v: number) => string;    // value formatter for end labels and tooltip
   allowLog?: boolean;
+  xLabels?: string[];                // custom x labels (e.g. event offsets "−3", "0", "+6") instead of months
+  tickEvery?: number;                // with xLabels: label every n-th point
 }
 
 export function renderChart(root: HTMLElement, data: ChartData, opts: ChartOptions = {}) {
@@ -105,9 +107,18 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: ChartOptio
   }
   // X ticks: first point of each year (thinned to fit); for windows up to 1.5 years, quarters.
   const idx = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5)) - 1;
-  const yearsSpan = (idx(data.months[n - 1]) - idx(data.months[0])) / 12;
+  const yearsSpan = opts.xLabels ? 0 : (idx(data.months[n - 1]) - idx(data.months[0])) / 12;
   const everyYears = Math.max(1, Math.ceil((yearsSpan * 60) / (W - M.left - M.right)));
-  data.months.forEach((m, i) => {
+  if (opts.xLabels) {
+    const every = opts.tickEvery ?? Math.max(1, Math.ceil(n / 8));
+    opts.xLabels.forEach((lab, i) => {
+      if (i % every !== 0 && i !== n - 1) return;
+      el("line", { x1: x(i), x2: x(i), y1: H - M.bottom, y2: H - M.bottom + 4, class: "xtick" }, grid);
+      const t = el("text", { x: x(i), y: H - M.bottom + 18, "text-anchor": "middle", class: "tick" }, grid);
+      t.textContent = lab;
+    });
+  }
+  if (!opts.xLabels) data.months.forEach((m, i) => {
     const mo = Number(m.slice(5));
     const yr = Number(m.slice(0, 4));
     const show = yearsSpan <= 1.5
@@ -168,7 +179,7 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: ChartOptio
     tip.replaceChildren();
     const head = document.createElement("div");
     head.className = "tip-head";
-    head.textContent = `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+    head.textContent = opts.xLabels ? opts.xLabels[current] : `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
     tip.appendChild(head);
     for (const s of [...data.series].sort((a, b) => b.values[current] - a.values[current])) {
       const row = document.createElement("div");

@@ -1,0 +1,172 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const ref = housing.reference;
+const payload = { credit_rate: ref.credit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
+---
+<Base title="Kredinin gerçek maliyeti" description="Akdi faiz, KKDF, BSMV, tahsis ücreti ve sigortayla birlikte kredinin gerçek yıllık maliyeti ve ödeme planı." sample={ref.sample}>
+  <h1>Kredinin gerçek maliyeti</h1>
+  <p class="lead">
+    Banka “aylık %X faiz” der; ama taksite KKDF ve BSMV eklenir, tahsis ücreti ve sigorta kesilir.
+    Ödeme planınızdaki rakamları girin: kredinin size <strong>gerçekte</strong> kaça mal olduğunu görün.
+  </p>
+
+  <form id="f" class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="principal">Kredi tutarı (TL)</label><input id="principal" inputmode="decimal" value="100.000" /></div>
+      <div class="field"><label for="rate">Aylık akdi faiz (%)</label><input id="rate" inputmode="decimal" /><small id="ref-rate"></small></div>
+      <div class="field"><label for="months">Vade (ay)</label><input id="months" inputmode="numeric" value="12" /></div>
+      <div class="field"><label for="kkdf">KKDF (faizin %'si)</label><input id="kkdf" inputmode="decimal" value="15" /><small>örnek — oran kredi türüne ve mevzuata göre değişir; ödeme planınızdakini girin</small></div>
+      <div class="field"><label for="bsmv">BSMV (faizin %'si)</label><input id="bsmv" inputmode="decimal" value="15" /><small>örnek — ödeme planınızdakini girin; konut kredilerinde farklı olabilir</small></div>
+      <div class="field"><label for="upfront">Peşin masraflar (TL)</label><input id="upfront" inputmode="decimal" value="0" /><small>tahsis ücreti, peşin sigorta, ekspertiz vb.</small></div>
+      <div class="field"><label for="monthly">Aylık ek masraf (TL)</label><input id="monthly" inputmode="decimal" value="0" /><small>aylık sigorta, hesap işletim ücreti vb.</small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Gerçek yıllık maliyet</p><p class="s-value" id="o-apr">—</p><p class="muted small">tüm vergi ve masraflarla, bileşik (iç verim oranı)</p></div>
+    <div class="card stat"><p class="s-label">İlan edilen faiz × 12</p><p class="s-value" id="o-adv">—</p><p class="muted small" id="o-gap"></p></div>
+    <div class="card stat"><p class="s-label">Reel yıllık maliyet</p><p class="s-value" id="o-real">—</p><p class="muted small">beklenen enflasyondan arındırılmış</p></div>
+  </section>
+
+  <section class="card breakdown">
+    <h2>Ne ödüyorsunuz?</h2>
+    <p id="o-inst" class="big"></p>
+    <div class="bar" id="bar" role="img"></div>
+    <table class="data" id="parts"><tbody></tbody></table>
+  </section>
+
+  <details class="card plan">
+    <summary>Ödeme planı</summary>
+    <div class="scroll-x">
+      <table class="data" id="plan">
+        <thead><tr><th scope="col">Ay</th><th scope="col">Taksit</th><th scope="col">Anapara</th><th scope="col">Faiz</th><th scope="col">KKDF</th><th scope="col">BSMV</th><th scope="col">Kalan</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+  <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+
+  <h2>Neden “aylık faiz × 12” yanıltıcı?</h2>
+  <ul>
+    <li><strong>Vergiler:</strong> KKDF ve BSMV her taksitteki faize eklenir; etkin aylık oran faiz × (1 + KKDF + BSMV) olur.</li>
+    <li><strong>Masraflar:</strong> Peşin kesilen ücretler elinize geçen parayı azaltır, ama taksitler tam tutar üzerinden hesaplanır.</li>
+    <li><strong>Bileşik etki:</strong> Aylık oranı 12 ile çarpmak, her ay ödenen faizin yıllık etkisini gizler.</li>
+    <li>Gerçek yıllık maliyet, elinize geçen tutar ile ödediğiniz her kuruşu eşitleyen aylık oranın (iç verim oranı) yıllık bileşik hâlidir. Formüller: <a href="/metodoloji#kredi">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong> Oranlar ve masraflar bankaya, kredi türüne ve mevzuata göre değişir; bağlayıcı olan bankanızın ödeme planıdır.</p>
+
+  <script type="application/json" id="k-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { loanCost, SeriesError } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  const ref = JSON.parse(document.getElementById("k-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const FIELDS = ["principal", "rate", "months", "kkdf", "bsmv", "upfront", "monthly", "inf"];
+  const MONEY = new Set(["principal", "upfront", "monthly"]);
+  const tl = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(x)) + " TL";
+  const tl2 = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(x) + " TL";
+  const pct = (x: number) => "%" + new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(x * 100);
+  const sn = ref.sample ? " (örnek veri)" : "";
+  const fmtIn = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(x);
+  if (ref.credit_rate != null) $("ref-rate").textContent = `referans: ortalama TL kredi faizi / 12 = %${fmtIn(ref.credit_rate * 100 / 12)}${sn}`;
+  if (ref.cpi_12m != null) $("ref-inf").textContent = `referans: son 12 ay TÜFE %${fmtIn(ref.cpi_12m * 100)}${sn}`;
+
+  function num(id: string): number | null {
+    const raw = $(id).value.trim();
+    if (raw === "") return null;
+    if (MONEY.has(id)) return raw === "0" ? 0 : parseAmount(raw);
+    return /^-?\d+([.,]\d+)?$/.test(raw) ? Number(raw.replace(",", ".")) : null;
+  }
+
+  function update() {
+    const v = Object.fromEntries(FIELDS.map((f) => [f, num(f)])) as Record<string, number | null>;
+    const err = $<HTMLElement>("err");
+    const bad = FIELDS.find((f) => v[f] === null);
+    FIELDS.forEach((f) => $(f).setAttribute("aria-invalid", String(v[f] === null)));
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    if (bad) return fail("Tüm alanları geçerli sayılarla doldurun.");
+    if (!Number.isInteger(v.months!) || v.months! < 1 || v.months! > 480) return fail("Vade 1–480 ay arasında tam sayı olmalı.");
+    if (v.upfront! >= v.principal!) return fail("Peşin masraflar kredi tutarından küçük olmalı.");
+    let r;
+    try {
+      r = loanCost({ principal: v.principal!, monthly_rate: v.rate! / 100, months: v.months!, kkdf: v.kkdf! / 100, bsmv: v.bsmv! / 100,
+        upfront_fees: v.upfront!, monthly_fees: v.monthly!, inflation: v.inf! / 100 });
+    } catch (e) { if (e instanceof SeriesError) return fail("Bu değerlerle hesap yapılamadı."); throw e; }
+    err.hidden = true;
+    writeHash(Object.fromEntries(FIELDS.map((f) => [f, $(f).value])));
+    $("o-apr").textContent = pct(r.annual_cost);
+    $("o-adv").textContent = pct(r.advertised_annual);
+    $("o-gap").textContent = `gerçek maliyet ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format((r.annual_cost - r.advertised_annual) * 100)} puan daha yüksek`;
+    $("o-real").textContent = (r.real_annual_cost < 0 ? "−" : "") + pct(Math.abs(r.real_annual_cost));
+    $("o-inst").textContent = `Aylık taksit ${tl2(r.installment)} · ${v.months} ayda toplam ${tl(r.total_paid)} (elinize geçen: ${tl(v.principal! - v.upfront!)})`;
+    const parts: [string, number, string][] = [
+      ["Anapara", v.principal!, "var(--series-1)"],
+      ["Faiz", r.total_interest, "var(--series-2)"],
+      ["KKDF", r.total_kkdf, "var(--series-3)"],
+      ["BSMV", r.total_bsmv, "#eda100"],
+      ["Masraflar", r.total_fees, "#8a8a8a"],
+    ];
+    const total = parts.reduce((a, p) => a + p[1], 0);
+    const bar = $<HTMLElement>("bar");
+    bar.replaceChildren(...parts.filter((p) => p[1] > 0).map(([name, val, color]) => {
+      const s = document.createElement("span");
+      s.style.flexGrow = String(val); s.style.background = color; s.title = `${name}: ${tl(val)}`;
+      return s;
+    }));
+    bar.setAttribute("aria-label", parts.map(([n, val]) => `${n} ${tl(val)}`).join(", "));
+    const tbody = document.querySelector("#parts tbody")!;
+    tbody.replaceChildren(...parts.map(([name, val, color]) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th"); th.scope = "row";
+      const key = document.createElement("span"); key.className = "key"; key.style.background = color;
+      th.append(key, document.createTextNode(name));
+      const a = document.createElement("td"); a.textContent = tl(val);
+      const b = document.createElement("td"); b.textContent = pct(val / total).replace("%", "%");
+      tr.append(th, a, b);
+      return tr;
+    }));
+    const plan = document.querySelector("#plan tbody")!;
+    plan.replaceChildren(...r.schedule.map((row) => {
+      const tr = document.createElement("tr");
+      for (const t of [String(row.month), tl2(row.installment + v.monthly!), tl2(row.principal), tl2(row.interest), tl2(row.kkdf), tl2(row.bsmv), tl2(row.balance)]) {
+        const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+      }
+      return tr;
+    }));
+  }
+
+  const h = readHash();
+  if (h.get("principal")) FIELDS.forEach((f) => h.get(f) !== null && ($(f).value = h.get(f)!));
+  else {
+    if (ref.credit_rate != null) $("rate").value = fmtIn(+(ref.credit_rate * 100 / 12).toFixed(2));
+    else $("rate").value = "3";
+    $("inf").value = ref.cpi_12m != null ? fmtIn(+(ref.cpi_12m * 100).toFixed(1)) : "30";
+  }
+  FIELDS.forEach((f) => $(f).addEventListener("input", update));
+  $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  update();
+</script>
+
+<style>
+  .breakdown { margin-top: 4px; }
+  .breakdown h2 { margin-top: 0; font-size: 1.4rem; }
+  .big { font-weight: 600; }
+  .bar { display: flex; height: 28px; border-radius: 4px; overflow: hidden; gap: 2px; background: var(--surface); margin: 8px 0 12px; }
+  .bar span { min-width: 2px; }
+  .key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+  #parts th { text-align: left; font-weight: 600; }
+  .plan { margin-top: 12px; }
+  .plan summary { cursor: pointer; font-weight: 600; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  #plan { min-width: 640px; font-size: 0.85rem; }
+  .actions { margin-top: 12px; }
+</style>

@@ -1,0 +1,112 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const ref = housing.reference;
+const payload = { deposit_rate: ref.deposit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
+---
+<Base title="Taksitli mi, peşin mi?" description="Taksitlerin bugünkü değeri ile peşin fiyatı karşılaştırın; 'faizsiz taksit'in gizli faizini görün." sample={ref.sample}>
+  <h1>Taksitli mi, peşin mi?</h1>
+  <p class="lead">
+    “Peşin fiyatına 12 taksit” gerçekten faizsiz mi? Peşine indirim varsa taksitin gizli bir faizi vardır.
+    Enflasyon yüksekse, gerçekten faizsiz taksit ise sizin lehinize olabilir. İkisini aynı terazide tartın.
+  </p>
+
+  <form id="f" class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="cash">Peşin fiyat (TL)</label><input id="cash" inputmode="decimal" value="45.000" /><small>peşin ödemede indirimli fiyat</small></div>
+      <div class="field"><label for="total">Taksitli toplam fiyat (TL)</label><input id="total" inputmode="decimal" value="50.000" /><small>taksit tutarı = toplam / taksit sayısı</small></div>
+      <div class="field"><label for="count">Taksit sayısı</label><input id="count" inputmode="numeric" value="12" /></div>
+      <div class="field"><label for="first">İlk taksit</label>
+        <select id="first"><option value="1">Gelecek ay (kart ekstresi)</option><option value="0">Bugün</option></select></div>
+      <div class="field"><label for="disc">Paranızın getirisi (yıllık %)</label><input id="disc" inputmode="decimal" /><small id="ref-disc"></small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+
+  <section class="card verdict" aria-live="polite">
+    <p class="v-title" id="o-verdict">—</p>
+    <p class="muted" id="o-verdict-sub"></p>
+  </section>
+  <section class="stat-grid">
+    <div class="card stat"><p class="s-label">Taksit planının gizli faizi</p><p class="s-value" id="o-hidden">—</p><p class="muted small" id="o-hidden-sub"></p></div>
+    <div class="card stat"><p class="s-label">Taksitlerin bugünkü değeri</p><p class="s-value" id="o-pv">—</p><p class="muted small" id="o-pv-sub"></p></div>
+    <div class="card stat"><p class="s-label">Taksitlerin bugünkü TL ile toplamı</p><p class="s-value" id="o-real">—</p><p class="muted small">enflasyona göre; nominal toplam <span id="o-nom"></span></p></div>
+  </section>
+  <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <ul>
+    <li><strong>Bugünkü değer:</strong> her taksit, paranızın getirisiyle bugüne indirgenir: Σ taksit / (1 + aylık getiri)<sup>ay</sup>. Peşin fiyattan düşükse taksit avantajlıdır.</li>
+    <li><strong>Gizli faiz:</strong> peşin fiyat ile taksitleri eşitleyen aylık oran (iç verim oranı), yıllık bileşik olarak. Paranızın getirisinden yüksekse peşin almak daha ucuzdur.</li>
+    <li>Kart komisyonu, gecikme faizi ve taksitlendirme ücretleri varsa taksitli toplama ekleyin. Ayrıntılar: <a href="/metodoloji#taksit">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="t-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { installmentVsCash, SeriesError } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  const ref = JSON.parse(document.getElementById("t-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const FIELDS = ["cash", "total", "count", "first", "disc", "inf"];
+  const tl = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(x)) + " TL";
+  const tl2 = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(x) + " TL";
+  const pct = (x: number) => (x < 0 ? "−" : "") + "%" + new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(Math.abs(x) * 100);
+  const fmtIn = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(x);
+  const sn = ref.sample ? " (örnek veri)" : "";
+  if (ref.deposit_rate != null) $("ref-disc").textContent = `referans: TL mevduat faizi (brüt) %${fmtIn(ref.deposit_rate * 100)}${sn}`;
+  if (ref.cpi_12m != null) $("ref-inf").textContent = `referans: son 12 ay TÜFE %${fmtIn(ref.cpi_12m * 100)}${sn}`;
+  const small = (id: string) => { const raw = $(id).value.trim(); return /^-?\d+([.,]\d+)?$/.test(raw) ? Number(raw.replace(",", ".")) : null; };
+
+  function update() {
+    const err = $<HTMLElement>("err");
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const cash = parseAmount($("cash").value), total = parseAmount($("total").value);
+    const count = Number($("count").value), first = Number($<HTMLSelectElement>("first").value);
+    const disc = small("disc"), inf = small("inf");
+    if (cash === null || total === null) return fail("Fiyatları geçerli tutarlarla girin.");
+    if (!Number.isInteger(count) || count < 1 || count > 120) return fail("Taksit sayısı 1–120 arasında tam sayı olmalı.");
+    if (disc === null || inf === null) return fail("Getiri ve enflasyonu yüzde olarak girin (ör. 35).");
+    let r;
+    try {
+      r = installmentVsCash({ cash_price: cash, installment: total / count, count, first_offset: first, annual_discount: disc / 100, inflation: inf / 100 });
+    } catch (e) { if (e instanceof SeriesError) return fail("Bu değerlerle gizli faiz hesaplanamadı (taksitli toplam peşin fiyattan çok düşük olabilir)."); throw e; }
+    err.hidden = true;
+    writeHash(Object.fromEntries(FIELDS.map((f) => [f, $(f).value])));
+    const diff = Math.abs(r.saving);
+    $("o-verdict").textContent = r.cheaper === "equal" ? "İki seçenek bu varsayımlarla eşit."
+      : r.cheaper === "installments" ? `Taksitli almak bugünkü değerle ${tl(diff)} daha ucuz.`
+      : `Peşin almak bugünkü değerle ${tl(diff)} daha ucuz.`;
+    $("o-verdict-sub").textContent = `${count} × ${tl2(total / count)} taksit, paranız yıllık %${fmtIn(disc)} getiriyle değerlendirilirse.`;
+    $("o-hidden").textContent = r.hidden_monthly_rate === 0 ? "%0 — gerçekten faizsiz" : pct(r.hidden_annual_rate);
+    $("o-hidden-sub").textContent = r.hidden_monthly_rate === 0 ? "taksitli toplam peşin fiyata eşit"
+      : `aylık ${pct(r.hidden_monthly_rate)}; paranızın getirisi yıllık %${fmtIn(disc)}`;
+    $("o-pv").textContent = tl(r.pv_installments);
+    $("o-pv-sub").textContent = `peşin fiyat ${tl(cash)}`;
+    $("o-real").textContent = tl(r.real_total);
+    $("o-nom").textContent = tl(r.nominal_total);
+  }
+
+  const h = readHash();
+  if (h.get("cash")) FIELDS.forEach((f) => h.get(f) !== null && ($(f) as HTMLInputElement).value !== undefined && (($(f) as HTMLInputElement).value = h.get(f)!));
+  else {
+    $("disc").value = ref.deposit_rate != null ? fmtIn(+(ref.deposit_rate * 100).toFixed(1)) : "35";
+    $("inf").value = ref.cpi_12m != null ? fmtIn(+(ref.cpi_12m * 100).toFixed(1)) : "30";
+  }
+  FIELDS.forEach((f) => $(f).addEventListener("input", update));
+  $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  update();
+</script>
+
+<style>
+  .verdict { margin-top: 16px; border-left: 4px solid var(--accent); }
+  .v-title { font-family: var(--font-head); font-size: clamp(1.6rem, 6vw, 2.2rem); margin: 0; line-height: 1.2; }
+  .verdict p:last-child { margin-bottom: 0; }
+  .actions { margin-top: 4px; }
+</style>
