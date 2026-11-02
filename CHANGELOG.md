@@ -91,3 +91,9 @@
 - 2026-11-02 — EVDS hazırlığı: `pipeline/fetch.py` artık kaynağında "EVDS" geçen 28 seriyi çekiyor (önce yalnızca
   "TCMB EVDS" yazanlar), çeyreklik/yıllık serileri kendi sıklığında istiyor, EVDS'nin çeyrek/yarıyıl/yıl
   tarih biçimlerini ayrıştırıyor (test), tek seri hatası diğerlerini durdurmuyor. `docs/EVDS.md` kontrol listesi.
+- 2026-11-02 — Mevzuat takibi: `data/params/parametreler.json` (KKDF, BSMV, stopaj, kart azami faizleri, asgari ödeme;
+  tarihli geçmiş, kaynak, kontrol eden, durum: verified/candidate/example), `pipeline/params.py` (doğrulama:
+  "verified" resmî kaynak + kontrol eden ister; yürürlükteki/yaklaşan değer; kontrol süresi), `/mevzuat` sayfası,
+  haftalık `mevzuat-check` workflow'u (doğrulanmamış/süresi geçen oranlar için tek issue). Hesaplayıcılar
+  varsayılanları kayıttan alıyor ve durumunu gösteriyor. Oranlar web aramasından "aday" olarak girildi; resmî
+  sayfalar (TCMB, GİB, Resmî Gazete) bu ortamdan açılamadığı için doğrulanmadı. Kredi faizi serisi: ihtiyaç kredisi.

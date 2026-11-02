@@ -2,7 +2,9 @@
 import Base from "../layouts/Base.astro";
 import { housing } from "../lib/housing.ts";
 import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
 const ref = housing.reference;
+const kk = paramDefault("kkdf_tuketici"), bs = paramDefault("bsmv_tuketici");
 const payload = { deposit_rate: ref.deposit_rate, sample: ref.sample };
 ---
 <Base title="Kredi yapılandırma karşılaştırması" description="Mevcut krediyi kapatıp yeni krediye geçmek kârlı mı? Erken kapama ücreti, masraflar ve vergilerle karşılaştırın." sample={ref.sample}>
@@ -29,8 +31,8 @@ const payload = { deposit_rate: ref.deposit_rate, sample: ref.sample };
     </div>
     <h2 class="c-title">Vergiler (iki kredide aynı)</h2>
     <div class="form-grid three">
-      <div class="field"><label for="kkdf">KKDF (%)</label><input id="kkdf" inputmode="decimal" value="15" /><small>örnek — ödeme planınızdakini girin</small></div>
-      <div class="field"><label for="bsmv">BSMV (%)</label><input id="bsmv" inputmode="decimal" value="15" /><small>örnek</small></div>
+      <div class="field"><label for="kkdf">KKDF (%)</label><input id="kkdf" inputmode="decimal" value={String(kk?.value ?? 15).replace(".", ",")} /><small>{kk?.note ?? "örnek"}</small></div>
+      <div class="field"><label for="bsmv">BSMV (%)</label><input id="bsmv" inputmode="decimal" value={String(bs?.value ?? 15).replace(".", ",")} /><small>{bs?.note ?? "örnek"}</small></div>
     </div>
   </form>
   <p id="err" class="error" role="alert" hidden></p>

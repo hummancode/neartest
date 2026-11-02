@@ -1,0 +1,652 @@
+{
+ "as_of": "2026-11-02",
+ "params": [
+  {
+   "id": "kkdf_tuketici",
+   "label": "KKDF — tüketici (ihtiyaç, taşıt) kredileri",
+   "unit": "% faiz",
+   "group": "Kredi vergileri",
+   "used_by": [
+    "/kredi",
+    "/kart",
+    "/yapilandirma"
+   ],
+   "official_sources": [
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    },
+    {
+     "title": "Mevzuat Bilgi Sistemi",
+     "url": "https://www.mevzuat.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": null,
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "İkincil kaynaklar (hesaplama siteleri) — resmî karar metni okunmadı",
+     "url": "https://www.mevzuat.gov.tr"
+    },
+    "note": "Konut kredilerinde KKDF uygulanmadığı belirtiliyor."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 15,
+     "effective_from": null,
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "İkincil kaynaklar (hesaplama siteleri) — resmî karar metni okunmadı",
+      "url": "https://www.mevzuat.gov.tr"
+     },
+     "note": "Konut kredilerinde KKDF uygulanmadığı belirtiliyor."
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "kkdf_konut",
+   "label": "KKDF — konut kredileri",
+   "unit": "% faiz",
+   "group": "Kredi vergileri",
+   "used_by": [
+    "/kredi",
+    "/yapilandirma"
+   ],
+   "official_sources": [
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    },
+    {
+     "title": "Mevzuat Bilgi Sistemi",
+     "url": "https://www.mevzuat.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 0,
+    "effective_from": null,
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "İkincil kaynaklar — resmî metin okunmadı",
+     "url": "https://www.mevzuat.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 0,
+     "effective_from": null,
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "İkincil kaynaklar — resmî metin okunmadı",
+      "url": "https://www.mevzuat.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "bsmv_tuketici",
+   "label": "BSMV — tüketici kredileri",
+   "unit": "% faiz",
+   "group": "Kredi vergileri",
+   "used_by": [
+    "/kredi",
+    "/kart",
+    "/yapilandirma"
+   ],
+   "official_sources": [
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    },
+    {
+     "title": "Mevzuat Bilgi Sistemi",
+     "url": "https://www.mevzuat.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": null,
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "7597 sayılı Cumhurbaşkanı Kararı (6 Eylül 2023, Resmî Gazete) — tüketici kredilerinde BSMV artışı; metin okunmadı",
+     "url": "https://www.resmigazete.gov.tr/eskiler/2023/09/20230906M1-1.pdf"
+    },
+    "note": "Bazı kaynaklar 7345 sayılı Kararı gösteriyor; kaynaklar arasında tutarsızlık var."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 10,
+     "effective_from": null,
+     "status": "example",
+     "checked_at": "2026-11-02",
+     "checked_by": "örnek değer",
+     "source": {
+      "title": "",
+      "url": ""
+     },
+     "note": "Önceki oran olarak anılıyor (ikincil kaynaklar)"
+    },
+    {
+     "value": 15,
+     "effective_from": null,
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "7597 sayılı Cumhurbaşkanı Kararı (6 Eylül 2023, Resmî Gazete) — tüketici kredilerinde BSMV artışı; metin okunmadı",
+      "url": "https://www.resmigazete.gov.tr/eskiler/2023/09/20230906M1-1.pdf"
+     },
+     "note": "Bazı kaynaklar 7345 sayılı Kararı gösteriyor; kaynaklar arasında tutarsızlık var."
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "stopaj_tl_6ay",
+   "label": "Stopaj — TL mevduat, 6 aya kadar (vadesiz dahil)",
+   "unit": "%",
+   "group": "Mevduat vergileri",
+   "used_by": [
+    "/mevduat"
+   ],
+   "official_sources": [
+    {
+     "title": "GİB — GVK Geçici 67. madde kararları",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 17.5,
+    "effective_from": "2025-07-09",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "10041 sayılı Cumhurbaşkanı Kararı; süre 11444 sayılı Kararla 31.12.2026'ya uzatıldı (ikincil kaynaklar)",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    "note": "GİB sayfasında farklı oranlar (%10 / %7,5 / %5) içeren bir tablo da görünüyor; hangi döneme ait olduğu doğrulanmalı."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 17.5,
+     "effective_from": "2025-07-09",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "10041 sayılı Cumhurbaşkanı Kararı; süre 11444 sayılı Kararla 31.12.2026'ya uzatıldı (ikincil kaynaklar)",
+      "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+     },
+     "note": "GİB sayfasında farklı oranlar (%10 / %7,5 / %5) içeren bir tablo da görünüyor; hangi döneme ait olduğu doğrulanmalı."
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "stopaj_tl_1yil",
+   "label": "Stopaj — TL mevduat, 6 ay – 1 yıl",
+   "unit": "%",
+   "group": "Mevduat vergileri",
+   "used_by": [
+    "/mevduat"
+   ],
+   "official_sources": [
+    {
+     "title": "GİB — GVK Geçici 67. madde kararları",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": "2025-07-09",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "10041 / 11444 sayılı Cumhurbaşkanı Kararları (ikincil kaynaklar)",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 15,
+     "effective_from": "2025-07-09",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "10041 / 11444 sayılı Cumhurbaşkanı Kararları (ikincil kaynaklar)",
+      "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "stopaj_tl_uzun",
+   "label": "Stopaj — TL mevduat, 1 yıldan uzun",
+   "unit": "%",
+   "group": "Mevduat vergileri",
+   "used_by": [
+    "/mevduat"
+   ],
+   "official_sources": [
+    {
+     "title": "GİB — GVK Geçici 67. madde kararları",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 10,
+    "effective_from": "2025-07-09",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "10041 / 11444 sayılı Cumhurbaşkanı Kararları (ikincil kaynaklar)",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 10,
+     "effective_from": "2025-07-09",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "10041 / 11444 sayılı Cumhurbaşkanı Kararları (ikincil kaynaklar)",
+      "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "stopaj_yp",
+   "label": "Stopaj — yabancı para mevduat",
+   "unit": "%",
+   "group": "Mevduat vergileri",
+   "used_by": [
+    "/mevduat"
+   ],
+   "official_sources": [
+    {
+     "title": "GİB — GVK Geçici 67. madde kararları",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 25,
+    "effective_from": null,
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "İkincil kaynaklar",
+     "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 25,
+     "effective_from": null,
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "İkincil kaynaklar",
+      "url": "https://www.gib.gov.tr/mevzuat/kanun/433/bkk/1237"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 30
+  },
+  {
+   "id": "kart_akdi_30k_alti",
+   "label": "Kredi kartı azami akdi faiz — dönem borcu 30.000 TL altı",
+   "unit": "% aylık",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "TCMB — Kredi kartı azami faiz oranları",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 3.25,
+    "effective_from": "2026-11-01",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "TCMB azami faiz oranları tablosu (arama özetinden; sayfa bu ortamdan açılamadı)",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 3.25,
+     "effective_from": "2026-11-01",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "TCMB azami faiz oranları tablosu (arama özetinden; sayfa bu ortamdan açılamadı)",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  },
+  {
+   "id": "kart_akdi_30k_180k",
+   "label": "Kredi kartı azami akdi faiz — 30.000–180.000 TL",
+   "unit": "% aylık",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "TCMB — Kredi kartı azami faiz oranları",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 3.75,
+    "effective_from": "2026-11-01",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 3.75,
+     "effective_from": "2026-11-01",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  },
+  {
+   "id": "kart_akdi_180k_ustu",
+   "label": "Kredi kartı azami akdi faiz — 180.000 TL üzeri",
+   "unit": "% aylık",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "TCMB — Kredi kartı azami faiz oranları",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 4.25,
+    "effective_from": "2026-11-01",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 4.25,
+     "effective_from": "2026-11-01",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  },
+  {
+   "id": "kart_nakit",
+   "label": "Kredi kartı azami faiz — nakit çekim / KMH",
+   "unit": "% aylık",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "TCMB — Kredi kartı azami faiz oranları",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 4.25,
+    "effective_from": "2026-11-01",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 4.25,
+     "effective_from": "2026-11-01",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  },
+  {
+   "id": "kart_gecikme_30k_alti",
+   "label": "Kredi kartı azami gecikme faizi — 30.000 TL altı",
+   "unit": "% aylık",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "TCMB — Kredi kartı azami faiz oranları",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 3.55,
+    "effective_from": "2026-11-01",
+    "status": "candidate",
+    "checked_at": "2026-11-02",
+    "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+     "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 3.55,
+     "effective_from": "2026-11-01",
+     "status": "candidate",
+     "checked_at": "2026-11-02",
+     "checked_by": "Claude (web araması; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "TCMB azami faiz oranları tablosu (arama özetinden)",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Kredi_Karti_Islemlerinde_Uygulanacak_Azami_Faiz_Oranlari"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  },
+  {
+   "id": "kart_asgari_odeme",
+   "label": "Kredi kartı asgari ödeme oranı",
+   "unit": "% dönem borcu",
+   "group": "Kredi kartı",
+   "used_by": [
+    "/kart"
+   ],
+   "official_sources": [
+    {
+     "title": "BDDK",
+     "url": "https://www.bddk.org.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 20,
+    "effective_from": null,
+    "status": "example",
+    "checked_at": "2026-11-02",
+    "checked_by": "örnek değer",
+    "source": {
+     "title": "",
+     "url": ""
+    },
+    "note": "Kaynaklar çelişkili: limite göre %20 / %40 ve eşik 25.000 / 50.000 / 100.000 TL olarak farklı veriliyor. BDDK düzenlemesinden doğrulanmalı."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 20,
+     "effective_from": null,
+     "status": "example",
+     "checked_at": "2026-11-02",
+     "checked_by": "örnek değer",
+     "source": {
+      "title": "",
+      "url": ""
+     },
+     "note": "Kaynaklar çelişkili: limite göre %20 / %40 ve eşik 25.000 / 50.000 / 100.000 TL olarak farklı veriliyor. BDDK düzenlemesinden doğrulanmalı."
+    }
+   ],
+   "last_checked": "2026-11-02",
+   "stale": false,
+   "check_every_days": 31
+  }
+ ]
+}

@@ -2,7 +2,10 @@
 import Base from "../layouts/Base.astro";
 import { housing } from "../lib/housing.ts";
 import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
 const ref = housing.reference;
+const st6 = paramDefault("stopaj_tl_6ay"), st1 = paramDefault("stopaj_tl_1yil"), stL = paramDefault("stopaj_tl_uzun");
+const f = (x: { value: number } | null, d: number) => String(x?.value ?? d).replace(".", ",");
 const payload = { deposit_rate: ref.deposit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
 ---
 <Base title="Mevduatın net ve reel getirisi" description="Brüt faiz, stopaj ve vade ile mevduatın net yıllık getirisi; enflasyonu yeniyor mu?" sample={ref.sample}>
@@ -13,7 +16,7 @@ const payload = { deposit_rate: ref.deposit_rate, cpi_12m: ref.cpi_12m, sample: 
       <div class="field"><label for="p">Anapara (TL)</label><input id="p" inputmode="decimal" value="250.000" /></div>
       <div class="field"><label for="gross">Brüt yıllık faiz (%)</label><input id="gross" inputmode="decimal" /><small id="ref-gross"></small></div>
       <div class="field"><label for="days">Vade (gün)</label><input id="days" inputmode="numeric" value="32" /><small>her vade sonunda aynı koşullarla yenilendiği varsayılır</small></div>
-      <div class="field"><label for="tax">Stopaj (%)</label><input id="tax" inputmode="decimal" value="15" /><small>vadeye ve döneme göre değişir — bankanızdaki oranı girin (örnek)</small></div>
+      <div class="field"><label for="tax">Stopaj (%)</label><input id="tax" inputmode="decimal" value={f(st6, 15)} /><small>6 aya kadar %{f(st6, 15)}, 1 yıla kadar %{f(st1, 15)}, daha uzun %{f(stL, 10)} — {st6?.note ?? "örnek"}</small></div>
       <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
     </div>
   </form>

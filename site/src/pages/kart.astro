@@ -2,7 +2,10 @@
 import Base from "../layouts/Base.astro";
 import { housing } from "../lib/housing.ts";
 import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
 const ref = housing.reference;
+const kk = paramDefault("kkdf_tuketici"), bs = paramDefault("bsmv_tuketici"), mid = paramDefault("kart_akdi_30k_180k"), cash = paramDefault("kart_nakit"), minp = paramDefault("kart_asgari_odeme");
+const tr = (v: number | undefined, d: number) => String(v ?? d).replace(".", ",");
 const payload = { cpi_12m: ref.cpi_12m, sample: ref.sample };
 ---
 <Base title="Kredi kartı: asgari ödeme ve nakit avans" description="Kredi kartında yalnızca asgari ödeme yaparsanız borç kaç ayda biter, kaç TL faiz ödersiniz? Nakit avansın gerçek yıllık maliyeti." sample={ref.sample}>
@@ -13,11 +16,11 @@ const payload = { cpi_12m: ref.cpi_12m, sample: ref.sample };
   <form id="fm" class="card" novalidate onsubmit="return false">
     <div class="form-grid three">
       <div class="field"><label for="bal">Kart borcu (TL)</label><input id="bal" inputmode="decimal" value="50.000" /></div>
-      <div class="field"><label for="crate">Aylık akdi faiz (%)</label><input id="crate" inputmode="decimal" value="4,25" /><small>ekstrenizdeki aylık akdi faiz — örnek değer</small></div>
-      <div class="field"><label for="minshare">Asgari ödeme oranı (%)</label><input id="minshare" inputmode="decimal" value="20" /><small>kart limitine göre değişir — ekstrenizdeki oranı girin</small></div>
+      <div class="field"><label for="crate">Aylık akdi faiz (%)</label><input id="crate" inputmode="decimal" value={tr(mid?.value, 4.25)} /><small>30.000–180.000 TL dönem borcu için azami oran ({mid?.note ?? "örnek"}); ekstrenizdekini girin</small></div>
+      <div class="field"><label for="minshare">Asgari ödeme oranı (%)</label><input id="minshare" inputmode="decimal" value={tr(minp?.value, 20)} /><small>kart limitine göre değişir — {minp?.note ?? "örnek"}; ekstrenizdeki oranı girin</small></div>
       <div class="field"><label for="minfloor">En az ödeme (TL)</label><input id="minfloor" inputmode="decimal" value="0" /><small>bankanın alt sınırı varsa</small></div>
-      <div class="field"><label for="ckkdf">KKDF (faizin %'si)</label><input id="ckkdf" inputmode="decimal" value="15" /><small>örnek — güncel oranı kontrol edin</small></div>
-      <div class="field"><label for="cbsmv">BSMV (faizin %'si)</label><input id="cbsmv" inputmode="decimal" value="15" /><small>örnek — güncel oranı kontrol edin</small></div>
+      <div class="field"><label for="ckkdf">KKDF (faizin %'si)</label><input id="ckkdf" inputmode="decimal" value={tr(kk?.value, 15)} /><small>{kk?.note ?? "örnek"}</small></div>
+      <div class="field"><label for="cbsmv">BSMV (faizin %'si)</label><input id="cbsmv" inputmode="decimal" value={tr(bs?.value, 15)} /><small>{bs?.note ?? "örnek"}</small></div>
     </div>
   </form>
   <p id="err-m" class="error" role="alert" hidden></p>
@@ -32,11 +35,11 @@ const payload = { cpi_12m: ref.cpi_12m, sample: ref.sample };
   <form id="fa" class="card" novalidate onsubmit="return false">
     <div class="form-grid three">
       <div class="field"><label for="amt">Çekilen tutar (TL)</label><input id="amt" inputmode="decimal" value="20.000" /></div>
-      <div class="field"><label for="arate">Aylık nakit avans faizi (%)</label><input id="arate" inputmode="decimal" value="4,25" /><small>örnek</small></div>
+      <div class="field"><label for="arate">Aylık nakit avans faizi (%)</label><input id="arate" inputmode="decimal" value={tr(cash?.value, 4.25)} /><small>nakit çekim azami oranı ({cash?.note ?? "örnek"})</small></div>
       <div class="field"><label for="amonths">Taksit sayısı</label><input id="amonths" inputmode="numeric" value="6" /><small>1 = tek çekim, ekstrede ödeme</small></div>
       <div class="field"><label for="afee">Nakit avans ücreti (TL)</label><input id="afee" inputmode="decimal" value="300" /><small>işlem başına ücret — ekstrenizdeki tutar (örnek)</small></div>
-      <div class="field"><label for="akkdf">KKDF (%)</label><input id="akkdf" inputmode="decimal" value="15" /></div>
-      <div class="field"><label for="absmv">BSMV (%)</label><input id="absmv" inputmode="decimal" value="15" /></div>
+      <div class="field"><label for="akkdf">KKDF (%)</label><input id="akkdf" inputmode="decimal" value={tr(kk?.value, 15)} /></div>
+      <div class="field"><label for="absmv">BSMV (%)</label><input id="absmv" inputmode="decimal" value={tr(bs?.value, 15)} /></div>
     </div>
   </form>
   <p id="err-a" class="error" role="alert" hidden></p>

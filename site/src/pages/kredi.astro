@@ -2,8 +2,10 @@
 import Base from "../layouts/Base.astro";
 import { housing } from "../lib/housing.ts";
 import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
 
 const ref = housing.reference;
+const kkdf = paramDefault("kkdf_tuketici"), bsmv = paramDefault("bsmv_tuketici");
 const payload = { credit_rate: ref.credit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
 ---
 <Base title="Kredinin gerçek maliyeti" description="Akdi faiz, KKDF, BSMV, tahsis ücreti ve sigortayla birlikte kredinin gerçek yıllık maliyeti ve ödeme planı." sample={ref.sample}>
@@ -18,8 +20,8 @@ const payload = { credit_rate: ref.credit_rate, cpi_12m: ref.cpi_12m, sample: re
       <div class="field"><label for="principal">Kredi tutarı (TL)</label><input id="principal" inputmode="decimal" value="100.000" /></div>
       <div class="field"><label for="rate">Aylık akdi faiz (%)</label><input id="rate" inputmode="decimal" /><small id="ref-rate"></small></div>
       <div class="field"><label for="months">Vade (ay)</label><input id="months" inputmode="numeric" value="12" /></div>
-      <div class="field"><label for="kkdf">KKDF (faizin %'si)</label><input id="kkdf" inputmode="decimal" value="15" /><small>örnek — oran kredi türüne ve mevzuata göre değişir; ödeme planınızdakini girin</small></div>
-      <div class="field"><label for="bsmv">BSMV (faizin %'si)</label><input id="bsmv" inputmode="decimal" value="15" /><small>örnek — ödeme planınızdakini girin; konut kredilerinde farklı olabilir</small></div>
+      <div class="field"><label for="kkdf">KKDF (faizin %'si)</label><input id="kkdf" inputmode="decimal" value={String(kkdf?.value ?? 15).replace(".", ",")} /><small>{kkdf?.note ?? "örnek"} · konut kredisinde farklıdır; ödeme planınızdakini girin</small></div>
+      <div class="field"><label for="bsmv">BSMV (faizin %'si)</label><input id="bsmv" inputmode="decimal" value={String(bsmv?.value ?? 15).replace(".", ",")} /><small>{bsmv?.note ?? "örnek"} · ödeme planınızdakini girin</small></div>
       <div class="field"><label for="upfront">Peşin masraflar (TL)</label><input id="upfront" inputmode="decimal" value="0" /><small>tahsis ücreti, peşin sigorta, ekspertiz vb.</small></div>
       <div class="field"><label for="monthly">Aylık ek masraf (TL)</label><input id="monthly" inputmode="decimal" value="0" /><small>aylık sigorta, hesap işletim ücreti vb.</small></div>
       <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>

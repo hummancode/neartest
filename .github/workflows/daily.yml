@@ -33,6 +33,7 @@ jobs:
 
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
+      - run: python -m pipeline.params          # regulated rates registry -> site/data/mevzuat.json
 
       # Make sure the site still builds with the new data before committing it.
       - uses: actions/setup-node@v4

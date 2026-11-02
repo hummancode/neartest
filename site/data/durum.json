@@ -69,7 +69,7 @@
   },
   {
    "name": "credit_rate",
-   "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
+   "label": "TL ihtiyaç kredisi faizi (ağırlıklı ortalama, yıllık)",
    "source": "TCMB EVDS",
    "code": null,
    "verified": false,
@@ -588,5 +588,5 @@
    "used_by": "Nominal illüzyon, grafik"
   }
  ],
- "generated_at": "2026-11-02T06:36:08+00:00"
+ "generated_at": "2026-11-02T07:56:50+00:00"
 }

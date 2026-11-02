@@ -36,9 +36,9 @@ SERIES = {
         "scale": 0.01,   # EVDS/CSV give percent (45.5); the engine wants 0.455
     },
     "credit_rate": {
-        "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
+        "label": "TL ihtiyaç kredisi faizi (ağırlıklı ortalama, yıllık)",
         "source": "TCMB EVDS",
-        "code": None,             # which loan type (consumer / commercial) is still to be decided
+        "code": None,             # consumer (ihtiyaç) loans — households are the audience; find the EVDS code
         "verified": False,
         "unit": "% yıllık",
         "scale": 0.01,

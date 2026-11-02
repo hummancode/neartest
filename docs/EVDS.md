@@ -19,7 +19,7 @@ kontrol edilir, sahibin onayından sonra `pipeline/series.py`'ye yazılır ve `v
 | `cpi_food` … `cpi_misc` (12) | TÜFE ana harcama grupları | Grup yapısı 12 mi 13 mü (COICOP 2018)? |
 | `rent_cpi`, `car_cpi` | TÜFE gerçek kira, otomobil alt endeksleri | Alt kalem kodları |
 | `deposit_rate` | TL mevduat ağırlıklı ortalama faiz (akım) | Hangi vade? yüzde birim (ölçek 0,01 otomatik) |
-| `credit_rate` | TL kredi ağırlıklı ortalama faiz | Hangi kredi türü — **karar: ihtiyaç mı, ticari mi?** |
+| `credit_rate` | TL **ihtiyaç (tüketici) kredisi** ağırlıklı ortalama faiz | Karar: ihtiyaç kredisi (hane halkı odaklı) |
 | `house_tr/ist/ank/izm` | Konut Fiyat Endeksi (KFE) | Türkiye ve 3 il |
 | `gdp_growth` | GSYH, zincirlenmiş hacim, yıllık % değişim | Çeyreklik (frekans otomatik) |
 | `unemployment` | İşsizlik oranı (mevsimsellikten arındırılmış?) | Hangisi? |
