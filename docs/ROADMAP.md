@@ -25,6 +25,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
 | ✅ | Olay penceresi: faiz artış/indirim ayları (politika faizi serisinden) ve elle eklenen resmi olaylar etrafında ortalama/medyan hareket | `data/manual/events.csv`; ay düzeyinde (günlük veriyle iyileştirilebilir) |
 | ✅ | Ülke karşılaştırması: Türkiye ve 11 benzer ekonomi (enflasyon, büyüme, kişi başı GSYH, işsizlik, cari denge, reel faiz) | Dünya Bankası WDI (CC BY 4.0); kodlar API adıyla doğrulanır; günlük işte çekilir |
+| ✅ | Reel konut fiyatları, Türkiye ve 60 ülke (BIS, gerçek veri) | GitHub kopyası, günlük |
+| ⬜ | Aylık altın (USD/ons, Dünya Bankası) ve Brent (EIA) — GitHub'dan, gerçek | `docs/ACIK-VERI-REHBERI.md` §4 |
 | ✅ | Uzun dönem kişi başı gelir 1923–2018 (Maddison, gerçek veri; lisans doğrulanacak) | OWID GitHub, günlük |
 | ✅ | Big Mac endeksi (gerçek veri, The Economist CC BY 4.0) | GitHub, günlük |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |
@@ -67,6 +69,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 
 ## Veri kaynağı kararları (sahibin onayı gerekli)
 Ayrıntılı araştırma (erişim, lisans, öncelik, kayıt/izin listesi): **`docs/VERI-KAYNAKLARI.md`**.
+Sahibin indirebileceği dosyalar ve repoya kaydedilecek adları: **`docs/ACIK-VERI-REHBERI.md`**.
 
 1. EVDS seri kodları (anahtar + ağ izni) — TÜFE, kurlar, faizler, KFE, GSYH, işsizlik, cari denge, rezerv, politika faizi.
 2. BIST 100, S&P 500, gram altın kaynağı.

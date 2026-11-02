@@ -1037,3 +1037,24 @@ def big_mac(local_price: float, fx: float, us_price: float) -> dict:
         raise SeriesError("prices and exchange rate must be positive")
     implied = local_price / us_price
     return {"dollar_price": local_price / fx, "implied_rate": implied, "valuation": implied / fx - 1.0}
+
+
+def change_over(values: list[float], periods_back: int, periods_per_year: int) -> dict | None:
+    """Change from `periods_back` observations before the last one to the last (equally spaced series).
+
+    Returns change_pct (cumulative %) and annual_pct (geometric, %), or None without enough history."""
+    if periods_back <= 0 or periods_per_year <= 0:
+        raise SeriesError("periods must be positive")
+    if len(values) <= periods_back:
+        return None
+    start, end = values[-1 - periods_back], values[-1]
+    tot = total_return(start, end)
+    return {"change_pct": 100 * tot, "annual_pct": 100 * annualize(tot, periods_back / periods_per_year)}
+
+
+def drawdown(values: list[float]) -> dict:
+    """Last value relative to the running peak: drawdown_pct = last / peak − 1 (≤ 0)."""
+    if not values:
+        raise SeriesError("empty series")
+    k = max(range(len(values)), key=lambda i: values[i])
+    return {"peak": values[k], "peak_index": k, "drawdown_pct": 100 * (values[-1] / values[k] - 1)}

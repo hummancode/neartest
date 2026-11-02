@@ -736,6 +736,21 @@ def write_longrun() -> str:
     return f"Uzun dönem: {out['summary']['first']}–{out['summary']['last']}"
 
 
+OUT_HOUSE_WORLD = ROOT / "site" / "data" / "konut_dunya.json"
+
+
+def write_houseprices() -> str:
+    from pipeline.houseprices import build_houseprices, load_raw
+    raw = load_raw()
+    if raw is None:
+        return "Konut (BIS): indirme yok, mevcut dosya korundu" if OUT_HOUSE_WORLD.exists() else "Konut (BIS): veri yok"
+    out = build_houseprices(*raw)
+    out["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    write_if_changed(OUT_HOUSE_WORLD, out)
+    tr = next((c for c in out["countries"] if c["code"] == "TR"), None)
+    return f"Konut (BIS): {len(out['countries'])} ülke/bölge, Türkiye son {tr['last'] if tr else '—'}"
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
@@ -759,6 +774,7 @@ def main() -> int:
     write_if_changed(OUT_DISTRICTS, districts)
     print(write_bigmac())
     print(write_longrun())
+    print(write_houseprices())
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0

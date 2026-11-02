@@ -1,0 +1,164 @@
+---
+import Base from "../layouts/Base.astro";
+import raw from "../../data/konut_dunya.json";
+import { DISCLAIMER } from "../config.ts";
+import { fmtPct } from "../lib/popviz.ts";
+import ShareCard from "../components/ShareCard.astro";
+
+type C = { code: string; name: string; aggregate: boolean; first: string; last: string; latest: number; since2010_pct: number;
+  real_1y?: number; real_5y?: number; real_5y_annual?: number; real_10y?: number; real_10y_annual?: number; peak: string; drawdown_pct: number;
+  nominal_latest?: number; nominal_5y?: number; series: [string, number][]; nominal_series: [string, number][] };
+const H = raw as unknown as { source: string; attribution: string; mirror: string; terms: string; retrieved_at: string | null; countries: C[] };
+const tr = H.countries.find((c) => c.code === "TR")!;
+const ql = (m: string) => `${m.slice(0, 4)} Ç${Math.floor((Number(m.slice(5, 7)) - 1) / 3) + 1}`;
+const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const countriesOnly = H.countries.filter((c) => !c.aggregate);
+const rank5 = [...countriesOnly].filter((c) => c.real_5y != null).sort((a, b) => b.real_5y! - a.real_5y!);
+const trRank5 = rank5.findIndex((c) => c.code === "TR") + 1;
+const nomMult = tr.nominal_latest ? tr.nominal_latest / 100 : null;
+const payload = H.countries.map((c) => ({ code: c.code, name: c.name, agg: c.aggregate, last: c.last, r1: c.real_1y ?? null, r5: c.real_5y ?? null, r10: c.real_10y ?? null, s10: c.since2010_pct,
+  series: c.series.filter(([d]) => d >= "2000"), nominal: c.code === "TR" ? c.nominal_series : [] }));
+---
+<Base title="Reel konut fiyatları: Türkiye ve dünya" description="Enflasyondan arındırılmış konut fiyatları: Türkiye ve 60 ülke, 2010 = 100. BIS ve ulusal kaynaklar (Türkiye için TCMB). Gerçek veri.">
+  <h1>Reel konut fiyatları</h1>
+  <p class="lead">Konut fiyatları enflasyondan arındırıldığında ne kadar arttı? Türkiye ve 60 ülke, aynı yöntemle (2010 = 100).</p>
+  <p class="muted small">Gerçek veri · {H.source} · Kaynak: {H.attribution} (Türkiye için ulusal kaynak TCMB Konut Fiyat Endeksi) · Kopya: {H.mirror}{H.retrieved_at && ` · indirildi: ${H.retrieved_at}`}</p>
+
+  <div class="keys">
+    <div class="card k"><span class="k-label">2010'dan bu yana reel değişim</span><span class="k-value">{fmtPct(tr.since2010_pct)}</span><span class="muted small">endeks {nf(1).format(tr.latest)} · {ql(tr.last)}</span></div>
+    {tr.real_5y != null && <div class="card k"><span class="k-label">Son 5 yılda reel değişim</span><span class="k-value">{fmtPct(tr.real_5y)}</span><span class="muted small">{countriesOnly.length} ülke içinde {trRank5}. sırada</span></div>}
+    {tr.real_1y != null && <div class="card k"><span class="k-label">Son 1 yılda reel değişim</span><span class="k-value">{fmtPct(tr.real_1y)}</span><span class="muted small">enflasyonun {tr.real_1y < 0 ? "altında kaldı" : "üstünde"}</span></div>}
+    <div class="card k"><span class="k-label">Reel zirveye göre</span><span class="k-value">{fmtPct(tr.drawdown_pct)}</span><span class="muted small">zirve: {ql(tr.peak)}</span></div>
+    {nomMult && <div class="card k"><span class="k-label">Nominal fiyat, 2010'a göre</span><span class="k-value">×{nf(0).format(nomMult)}</span><span class="muted small">TL cinsinden</span></div>}
+  </div>
+
+  <ShareCard filename={`turkiye-reel-konut-${tr.last}.png`} card={{
+    sample: false, kicker: "Türkiye · reel konut fiyatı", headline: fmtPct(tr.since2010_pct, 0),
+    sub: `2010'dan ${ql(tr.last)} dönemine, enflasyondan arındırılmış (nominal olarak ×${nomMult ? nf(0).format(nomMult) : "—"})`,
+    rows: [
+      ...(tr.real_5y != null ? [{ label: `Son 5 yıl, reel · ${countriesOnly.length} ülke içinde ${trRank5}.`, value: fmtPct(tr.real_5y) }] : []),
+      ...(tr.real_1y != null ? [{ label: "Son 1 yıl, reel", value: fmtPct(tr.real_1y) }] : []),
+      { label: `Reel zirveye göre (zirve ${ql(tr.peak)})`, value: fmtPct(tr.drawdown_pct) },
+    ],
+    sources: [`${H.attribution}; Türkiye: TCMB KFE`], endLabel: ql(tr.last), endNote: "çeyreklik",
+  }} />
+
+  <section>
+    <h2>Türkiye: reel ve nominal</h2>
+    <div class="card"><div id="c-tr" class="chart-box"></div><p class="muted small">2010 = 100, logaritmik ölçek. Reel = nominal endeksin TÜFE ile arındırılmış hâli (hesap BIS'e aittir).</p></div>
+  </section>
+
+  <section>
+    <h2>Ülkelerle karşılaştır (reel)</h2>
+    <div class="card">
+      <div class="cmp-pick">
+        <label for="add" class="small">Ülke/bölge ekle</label>
+        <select id="add"><option value="">— seçin —</option>{H.countries.map((c) => <option value={c.code}>{c.name}</option>)}</select>
+        <div id="chips" class="chips"></div>
+      </div>
+      <div id="c-cmp" class="chart-box"></div>
+      <p class="muted small">En fazla 5 seri; ortak dönem gösterilir. 2010 = 100.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sıralama: reel değişim</h2>
+    <div class="seg" role="group" aria-label="Dönem">
+      <button type="button" data-k="r5" aria-pressed="true">Son 5 yıl</button>
+      <button type="button" data-k="r1" aria-pressed="false">Son 1 yıl</button>
+      <button type="button" data-k="s10" aria-pressed="false">2010'dan beri</button>
+    </div>
+    <div class="card"><div id="bars"></div></div>
+    <p class="muted small">Her ülkenin kendi son çeyreği esas alınır (bazıları bir çeyrek geriden gelir). Bölge ortalamaları (ör. "Gelişmekte olan ekonomiler") listede ayrıca yer alır.</p>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li>Reel değişim, konut fiyatının genel fiyat düzeyine (TÜFE) göre ne kadar arttığını gösterir; +%100, konutun "sepet cinsinden" iki katına çıktığı anlamına gelir.</li>
+      <li>Ülkelerin endeksleri farklı yöntemlerle (hedonik, tekrarlı satış, değerleme) üretilir; BIS bunları karşılaştırılabilirliği artıracak şekilde seçer ama tam aynı değildir.</li>
+      <li>Türkiye endeksi TCMB'nin banka değerleme raporlarına dayanan Konut Fiyat Endeksi'dir; satış fiyatı değil ekspertiz değeridir.</li>
+      <li>Geçmiş artışlar gelecek için bir öngörü değildir. Kullanım şartı: BIS istatistikleri kaynak gösterilerek kullanılır ({H.terms}). Ayrıntı: <a href="/metodoloji#konut-dunya">Metodoloji</a>. Kirala/satın al hesabı: <a href="/konut">Konut</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="h-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { renderDivBars, fmtPct } from "../lib/popviz.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  type P = { code: string; name: string; agg: boolean; last: string; r1: number | null; r5: number | null; r10: number | null; s10: number; series: [string, number][]; nominal: [string, number][] };
+  const D = JSON.parse(document.getElementById("h-data")!.textContent!) as P[];
+  const by = new Map(D.map((c) => [c.code, c]));
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  function auto(id: string, draw: (box: HTMLElement) => void) {
+    const box = document.getElementById(id)!;
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(box); } }).observe(box);
+    return () => draw(box);
+  }
+  const tr = by.get("TR")!;
+  const nm = new Map(tr.nominal);
+  const trm = tr.series.filter(([d]) => nm.has(d));
+  auto("c-tr", (box) => renderChart(box, { months: trm.map(([d]) => d), series: [
+    { key: "real", label: "Reel", color: "var(--cat-1)", values: trm.map(([, v]) => v) },
+    { key: "nom", label: "Nominal", color: "var(--cat-2)", values: trm.map(([d]) => nm.get(d)!) },
+  ] }, { baseline: 100, allowLog: true, format: (v) => nf1.format(v) }));
+
+  const COLORS = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)", "var(--cat-4)", "var(--cat-5)"];
+  const h = readHash();
+  let sel = (h.get("ulke") ?? "TR,US,DE,ES,4T").split(",").filter((k) => by.has(k)).slice(0, 5);
+  const redraw = auto("c-cmp", (box) => {
+    if (!sel.length) { box.replaceChildren(); return; }
+    const sets = sel.map((k) => new Map(by.get(k)!.series));
+    const dates = by.get(sel[0])!.series.map(([d]) => d).filter((d) => sets.every((m) => m.has(d)));
+    renderChart(box, { months: dates, series: sel.map((k, i) => ({ key: k, label: by.get(k)!.name, color: COLORS[i], values: dates.map((d) => sets[i].get(d)!) })) },
+      { baseline: 100, allowLog: true, format: (v) => nf1.format(v) });
+  });
+  function chips() {
+    document.getElementById("chips")!.replaceChildren(...sel.map((k, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip";
+      const sw = document.createElement("span"); sw.className = "chip-sw"; sw.style.background = COLORS[i];
+      b.append(sw, document.createTextNode(`${by.get(k)!.name} ✕`));
+      b.setAttribute("aria-label", `${by.get(k)!.name} grafikten çıkar`);
+      b.addEventListener("click", () => { sel = sel.filter((x) => x !== k); update(); });
+      return b;
+    }));
+  }
+  function update() { writeHash({ ulke: sel.join(",") }); chips(); redraw(); }
+  (document.getElementById("add") as HTMLSelectElement).addEventListener("change", (e) => {
+    const s = e.target as HTMLSelectElement;
+    if (s.value && !sel.includes(s.value) && sel.length < 5) { sel.push(s.value); update(); }
+    s.value = "";
+  });
+  chips();
+
+  let key: "r5" | "r1" | "s10" = "r5";
+  const LBL = { r5: "son 5 yıl", r1: "son 1 yıl", s10: "2010'dan beri" };
+  function bars() {
+    const rows = D.filter((c) => c[key] != null).map((c) => ({ label: c.name, sub: c.agg ? "bölge" : "", value: c[key] as number, emphasis: c.code === "TR" }))
+      .sort((a, b) => b.value - a.value);
+    renderDivBars(document.getElementById("bars")!, rows, { format: (v) => fmtPct(v), edges: key === "r1" ? [1, 3, 6] : [5, 20, 50], label: `Reel konut fiyatı değişimi, ${LBL[key]}` });
+  }
+  document.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) => b.addEventListener("click", () => {
+    key = b.dataset.k as typeof key;
+    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    bars();
+  }));
+  bars();
+</script>
+<style is:global>
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(5, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .cmp-pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .chip-sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 5px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+</style>

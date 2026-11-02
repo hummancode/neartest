@@ -34,6 +34,7 @@ export const NAV: NavGroup[] = [
     { href: "/mevduat", label: "Mevduat: net ve reel getiri", desc: "Stopaj sonrası net ve reel getiri; enflasyonu yeniyor mu?", keywords: "faiz stopaj" },
     { href: "/birikim", label: "Birikim hedefi", desc: "Bugünkü parayla hedefe ulaşmak için ayda ne biriktirmeli?" },
     { href: "/maas", label: "Reel maaş takibi", desc: "Zamlarınız enflasyonu, doları, altını yendi mi?", keywords: "zam ücret" },
+    { href: "/konut-fiyatlari", label: "Reel konut fiyatları: Türkiye ve dünya", desc: "Enflasyondan arındırılmış konut fiyatı; Türkiye ve 60 ülke, BIS verisi.", keywords: "ev konut fiyat bis kfe", real: true },
     { href: "/konut", label: "Konut: kirala mı, satın al mı?", desc: "Şehirlerde konutun reel getirisi; kira ile satın almanın karşılaştırması.", keywords: "ev kira" },
     { href: "/nominal-illuzyon", label: "Nominal illüzyon ve erime hızı", desc: "Geçmişteki bir tutar bugün neye denk geliyor?" },
     { href: "/kisisel-enflasyon", label: "Kişisel enflasyon", desc: "Kendi harcama sepetinizle son 12 ayın enflasyonu.", keywords: "tüfe" },

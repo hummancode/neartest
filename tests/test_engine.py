@@ -737,3 +737,22 @@ def test_big_mac_us_is_zero_and_undervalued_is_negative():
     assert close(b["dollar_price"], 2.0) and close(b["implied_rate"], 25.0) and close(b["valuation"], -0.5)
     with pytest.raises(e.SeriesError):
         e.big_mac(local_price=100, fx=0, us_price=4)
+
+
+# --- change over n periods (quarterly/monthly series) --------------------------
+
+def test_change_over_quarters_hand_computed():
+    # 9 quarters: 100 … 121; 4 quarters back from the last (121) is 110 -> +10 %; 8 back is 100 -> +21 %, annual 10 %
+    pts = [100.0, 102.0, 104.0, 106.0, 110.0, 113.0, 115.0, 118.0, 121.0]
+    a = e.change_over(pts, periods_back=4, periods_per_year=4)
+    assert close(a["change_pct"], 100 * (121 / 110 - 1), 1e-9) and close(a["annual_pct"], a["change_pct"], 1e-9)
+    b = e.change_over(pts, periods_back=8, periods_per_year=4)
+    assert close(b["change_pct"], 21.0, 1e-9) and close(b["annual_pct"], 10.0, 1e-9)
+    assert e.change_over(pts, periods_back=9, periods_per_year=4) is None     # not enough history
+
+
+def test_drawdown_from_peak():
+    # peak 216.6, last 211.2 -> 211.2/216.6 − 1
+    d = e.drawdown([98.7, 150.0, 216.6, 211.2])
+    assert close(d["peak"], 216.6) and d["peak_index"] == 2 and close(d["drawdown_pct"], 100 * (211.2 / 216.6 - 1), 1e-9)
+    assert e.drawdown([1.0, 2.0])["drawdown_pct"] == 0.0

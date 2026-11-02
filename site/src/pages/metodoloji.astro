@@ -262,6 +262,13 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="konut-dunya">Reel konut fiyatları (ülkeler arası)</h2>
+    <ul>
+      <li>Kaynak: BIS seçilmiş konut fiyatı endeksleri (2010 = 100), ulusal kaynaklardan derlenir; Türkiye için TCMB Konut Fiyat Endeksi. Dosyalar BIS verisinin GitHub'daki kopyasından (datasets/house-prices-global) günlük indirilir. Kullanım şartı: kaynak gösterilerek ("National sources, BIS Residential Property Price database").</li>
+      <li>Reel endeks = nominal endeks / TÜFE (BIS hesabı). n yıllık değişim = son çeyrek / 4n çeyrek önce − 1; yalnızca kesintisiz çeyrekler kullanılır. 2010'dan beri değişim = endeks − 100. Zirveye göre = son değer / en yüksek değer − 1.</li>
+      <li>Sınırlar: ülkelerin yöntemleri farklıdır; Türkiye endeksi ekspertiz değerlerine dayanır. Geçmiş değişim öngörü değildir.</li>
+    </ul>
+
     <h2 id="uzun-donem">Uzun dönem kişi başı gelir</h2>
     <ul>
       <li>Kaynak: Maddison Project Database 2020 (Bolt ve van Zanden), Our World in Data veri deposu üzerinden; reel kişi başı GSYH, 2011 ABD doları (satın alma gücü paritesine dayalı). Günlük iş akışında indirilir; lisans (CC BY 4.0 olarak beyan edilir) doğrulanana kadar "doğrulanacak" etiketi taşır.</li>

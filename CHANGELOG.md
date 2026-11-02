@@ -156,4 +156,9 @@
 - 2026-11-02 — Arayüz: genel "bilgi kartı" (1200×1500 PNG, `drawFactCard`) ve tek satırlık `ShareCard` bileşeni;
   Big Mac ve Uzun dönem sayfalarında paylaşılabilir kart. Menüde ve ana sayfada **gerçek veri** işaretleri
   (renk + metin açıklaması); ana sayfada "Gerçek veriyle" öne çıkanlar şeridi.
+- 2026-11-02 — **Reel konut fiyatları (gerçek veri)**: BIS seçilmiş konut fiyatı endeksleri (Türkiye için TCMB KFE),
+  GitHub kopyasından günlük (`pipeline/houseprices.py`). Motor: `change_over`, `drawdown` (önce test). Yeni
+  `/konut-fiyatlari`: Türkiye reel/nominal, 60 ülke/bölgeyle karşılaştırma, 1/5 yıl ve 2010'dan beri sıralama,
+  paylaşılabilir kart. `docs/ACIK-VERI-REHBERI.md`: sahibin indirebileceği açık veri dosyaları (bağlantı, biçim,
+  repoda dosya adı, lisans).
 
