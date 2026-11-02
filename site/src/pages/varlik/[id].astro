@@ -1,0 +1,166 @@
+---
+import Base from "../../layouts/Base.astro";
+import { paths, ABOUT } from "../../lib/paths.ts";
+import { tablo, YEARS } from "../../lib/data.ts";
+import { monthLabel, pct } from "../../lib/format.ts";
+import { DISCLAIMER } from "../../config.ts";
+
+export function getStaticPaths() {
+  return Object.keys(paths.assets).map((id) => ({ params: { id } }));
+}
+
+const { id } = Astro.params as { id: string };
+const asset = paths.assets[id];
+const row = tablo.rows.find((r) => r.id === id)!;
+const windowKeys = Object.keys(asset.windows).sort((a, b) => Number(a) - Number(b));
+const defaultWin = windowKeys[windowKeys.length - 1];
+const usedSources = [asset.series, "cpi_tr", "usdtry"]
+  .map((k) => tablo.sources[k])
+  .filter(Boolean);
+const measures = [
+  { key: "nominal_tl", label: "Nominal TL", short: "Nom. TL" },
+  { key: "usd", label: "USD", short: "USD" },
+  { key: "real_tl", label: "Reel TL", short: "Reel" },
+] as const;
+const others = tablo.rows.filter((r) => r.id !== id);
+const payload = { windows: asset.windows, label: asset.label };
+---
+<Base title={`${asset.label} — reel getiri`} description={`${asset.label}: nominal TL, USD ve enflasyondan arındırılmış reel getiri; 1, 3, 5 ve 10 yıl.`} sample={asset.sample}>
+  <p class="muted small crumb"><a href="/">Reel Tablo</a> / {asset.label}</p>
+  <h1>{asset.label}</h1>
+  <p class="lead">{ABOUT[id]}</p>
+
+  <section class="card chart-card" aria-labelledby="chart-h">
+    <div class="chart-head">
+      <h2 id="chart-h">100 TL ne oldu?</h2>
+      <div class="seg" role="group" aria-label="Dönem">
+        {windowKeys.map((k) => (
+          <button type="button" data-win={k} aria-pressed={k === defaultWin ? "true" : "false"}>{k} yıl</button>
+        ))}
+      </div>
+    </div>
+    <p class="summary" id="summary" aria-live="polite"></p>
+    <div id="chart" class="chart-box"></div>
+    <p class="muted small" id="scale-note">
+      Başlangıçta 100 TL. Reel: başlangıç ayının TL'si cinsinden (TÜFE'den arındırılmış). USD: dolar cinsinden değerin 100'e endekslenmiş hâli.
+    </p>
+  </section>
+
+  <h2>Getiriler</h2>
+  <div class="card returns">
+    <table class="data">
+      <thead><tr><th scope="col">Ölçü</th>{YEARS.map((y) => <th scope="col">{y} yıl</th>)}</tr></thead>
+      <tbody>
+        {measures.map((m) => (
+          <tr>
+            <th scope="row"><span class="lbl-long">{m.label}</span><span class="lbl-short" aria-hidden="true">{m.short}</span></th>
+            {YEARS.map((y) => {
+              const w = row.windows.find((x) => x.years === y);
+              return w ? <td><strong class="cum">{pct(w[m.key])}</strong><span class="ann"><span class="ann-word">yıllık </span>{pct(w[`${m.key}_annual`])}</span></td> : <td class="muted">—</td>;
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">Veri bitişi {monthLabel(paths.end_month)}. Büyük rakam kümülatif, küçük rakam yıllık bileşik getiridir.</p>
+
+  <h2>Kaynaklar</h2>
+  <ul class="small">
+    {usedSources.map((s) => (
+      <li>{s.label}: {s.source}{s.code ? <> (<code>{s.code}</code>)</> : null} · son veri {monthLabel(s.last_month)}{s.verified ? "" : " · doğrulanmadı"}{s.sample ? " · ÖRNEK VERİ" : ""}</li>
+    ))}
+  </ul>
+  <p>Yöntem: <a href="/metodoloji">Metodoloji</a>.</p>
+
+  <h2>Diğer varlıklar</h2>
+  <ul class="others">
+    {others.map((o) => <li><a href={`/varlik/${o.id}`}>{o.label}</a></li>)}
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="paths-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { renderChart } from "../../lib/chart.ts";
+
+  const data = JSON.parse(document.getElementById("paths-data")!.textContent!);
+  const box = document.getElementById("chart")!;
+  const summary = document.getElementById("summary")!;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>("[data-win]")];
+  const fmt = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+  let win = buttons.find((b) => b.getAttribute("aria-pressed") === "true")!.dataset.win!;
+
+  function draw() {
+    const p = data.windows[win];
+    const n = p.months.length - 1;
+    renderChart(box, {
+      months: p.months,
+      series: [
+        { key: "nominal", label: "Nominal TL", color: "var(--series-2)", values: p.nominal },
+        { key: "usd", label: "USD", color: "var(--series-3)", values: p.usd },
+        { key: "real", label: "Reel TL", color: "var(--series-1)", values: p.real },
+      ],
+    }, {
+      onScale: (log) => box.dataset.scale = log ? "log" : "linear",
+    });
+    summary.textContent =
+      `${label(p.months[0])} → ${label(p.months[n])}: ${data.label} için ayrılan 100 TL, nominal olarak ${fmt.format(p.nominal[n])} TL oldu. ` +
+      `Başlangıç fiyatlarıyla alım gücü: ${fmt.format(p.real[n])} TL. Dolar cinsinden endeks: 100 → ${fmt.format(p.usd[n])}.` +
+      (box.dataset.scale === "log" ? " Grafik logaritmik ölçektedir: eşit aralıklar eşit oranlı değişimi gösterir." : "");
+  }
+  for (const b of buttons) {
+    b.addEventListener("click", () => {
+      win = b.dataset.win!;
+      buttons.forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+      draw();
+    });
+  }
+  let last = 0;
+  new ResizeObserver(() => {
+    if (Math.abs(box.clientWidth - last) < 2) return;
+    last = box.clientWidth;
+    draw();
+  }).observe(box);
+</script>
+
+<style>
+  .crumb { margin: 0 0 4px; }
+  .crumb a { color: var(--ink-2); }
+  .chart-card { margin-top: 16px; }
+  @media (max-width: 400px) { .chart-card, .returns { padding: 12px 8px; } }
+  .chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+  .chart-head h2 { margin: 0; font-size: 1.6rem; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button {
+    background: none; border: 0; color: var(--ink-2); font: inherit; font-size: 0.85rem; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .summary { color: var(--ink-2); margin: 10px 0 6px; min-height: 3em; }
+  .chart-box { min-height: 280px; }
+  .returns { padding: 10px; }
+  .returns td { vertical-align: top; }
+  .returns .cum { display: block; white-space: nowrap; }
+  .returns .ann { display: block; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+  .returns tbody th { font-size: 0.85rem; white-space: nowrap; }
+  @media (max-width: 520px) {
+    .returns .ann-word { display: none; }
+    .returns th, .returns td { padding: 6px 2px; }
+    .returns .cum { font-size: 0.8rem; }
+    .returns .ann { font-size: 0.66rem; }
+    .returns tbody th { font-size: 0.75rem; }
+  }
+  .lbl-short { display: none; }
+  @media (max-width: 380px) {
+    .lbl-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .lbl-short { display: inline; }
+    .returns .cum { font-size: 0.72rem; letter-spacing: -0.01em; }
+    .returns .ann { font-size: 0.6rem; }
+    .returns thead th { font-size: 0.65rem; }
+  }
+  .others { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; list-style: none; }
+</style>

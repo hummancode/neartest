@@ -36,3 +36,7 @@
   100 kat hata önlendi). `/veri` sayfası (her serinin kökeni, kodu, aralığı) ve `durum.json`.
   Asgari ücret (isteğe bağlı, asla örneklenmez, değişim aylarından ileri doldurma) illüzyon
   makinesine ve karta bağlandı.
+- 2026-11-02 — MVP 2/4: Varlık detay sayfaları (`/varlik/<id>`, 7 adet): "100 TL ne oldu?" etkileşimli
+  grafiği (nominal / USD / reel, 1-3-5-10 yıl, log ölçek gerekirse, crosshair + ipucu, klavye ile
+  gezinme, doğrudan uç etiketleri; palet doğrulayıcıdan geçti). Yollar Python'da `index_paths` ile
+  hesaplanıyor (önce test; son değerler Reel Tablo ile birebir). Ana sayfa kartları detaya bağlandı.

@@ -19,7 +19,7 @@ def test_levels_cut_at_common_end_month():
 
 
 def test_sample_build_flags_everything_as_sample():
-    tablo, levels, groups, _, _ = build.build(allow_sample=True)
+    tablo, levels, groups, *_ = build.build(allow_sample=True)
     if not build.RAW.exists():
         assert tablo["sample"] is True and levels["sample"] is True
     assert tablo["end_month"] == levels["end_month"]
@@ -38,7 +38,7 @@ def test_generated_at_kept_when_content_unchanged(tmp_path):
 
 
 def test_cpi_groups_output():
-    tablo, levels, groups, _, _ = build.build(allow_sample=True)
+    tablo, levels, groups, *_ = build.build(allow_sample=True)
     assert len(groups["groups"]) == 12
     assert groups["end_month"] == tablo["end_month"]
     if not build.WEIGHTS_CSV.exists():
@@ -114,8 +114,18 @@ def test_manual_csv_is_used_and_scaled(tmp_path, monkeypatch):
 
 
 def test_status_lists_every_series_with_origin():
-    *_, status = build.build(allow_sample=True)
+    *_, status, _ = build.build(allow_sample=True)
     names = {r["name"] for r in status["rows"]}
     assert {"cpi_tr", "deposit_rate", "cpi_food", "min_wage_net"} <= names
     assert all(r["origin"] in ("evds", "manual", "sample", "missing") for r in status["rows"])
     assert sum(status["counts"].values()) == len(status["rows"])
+
+
+def test_paths_end_values_match_reel_tablo():
+    tablo, *_, paths = build.build(allow_sample=True)
+    for row in tablo["rows"]:
+        for w in row["windows"]:
+            p = paths["assets"][row["id"]]["windows"][str(w["years"])]
+            assert abs(p["real"][-1] / 100 - 1 - w["real_tl"]) < 1e-5
+            assert abs(p["usd"][-1] / 100 - 1 - w["usd"]) < 1e-5
+            assert len(p["months"]) == 12 * w["years"] + 1

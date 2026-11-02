@@ -26,6 +26,7 @@ OUT_LEVELS = ROOT / "site" / "data" / "seviyeler.json"
 OUT_GROUPS = ROOT / "site" / "data" / "tufe_gruplari.json"
 OUT_RATES = ROOT / "site" / "data" / "reel_faiz.json"
 OUT_STATUS = ROOT / "site" / "data" / "durum.json"
+OUT_PATHS = ROOT / "site" / "data" / "seriler.json"
 WEIGHTS_CSV = ROOT / "data" / "manual" / "tufe_agirliklari.csv"
 
 # Series the in-browser "nominal illusion" calculator needs, as raw monthly levels.
@@ -92,7 +93,7 @@ def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
     return raw
 
 
-def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict]:
+def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict, dict]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
@@ -139,7 +140,9 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict]:
     rates["generated_at"] = tablo["generated_at"]
     status = build_status(data, weights_sample, end)
     status["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status
+    paths = build_paths(data, is_sample, end)
+    paths["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates, status, paths
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -231,6 +234,32 @@ def build_real_rates(data: dict, is_sample: dict, end: str, months: int = 36) ->
         },
         "rows": rows,
     }
+
+
+def build_paths(data: dict, is_sample: dict, end: str) -> dict:
+    """Monthly index paths (100 at window start) per asset and window, for detail charts."""
+    cpi, usdtry = data["cpi_tr"], data["usdtry"]
+    assets = {}
+    for asset in ASSETS:
+        tl = asset_tl_series(asset, data)
+        windows = {}
+        for years in (1, 3, 5, 10):
+            try:
+                p = e.index_paths(tl, cpi, usdtry, end, years)
+            except e.SeriesError:
+                continue
+            windows[str(years)] = {
+                "months": p["months"],
+                **{k: [round(v, 4) for v in p[k]] for k in ("nominal", "real", "usd")},
+            }
+        assets[asset["id"]] = {
+            "label": asset["label"],
+            "kind": asset["kind"],
+            "series": asset["series"],
+            "sample": any(is_sample[s] for s in (asset["series"], "cpi_tr", "usdtry")),
+            "windows": windows,
+        }
+    return {"end_month": end, "sample": any(a["sample"] for a in assets.values()), "assets": assets}
 
 
 USED_BY = {
@@ -334,15 +363,16 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status = build(args.sample)
+    result, levels, groups, rates, status, paths = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
     write_if_changed(OUT_GROUPS, groups)
     write_if_changed(OUT_RATES, rates)
     write_if_changed(OUT_STATUS, status)
+    write_if_changed(OUT_PATHS, paths)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}, {OUT_STATUS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}, {OUT_STATUS.relative_to(ROOT)}, {OUT_PATHS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

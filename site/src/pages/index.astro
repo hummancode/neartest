@@ -36,7 +36,7 @@ function sparkLabel(row: Row) {
     {tablo.rows.map((row) => (
       <section class="card asset" aria-labelledby={`h-${row.id}`}>
         <div class="asset-head">
-          <h3 id={`h-${row.id}`}>{row.label}{row.sample && <span class="tag">örnek</span>}</h3>
+          <h3 id={`h-${row.id}`}><a class="asset-link" href={`/varlik/${row.id}`}>{row.label}</a>{row.sample && <span class="tag">örnek</span>}</h3>
           <figure class="trend">
             <Sparkline values={row.real_trend_5y} label={sparkLabel(row)} />
             <figcaption class="muted">reel seyir, 5 yıl</figcaption>
@@ -68,6 +68,7 @@ function sparkLabel(row: Row) {
             ))}
           </tbody>
         </table>
+        <p class="more"><a href={`/varlik/${row.id}`}>Grafik ve ayrıntı →</a></p>
       </section>
     ))}
   </div>
@@ -131,6 +132,9 @@ function sparkLabel(row: Row) {
   .asset { padding: 14px 10px 8px; }
   .asset-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
   .asset-head h3 { margin: 0; font-size: 1.6rem; }
+  .asset-link { color: inherit; text-decoration: none; }
+  .asset-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .more { margin: 6px 0 2px; font-size: 0.85rem; text-align: right; }
   .tag {
     font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px;

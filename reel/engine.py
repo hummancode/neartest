@@ -249,3 +249,34 @@ def ex_post_real_rates(rates: dict[str, float], cpi: dict[str, float]) -> dict[s
             continue
         out[m] = real_return(rates[start], inflation)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Index paths for charts
+# ---------------------------------------------------------------------------
+
+def index_paths(
+    asset_tl: dict[str, float],
+    cpi: dict[str, float],
+    usdtry: dict[str, float],
+    end: str,
+    years: int,
+) -> dict[str, list]:
+    """What 100 TL put into the asset `years` before `end` was worth each month.
+
+    nominal: in TL; real: in start-month TL (deflated by CPI); usd: in USD terms,
+    rebased to 100. The last values equal 100 * (1 + window return) from asset_windows.
+    """
+    months = [shift_month(end, -k) for k in range(12 * years, -1, -1)]
+    for m in months:
+        if m not in asset_tl or m not in cpi or m not in usdtry:
+            raise SeriesError(f"missing data for {m}")
+    a0, c0, f0 = asset_tl[months[0]], cpi[months[0]], usdtry[months[0]]
+    if min(a0, c0, f0) <= 0:
+        raise SeriesError("start values must be positive")
+    return {
+        "months": months,
+        "nominal": [100.0 * asset_tl[m] / a0 for m in months],
+        "real": [100.0 * (asset_tl[m] / cpi[m]) / (a0 / c0) for m in months],
+        "usd": [100.0 * (asset_tl[m] / usdtry[m]) / (a0 / f0) for m in months],
+    }

@@ -199,3 +199,28 @@ def test_real_rates_skip_months_without_data():
     cpi = {"2024-01": 100.0, "2025-01": 150.0}
     assert e.ex_post_real_rates(rates, cpi) == {}
     assert close(e.trailing_real_rates(rates, cpi)["2025-01"], 0.0)   # 1.5/1.5 - 1
+
+
+# --- index paths for asset detail charts ------------------------------------
+
+def test_index_paths_start_at_100_and_match_windows():
+    # Asset doubles, CPI +60 %, USD/TRY +25 % over one year (same as test_asset_windows_known_values).
+    asset = {"2024-06": 100.0, "2025-06": 200.0}
+    cpi = {"2024-06": 1000.0, "2025-06": 1600.0}
+    fx = {"2024-06": 32.0, "2025-06": 40.0}
+    # Fill the months in between so the path is contiguous (values don't matter for the ends).
+    for k in range(1, 12):
+        m = e.shift_month("2024-06", k)
+        asset[m], cpi[m], fx[m] = 150.0, 1300.0, 36.0
+    p = e.index_paths(asset, cpi, fx, "2025-06", 1)
+    assert p["months"][0] == "2024-06" and p["months"][-1] == "2025-06" and len(p["months"]) == 13
+    assert p["nominal"][0] == p["real"][0] == p["usd"][0] == 100.0
+    assert close(p["nominal"][-1], 200.0)          # 100 * 200/100
+    assert close(p["real"][-1], 125.0)             # 100 * (2.0 / 1.6)
+    assert close(p["usd"][-1], 160.0)              # 100 * (2.0 / 1.25)
+
+
+def test_index_paths_require_contiguous_months():
+    asset = {"2024-06": 100.0, "2025-06": 200.0}   # 11 months missing
+    with pytest.raises(e.SeriesError):
+        e.index_paths(asset, asset, asset, "2025-06", 1)
