@@ -42,3 +42,7 @@
   hesaplanıyor (önce test; son değerler Reel Tablo ile birebir). Ana sayfa kartları detaya bağlandı.
 - 2026-11-02 — MVP 3/4: Hesaplayıcılar için paylaşılabilir bağlantı ("Bağlantıyı kopyala"): girdiler URL'nin
   `#` kısmında (sunucuya gitmez); açılışta geri yüklenir, bozuk/negatif değerler güvenle yok sayılır.
+- 2026-11-02 — MVP 4/4: Paylaşım önizlemesi (Open Graph + Twitter kartı, 1200×630 `og.png` ve yeniden
+  üretme betiği), `SITE_URL` ile canonical ve `sitemap.xml`, theme-color. README güncellendi.
+  Doğrulama: 79 Python + 33 TS testi, `npm run check` 17 sayfa, tüm sayfalar 320/1280 px açık/koyu
+  temada hatasız; hesaplayıcı sonuçları JSON'dan bağımsız hesapla birebir.

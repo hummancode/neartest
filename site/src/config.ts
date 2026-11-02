@@ -4,6 +4,10 @@
 export const SITE_NAME = "[MARKA]";
 export const DISCLAIMER = "Yatırım tavsiyesi değildir.";
 
+// Public site address, e.g. "https://ornek.com" (no trailing slash). Used for canonical
+// links, share previews and sitemap.xml. Empty = those are left out.
+export const SITE_URL = "";
+
 // Contact for KVKK requests. Empty = shown as "eklenecek" on the privacy page.
 export const CONTACT_EMAIL = "";
 // Legal entity / person acting as data controller (veri sorumlusu).

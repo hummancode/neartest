@@ -10,8 +10,13 @@ Plan ve kurallar: `CLAUDE.md`. Değişiklikler: `CHANGELOG.md`.
     EVDS_API_KEY=... python -m pipeline.discover "Tüketici Fiyat" "Mevduat" "Altın"
     EVDS_API_KEY=... python -m pipeline.fetch && python -m pipeline.build
 
-Çıktılar `site/data/`: `reel_tablo.json`, `seviyeler.json`, `tufe_gruplari.json`, `reel_faiz.json`.
-Seri kodları `pipeline/series.py`'de; doğrulanmadan `verified=True` yapılmaz.
+Çıktılar `site/data/`: `reel_tablo.json`, `seviyeler.json`, `tufe_gruplari.json`, `reel_faiz.json`,
+`seriler.json` (grafikler), `durum.json` (veri durumu). Seri kodları `pipeline/series.py`'de; doğrulanmadan
+`verified=True` yapılmaz.
+
+**API anahtarı olmadan gerçek veri:** EVDS web arayüzünden (veya başka resmî kaynaktan) indirilen CSV'yi
+`data/manual/<seri>.csv` olarak koyun — ayrıntılar `data/manual/README.md`. Öncelik: `data/raw/` (API)
+→ `data/manual/` → örnek veri. Sitedeki `/veri` sayfası her serinin nereden geldiğini gösterir.
 
 TÜFE grup ağırlıkları elle girilir: `data/manual/tufe_agirliklari.csv`
 
@@ -30,8 +35,9 @@ TÜFE grup ağırlıkları elle girilir: `data/manual/tufe_agirliklari.csv`
     npm run preview    # http://localhost:4321
 
 Sahibin karar vermesi gereken ayarlar tek dosyada: `site/src/config.ts`
-(marka adı, KVKK iletişim/veri sorumlusu, bülten form adresi, Cloudflare Web Analytics token'ı,
-yasal metinlerin taslak uyarısı).
+(marka adı, site adresi `SITE_URL` → canonical/OG/sitemap, KVKK iletişim/veri sorumlusu, bülten form
+adresi, Cloudflare Web Analytics token'ı, yasal metinlerin taslak uyarısı). Marka adı değişince paylaşım
+görselini yenileyin: `node scripts/make-og.cjs` (yerelde Playwright gerekir).
 
 ## Cloudflare Pages'a yayın
 
