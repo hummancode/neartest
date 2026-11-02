@@ -1,5 +1,8 @@
 ---
 import { NAV } from "../lib/nav.ts";
+import bigmac from "../../data/bigmac.json";
+import longrun from "../../data/uzun_donem.json";
+import districtGeo from "../../data/tr_ilceler.json";
 import Base from "../layouts/Base.astro";
 import Sparkline from "../components/Sparkline.astro";
 import { tablo, YEARS, type Row } from "../lib/data.ts";
@@ -74,6 +77,24 @@ function sparkLabel(row: Row) {
     ))}
   </div>
 
+  <h2>Gerçek veriyle</h2>
+  <p class="muted small">Ana veri kaynakları (EVDS) bağlanana kadar sitenin çoğu örnek veriyle çalışıyor. Bunlar ise doğrulanmış açık kaynaklardan:</p>
+  <div class="facts">
+    {(() => {
+      const tr = (bigmac as any).history?.TUR?.points?.at(-1);
+      const S = (longrun as any).summary;
+      const nDist = Object.values((districtGeo as any).provinces).reduce((s: number, p: any) => s + p.districts.length, 0);
+      const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d });
+      return [
+        tr && { href: "/big-mac", k: "Türkiye'de Big Mac", v: `${nf(0).format(tr[1])} TL`, s: `${nf(2).format(tr[3])} $ · The Economist` },
+        S && { href: "/uzun-donem", k: `Kişi başı reel gelir, ${S.first}–${S.last}`, v: `×${nf(1).format(S.multiple)}`, s: "Maddison Project" },
+        { href: "/nufus", k: "İlçe sınırları", v: `${nf(0).format(nDist)} ilçe`, s: "geoBoundaries / OpenStreetMap" },
+      ].filter(Boolean).map((f: any) => (
+        <a class="card fact" href={f.href}><span class="k-label">{f.k}</span><span class="fact-v">{f.v}</span><span class="muted small">{f.s} →</span></a>
+      ));
+    })()}
+  </div>
+
   <h2>Platform</h2>
   <p class="muted small">Aradığınızı hızlıca bulmak için <strong>Ara</strong> düğmesini (veya <kbd>Ctrl</kbd> + <kbd>K</kbd>) kullanın: sayfalar, 81 il, 973 ilçe ve göstergeler.</p>
   {NAV.map((g) => {
@@ -85,6 +106,7 @@ function sparkLabel(row: Row) {
           {items.map((i) => (
             <a class="card tool" href={i.href}>
               <span class="tool-title">{i.label} →</span>
+              {i.real && <span class="real-tag">gerçek veri</span>}
               <span class="muted small">{i.desc}</span>
             </a>
           ))}
@@ -172,6 +194,12 @@ function sparkLabel(row: Row) {
   .tool { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
   .tool:hover { border-color: var(--ink-2); }
   .dir { margin-top: 18px; }
+  .facts { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .facts { grid-template-columns: repeat(3, 1fr); } }
+  .fact { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--ink); }
+  .fact .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .fact-v { font-family: var(--font-head); font-size: 2rem; line-height: 1.15; }
+  .real-tag { align-self: flex-start; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--good-ink, #0a7d33); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
   .dir-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px; }
   kbd { font: inherit; font-size: 0.8em; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
   .tool-title { font-family: var(--font-head); font-size: 1.35rem; }

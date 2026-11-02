@@ -1,0 +1,28 @@
+---
+// "Download a shareable PNG card" button. The card content is prepared at build time (no user data).
+import { SITE_NAME, DISCLAIMER } from "../config.ts";
+import type { FactCardData } from "../lib/card.ts";
+interface Props { card: Omit<FactCardData, "siteName" | "disclaimer">; filename: string; label?: string }
+const { card, filename, label = "Paylaşılabilir kart indir (PNG)" } = Astro.props;
+const data = { ...card, siteName: SITE_NAME, disclaimer: DISCLAIMER };
+---
+<div class="share-card">
+  <button type="button" class="btn btn-ghost share-card-btn" data-card={JSON.stringify(data)} data-file={filename}>{label}</button>
+  <span class="muted small share-card-msg" aria-live="polite"></span>
+</div>
+<script>
+  import { drawFactCard, downloadCanvas } from "../lib/card.ts";
+  document.querySelectorAll<HTMLButtonElement>(".share-card-btn").forEach((b) => b.addEventListener("click", async () => {
+    const msg = b.parentElement!.querySelector(".share-card-msg")!;
+    b.disabled = true; msg.textContent = "Hazırlanıyor…";
+    try {
+      const canvas = await drawFactCard(JSON.parse(b.dataset.card!));
+      await downloadCanvas(canvas, b.dataset.file!);
+      msg.textContent = "İndirildi (1200×1500).";
+    } catch (e) { msg.textContent = "Kart üretilemedi."; }
+    finally { b.disabled = false; }
+  }));
+</script>
+<style>
+  .share-card { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 16px; }
+</style>

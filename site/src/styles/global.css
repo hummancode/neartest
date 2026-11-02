@@ -307,3 +307,10 @@ table { border-collapse: collapse; width: 100%; }
 .tag.est { color: var(--accent); }
 .dbars li.em { background: color-mix(in srgb, var(--accent) 10%, transparent); border-radius: 4px; }
 .dbars li.em .db-name { font-weight: 700; }
+/* Real (non-sample) data marker. Status green + text label (never color alone). */
+:root { --good-ink: #0a7d33; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --good-ink: #4cc47a; } }
+:root[data-theme="dark"] { --good-ink: #4cc47a; }
+.real-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good-ink); margin-left: 6px; vertical-align: middle; }
+.real-legend { font-size: 0.75rem; color: var(--muted); padding: 4px 10px; list-style: none; }
+.real-legend .real-dot { margin: 0 4px 0 0; }

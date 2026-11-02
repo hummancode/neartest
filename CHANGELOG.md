@@ -153,4 +153,7 @@
   (`pipeline/longrun.py`, günlük iş akışında). Yeni `/uzun-donem`: Türkiye 1923–2018 (×19, yıllık %3,2), on yıllara
   göre büyüme, 1950'den beri 20 ülkeyle karşılaştırma, ABD ve Batı Avrupa'ya yakınsama. Lisans (CC BY 4.0 beyanı)
   doğrulanana kadar sayfada "lisans doğrulanacak" etiketi.
+- 2026-11-02 — Arayüz: genel "bilgi kartı" (1200×1500 PNG, `drawFactCard`) ve tek satırlık `ShareCard` bileşeni;
+  Big Mac ve Uzun dönem sayfalarında paylaşılabilir kart. Menüde ve ana sayfada **gerçek veri** işaretleri
+  (renk + metin açıklaması); ana sayfada "Gerçek veriyle" öne çıkanlar şeridi.
 

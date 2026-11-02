@@ -57,7 +57,8 @@ const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === p
             <details class="dd">
               <summary class={inGroup(g) ? "current" : undefined}>{g.label}</summary>
               <ul class="dd-menu">
-                {g.items.map((i) => <li><a href={i.href} aria-current={path === i.href ? "page" : undefined}>{i.label}</a></li>)}
+                {g.items.map((i) => <li><a href={i.href} aria-current={path === i.href ? "page" : undefined}>{i.label}{i.real && <span class="real-dot" title="Gerçek veri" aria-label="gerçek veri"></span>}</a></li>)}
+                {g.items.some((i) => i.real) && <li class="real-legend" aria-hidden="true"><span class="real-dot"></span> gerçek veri</li>}
               </ul>
             </details>
           ))}

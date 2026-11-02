@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import raw from "../../data/bigmac.json";
 import { DISCLAIMER } from "../config.ts";
 import { fmtPct } from "../lib/popviz.ts";
+import ShareCard from "../components/ShareCard.astro";
 
 type Snap = { iso: string; name: string; currency: string; local_price: number; fx: number; dollar_price: number; valuation: number; valuation_adj: number | null };
 const B = raw as unknown as { source: string; url: string; license: string; retrieved_at: string | null; latest_date: string; first_date: string; dates: number; mismatches: number;
@@ -30,6 +31,18 @@ const priceMult = last[1] / first[1], fxMult = last[2] / first[2];
     <div class="card k"><span class="k-label">Ham endeks (dolara karşı)</span><span class="k-value">{fmtPct(100 * last[4])}</span><span class="muted small">{last[4] > 0 ? "Big Mac Türkiye'de ABD'den pahalı" : "Big Mac Türkiye'de ABD'den ucuz"}</span></div>
     {last[5] != null && <div class="card k"><span class="k-label">Gelire göre düzeltilmiş endeks</span><span class="k-value">{fmtPct(100 * last[5])}</span><span class="muted small">kişi başı GSYH farkı hesaba katılınca</span></div>}
   </div>
+
+  <ShareCard filename={`big-mac-turkiye-${last[0].slice(0, 7)}.png`} card={{
+    sample: false, kicker: "Big Mac endeksi · Türkiye", headline: `${nf(0).format(last[1])} TL`,
+    sub: `= ${nf(2).format(last[3])} $ · ABD'de ${usLast ? nf(2).format(usLast[1]) : "—"} $ (${dl(last[0])})`,
+    rows: [
+      ...(implied ? [{ label: "Big Mac'e göre ima edilen kur", value: `${nf(2).format(implied)} TL/$` }] : []),
+      { label: "Ham endeks (dolara karşı)", value: fmtPct(100 * last[4]) },
+      { label: `${first[0].slice(0, 4)}'den beri: Big Mac TL fiyatı / dolar`, value: `×${nf(0).format(priceMult)} / ×${nf(0).format(fxMult)}` },
+    ],
+    note: "Kaba bir satın alma gücü ölçüsüdür; kur tahmini değildir.",
+    sources: [`The Economist, Big Mac endeksi (${B.license})`], endLabel: dl(last[0]),
+  }} />
 
   <section>
     <h2>{years} yılda Big Mac ve dolar</h2>

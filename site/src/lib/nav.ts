@@ -1,5 +1,5 @@
 // Single source for the site map: header menu, home page directory and search index.
-export interface NavItem { href: string; label: string; desc: string; keywords?: string }
+export interface NavItem { href: string; label: string; desc: string; keywords?: string; real?: boolean }   // real: page runs on real (non-sample) data
 export interface NavGroup { label: string; items: NavItem[] }
 
 export const NAV: NavGroup[] = [
@@ -14,8 +14,8 @@ export const NAV: NavGroup[] = [
     { href: "/iliskiler", label: "İlişkiler", desc: "CDS ile borsa, faiz ile kur: göstergeler birlikte nasıl hareket etti?", keywords: "korelasyon" },
     { href: "/reel-faiz", label: "Reel Faiz", desc: "Mevduat ve kredi faizi enflasyonun üstünde mi?" },
     { href: "/olaylar", label: "Olay penceresi", desc: "Faiz kararları etrafında piyasalar ortalama ne yaptı?", keywords: "ppk karar" },
-    { href: "/uzun-donem", label: "Uzun dönem: 100 yılda gelir", desc: "1923'ten bugüne reel kişi başı gelir; on yıllara göre büyüme, zengin ülkelere yakınsama (gerçek veri).", keywords: "maddison tarih gsyh büyüme" },
-    { href: "/big-mac", label: "Big Mac endeksi", desc: "Aynı hamburger her ülkede kaç dolar? TL'nin satın alma gücüne kaba bir bakış (gerçek veri).", keywords: "satın alma gücü ppp kur hamburger" },
+    { href: "/uzun-donem", label: "Uzun dönem: 100 yılda gelir", desc: "1923'ten bugüne reel kişi başı gelir; on yıllara göre büyüme, zengin ülkelere yakınsama.", keywords: "maddison tarih gsyh büyüme", real: true },
+    { href: "/big-mac", label: "Big Mac endeksi", desc: "Aynı hamburger her ülkede kaç dolar? TL'nin satın alma gücüne kaba bir bakış.", keywords: "satın alma gücü ppp kur hamburger", real: true },
     { href: "/ulkeler", label: "Ülke karşılaştırması", desc: "Türkiye ve benzer ekonomiler: enflasyon, büyüme, gelir, işsizlik.", keywords: "dünya bankası" },
   ] },
   { label: "İller", items: [

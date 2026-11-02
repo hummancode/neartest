@@ -115,7 +115,7 @@ async function frame(sample: boolean, kicker: string): Promise<Frame> {
 }
 
 /** Bottom strip: sources, data end, disclaimer, site name. Returns the strip's top y. */
-function footer(ctx: CanvasRenderingContext2D, sample: boolean, sources: string[], endLabel: string, disclaimer: string, siteName: string): number {
+function footer(ctx: CanvasRenderingContext2D, sample: boolean, sources: string[], endLabel: string, disclaimer: string, siteName: string, endNote = "aylık ortalama"): number {
   const stripH = 200;
   const top = H - stripH;
   ctx.fillStyle = "#1c1d21";
@@ -133,7 +133,7 @@ function footer(ctx: CanvasRenderingContext2D, sample: boolean, sources: string[
   ctx.fillStyle = INK;
   ctx.fillText(up(siteName), W - PAD, H - 44);
   ctx.textAlign = "left";
-  const foot = `Son veri: ${endLabel} (aylık ortalama) · ${disclaimer}`;
+  const foot = `Son veri: ${endLabel}${endNote ? ` (${endNote})` : ""} · ${disclaimer}`;
   const fs = fitFont(ctx, foot, BODY, 26, MAX_W - nameW - 32, "600");
   ctx.font = `600 ${fs}px ${BODY}`;
   ctx.fillText(foot, PAD, H - 44);
@@ -240,6 +240,49 @@ export async function drawPersonalCard(d: PersonalCardData): Promise<HTMLCanvasE
   ctx.font = `400 26px ${BODY}`;
   ctx.fillText("Bu kişisel bir hesaptır; resmi enflasyon değildir.", PAD, y);
   footer(ctx, d.sample, d.sources, d.endLabel, d.disclaimer, d.siteName);
+  return c;
+}
+
+export interface FactCardData {
+  siteName: string;
+  disclaimer: string;
+  sample: boolean;
+  kicker: string;          // "Big Mac endeksi · Türkiye"
+  headline: string;        // "325 TL"
+  sub: string;             // "= 6,91 $ · ABD'de 6,22 $"
+  rows: { label: string; value: string }[];
+  note?: string;           // one muted line under the rows
+  sources: string[];
+  endLabel: string;
+  endNote?: string;
+}
+
+/** Generic headline + rows card (1200×1500), for pages with a single striking number. */
+export async function drawFactCard(d: FactCardData): Promise<HTMLCanvasElement> {
+  const { c, ctx, y: y0 } = await frame(d.sample, d.kicker);
+  let y = y0 + 20;
+  y = bigLine(ctx, up(d.headline), y, 260);
+  y += 70;
+  ctx.fillStyle = MUTED;
+  ctx.font = `400 38px ${BODY}`;
+  for (const line of wrap(ctx, d.sub, MAX_W).slice(0, 2)) { ctx.fillText(line, PAD, y); y += 48; }
+  y -= 8;
+  const many = d.rows.length > 3;
+  for (const row of d.rows.slice(0, 4)) {
+    rule(ctx, y + 20);
+    y += many ? 70 : 82;
+    ctx.fillStyle = MUTED;
+    ctx.font = `600 ${many ? 30 : 34}px ${BODY}`;
+    ctx.fillText(row.label, PAD, y);
+    y = bigLine(ctx, up(row.value), y, many ? 84 : 104);
+  }
+  if (d.note) {
+    y += 64;
+    ctx.fillStyle = MUTED;
+    ctx.font = `400 26px ${BODY}`;
+    for (const line of wrap(ctx, d.note, MAX_W).slice(0, 2)) { ctx.fillText(line, PAD, y); y += 34; }
+  }
+  footer(ctx, d.sample, d.sources, d.endLabel, d.disclaimer, d.siteName, d.endNote ?? "");
   return c;
 }
 

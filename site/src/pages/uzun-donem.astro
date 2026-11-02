@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import raw from "../../data/uzun_donem.json";
 import { DISCLAIMER } from "../config.ts";
 import { fmtPct } from "../lib/popviz.ts";
+import ShareCard from "../components/ShareCard.astro";
 
 const L = raw as unknown as {
   source: string; citation: string; url: string; license: string; license_verified: boolean; unit: string; retrieved_at: string | null;
@@ -30,6 +31,17 @@ const annual = Object.entries(L.series).filter(([, v]) => v.points.filter(([y]) 
     {weu1950 && weuLast && <div class="card k"><span class="k-label">Batı Avrupa ortalamasına oranı</span><span class="k-value">%{nf(1).format(weuLast[1])}</span><span class="muted small">1950: %{nf(1).format(weu1950[1])}</span></div>}
     {usaLast && <div class="card k"><span class="k-label">ABD'ye oranı</span><span class="k-value">%{nf(1).format(usaLast[1])}</span><span class="muted small">{usaLast[0]}</span></div>}
   </div>
+
+  <ShareCard filename={`turkiye-kisi-basi-gelir-${S.first}-${S.last}.png`} card={{
+    sample: false, kicker: `Türkiye · kişi başı reel gelir`, headline: `×${nf(1).format(S.multiple)}`,
+    sub: `${S.first}: ${nf(0).format(S.first_value)} $ → ${S.last}: ${nf(0).format(S.last_value)} $ (2011 fiyatlarıyla, satın alma gücüne göre)`,
+    rows: [
+      { label: "Yıllık ortalama reel büyüme", value: fmtPct(S.annual_pct) },
+      ...(S.doubling_years ? [{ label: "İkiye katlanma süresi", value: `${nf(0).format(S.doubling_years)} yıl` }] : []),
+      ...(weu1950 && weuLast ? [{ label: "Batı Avrupa ortalamasına oranı", value: `%${nf(0).format(weu1950[1])} → %${nf(0).format(weuLast[1])}` }] : []),
+    ],
+    sources: ["Maddison Project Database 2020 (Bolt ve van Zanden)"], endLabel: String(S.last), endNote: "yıllık",
+  }} />
 
   <section>
     <h2>Türkiye, {S.first}–{S.last}</h2>
