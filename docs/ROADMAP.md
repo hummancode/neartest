@@ -25,6 +25,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
 | ✅ | Olay penceresi: faiz artış/indirim ayları (politika faizi serisinden) ve elle eklenen resmi olaylar etrafında ortalama/medyan hareket | `data/manual/events.csv`; ay düzeyinde (günlük veriyle iyileştirilebilir) |
 | ✅ | Ülke karşılaştırması: Türkiye ve 11 benzer ekonomi (enflasyon, büyüme, kişi başı GSYH, işsizlik, cari denge, reel faiz) | Dünya Bankası WDI (CC BY 4.0); kodlar API adıyla doğrulanır; günlük işte çekilir |
+| ✅ | Big Mac endeksi (gerçek veri, The Economist CC BY 4.0) | GitHub, günlük |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
 

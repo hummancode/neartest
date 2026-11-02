@@ -707,6 +707,20 @@ def write_if_changed(path: Path, result: dict) -> None:
     path.write_text(json.dumps(result, ensure_ascii=False, indent=1))
 
 
+OUT_BIGMAC = ROOT / "site" / "data" / "bigmac.json"
+
+
+def write_bigmac() -> str:
+    """Big Mac JSON from the downloaded CSV; keeps the committed file when there is no download."""
+    from pipeline.bigmac import build_bigmac, load_raw
+    raw = load_raw()
+    if raw is None:
+        return "Big Mac: indirme yok, mevcut dosya korundu" if OUT_BIGMAC.exists() else "Big Mac: veri yok"
+    out = build_bigmac(*raw)
+    write_if_changed(OUT_BIGMAC, out)
+    return f"Big Mac: {out['latest_date']} ({out['mismatches']} uyuşmazlık)"
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
@@ -728,6 +742,7 @@ def main() -> int:
     write_if_changed(OUT_PROVINCES, provinces)
     write_if_changed(OUT_TRADE, trade)
     write_if_changed(OUT_DISTRICTS, districts)
+    print(write_bigmac())
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0

@@ -1024,3 +1024,16 @@ def growth_windows(points: dict[str, float], windows=(1, 5, 10)) -> dict[int, di
         out[n] = {"from": base_year, "to": last, "start": start, "end": end, "change": end - start,
                   "change_pct": 100 * tot, "annual_pct": 100 * annualize(tot, n)}
     return out
+
+
+def big_mac(local_price: float, fx: float, us_price: float) -> dict:
+    """Big Mac index (The Economist's raw index, against the US dollar).
+
+    dollar_price = local / fx; implied_rate = local / us_price (the rate that would equalise the prices);
+    valuation = implied_rate / fx − 1 (> 0: by this measure the currency buys fewer burgers than its rate
+    implies, i.e. it is "overvalued"; < 0 "undervalued"). A light-hearted PPP guide, not a forecast.
+    """
+    if fx <= 0 or us_price <= 0 or local_price <= 0:
+        raise SeriesError("prices and exchange rate must be positive")
+    implied = local_price / us_price
+    return {"dollar_price": local_price / fx, "implied_rate": implied, "valuation": implied / fx - 1.0}

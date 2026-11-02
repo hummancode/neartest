@@ -56,7 +56,7 @@ export function renderLegend(root: HTMLElement, edges: number[], fmt: (v: number
 }
 
 /** Ranked horizontal bars growing left (negative) or right (positive) from a zero line. */
-export function renderDivBars(root: HTMLElement, rows: { label: string; sub?: string; value: number; href?: string }[],
+export function renderDivBars(root: HTMLElement, rows: { label: string; sub?: string; value: number; href?: string; emphasis?: boolean }[],
                               opts: { format: (v: number) => string; edges?: number[]; label: string }) {
   root.replaceChildren();
   const max = Math.max(...rows.map((r) => Math.abs(r.value)), 1e-9);
@@ -66,6 +66,7 @@ export function renderDivBars(root: HTMLElement, rows: { label: string; sub?: st
   const list = document.createElement("ol"); list.className = "dbars"; list.setAttribute("aria-label", opts.label);
   for (const r of rows) {
     const li = document.createElement("li");
+    if (r.emphasis) li.className = "em";
     const name = document.createElement(r.href ? "a" : "span"); name.className = "db-name"; name.textContent = r.label;
     if (r.href) (name as HTMLAnchorElement).href = r.href;
     if (r.sub) { const s = document.createElement("small"); s.textContent = r.sub; name.appendChild(s); }

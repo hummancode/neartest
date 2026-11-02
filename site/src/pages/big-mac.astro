@@ -1,0 +1,149 @@
+---
+import Base from "../layouts/Base.astro";
+import raw from "../../data/bigmac.json";
+import { DISCLAIMER } from "../config.ts";
+import { fmtPct } from "../lib/popviz.ts";
+
+type Snap = { iso: string; name: string; currency: string; local_price: number; fx: number; dollar_price: number; valuation: number; valuation_adj: number | null };
+const B = raw as unknown as { source: string; url: string; license: string; retrieved_at: string | null; latest_date: string; first_date: string; dates: number; mismatches: number;
+  snapshot: Snap[]; history: Record<string, { name: string; currency: string; points: [string, number, number, number, number, number | null][] }> };
+const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+const dl = (d: string) => `${MONTHS[Number(d.slice(5, 7)) - 1]} ${d.slice(0, 4)}`;
+const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const tr = B.history.TUR, us = B.history.USA;
+const last = tr.points.at(-1)!, first = tr.points[0];
+const usLast = us.points.find((p) => p[0] === last[0]);
+const implied = usLast ? last[1] / usLast[1] : null;
+const rank = B.snapshot.findIndex((x) => x.iso === "TUR") + 1;
+const years = Number(last[0].slice(0, 4)) - Number(first[0].slice(0, 4));
+const priceMult = last[1] / first[1], fxMult = last[2] / first[2];
+---
+<Base title="Big Mac endeksi: TL'nin hamburger kuru" description="The Economist'in Big Mac endeksiyle Türkiye: Big Mac'in TL ve dolar fiyatı, ima edilen kur, 54 ülkeyle karşılaştırma. Gerçek veri, CC BY 4.0.">
+  <h1>Big Mac endeksi</h1>
+  <p class="lead">Aynı hamburger her ülkede kaç dolar? The Economist'in 1986'dan beri yayımladığı bu basit endeks, kurların satın alma gücüyle ne kadar örtüştüğüne dair <strong>eğlenceli bir kaba ölçüdür</strong> — bir değerleme modeli ya da kur tahmini değildir.</p>
+  <p class="muted small">Gerçek veri · {B.source} · {dl(B.first_date)} – {dl(B.latest_date)} ({B.dates} ölçüm) · Lisans: {B.license} · <a href={B.url} rel="noopener">kaynak veri</a>{B.retrieved_at && ` · indirildi: ${B.retrieved_at}`}</p>
+
+  <div class="keys">
+    <div class="card k"><span class="k-label">Türkiye'de Big Mac</span><span class="k-value">{nf(0).format(last[1])} TL</span><span class="muted small">{dl(last[0])}</span></div>
+    <div class="card k"><span class="k-label">Dolar karşılığı</span><span class="k-value">{nf(2).format(last[3])} $</span><span class="muted small">ABD: {usLast ? `${nf(2).format(usLast[1])} $` : "—"} · 54 ülke içinde {rank}. en pahalı</span></div>
+    {implied && <div class="card k"><span class="k-label">Big Mac'e göre ima edilen kur</span><span class="k-value">{nf(2).format(implied)}</span><span class="muted small">gerçek kur {nf(2).format(last[2])} TL/$</span></div>}
+    <div class="card k"><span class="k-label">Ham endeks (dolara karşı)</span><span class="k-value">{fmtPct(100 * last[4])}</span><span class="muted small">{last[4] > 0 ? "Big Mac Türkiye'de ABD'den pahalı" : "Big Mac Türkiye'de ABD'den ucuz"}</span></div>
+    {last[5] != null && <div class="card k"><span class="k-label">Gelire göre düzeltilmiş endeks</span><span class="k-value">{fmtPct(100 * last[5])}</span><span class="muted small">kişi başı GSYH farkı hesaba katılınca</span></div>}
+  </div>
+
+  <section>
+    <h2>{years} yılda Big Mac ve dolar</h2>
+    <p>İlk ölçümde ({dl(first[0])}) Big Mac {nf(2).format(first[1])} TL, dolar {nf(2).format(first[2])} TL. Son ölçümde ({dl(last[0])}) Big Mac {nf(0).format(last[1])} TL (×{nf(0).format(priceMult)}), dolar {nf(2).format(last[2])} TL (×{nf(0).format(fxMult)}). İkisi ilk ölçüm = 100 olacak biçimde aynı grafikte:</p>
+    <div class="card"><div id="c-index" class="chart-box"></div><p class="muted small">2005 öncesi fiyatlar yeni TL'ye çevrildi (1 YTL = 1.000.000 TL). Kur, The Economist'in ölçüm günündeki kurudur.</p></div>
+  </section>
+
+  <section>
+    <h2>Dolar cinsinden Big Mac fiyatı</h2>
+    <div class="card"><div id="c-usd" class="chart-box"></div></div>
+  </section>
+
+  <section>
+    <h2>TL'nin Big Mac'e göre konumu, yıllar içinde</h2>
+    <p class="muted small">Ham endeks = (Türkiye TL fiyatı / ABD dolar fiyatı) / gerçek kur − 1. Sıfırın üstü: Big Mac Türkiye'de dolar cinsinden ABD'den pahalı. Gelire göre düzeltilmiş endeks, zengin ülkelerde fiyatların doğal olarak yüksek olmasını (ücret, kira) hesaba katar.</p>
+    <div class="card"><div id="c-val" class="chart-box"></div></div>
+  </section>
+
+  <section>
+    <h2>{dl(B.latest_date)}: 54 ülke</h2>
+    <div class="seg" role="group" aria-label="Sıralama ölçüsü">
+      <button type="button" data-m="raw" aria-pressed="true">Ham endeks</button>
+      <button type="button" data-m="adj" aria-pressed="false">Gelire göre düzeltilmiş</button>
+    </div>
+    <div class="card"><div id="bars"></div></div>
+    <details class="card">
+      <summary>Tablo</summary>
+      <div class="scroll-x">
+        <table class="data bm">
+          <thead><tr><th scope="col">Ülke</th><th scope="col">Yerel fiyat</th><th scope="col">Kur (/$)</th><th scope="col">Dolar fiyatı</th><th scope="col">Ham endeks</th><th scope="col">Düzeltilmiş</th></tr></thead>
+          <tbody>
+            {B.snapshot.map((x) => (
+              <tr class={x.iso === "TUR" ? "em" : undefined}>
+                <th scope="row">{x.name}</th>
+                <td>{nf(2).format(x.local_price)} {x.currency}</td>
+                <td>{nf(x.fx >= 100 ? 0 : 3).format(x.fx)}</td>
+                <td>{nf(2).format(x.dollar_price)} $</td>
+                <td>{fmtPct(100 * x.valuation)}</td>
+                <td>{x.valuation_adj != null ? fmtPct(100 * x.valuation_adj) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted">
+      <li>Endeks satın alma gücü paritesi fikrine dayanır: uzun vadede kurlar, aynı malın fiyatını ülkeler arasında eşitlemeye yönelir. Tek bir ürüne dayandığı için kaba bir göstergedir.</li>
+      <li>Big Mac fiyatı yerel kira, ücret, vergi ve rekabet koşullarını da içerir; bu yüzden gelire göre düzeltilmiş sürüm de verilir.</li>
+      <li>Bu sayfa bir kur tahmini veya yatırım önerisi değildir. "Pahalı/ucuz" yalnızca hamburgerin dolar fiyatını anlatır.</li>
+      <li>Hesap: ham endeksi kendi formülümüzle yeniden hesaplayıp yayımlanan değerle karşılaştırıyoruz; uyuşmayan ölçüm sayısı: <strong>{B.mismatches}</strong>. Ayrıntı: <a href="/metodoloji#big-mac">Metodoloji</a> · Veri: <a href="/indir/bigmac.csv" download>CSV</a></li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="bm-data" set:html={JSON.stringify({ history: B.history, snapshot: B.snapshot })}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { renderDivBars, fmtPct } from "../lib/popviz.ts";
+  type Pt = [string, number, number, number, number, number | null];
+  const D = JSON.parse(document.getElementById("bm-data")!.textContent!) as { history: Record<string, { name: string; points: Pt[] }>; snapshot: { iso: string; name: string; dollar_price: number; valuation: number; valuation_adj: number | null }[] };
+  const m = (d: string) => d.slice(0, 7);
+  const nf2 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  function auto(id: string, draw: (box: HTMLElement) => void) {
+    const box = document.getElementById(id)!;
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(box); } }).observe(box);
+  }
+  const T = D.history.TUR.points;
+  auto("c-index", (box) => renderChart(box, { months: T.map((p) => m(p[0])), series: [
+    { key: "bm", label: "Big Mac (TL)", color: "var(--cat-1)", values: T.map((p) => (100 * p[1]) / T[0][1]) },
+    { key: "fx", label: "Dolar (TL)", color: "var(--cat-2)", values: T.map((p) => (100 * p[2]) / T[0][2]) },
+  ] }, { baseline: 100, allowLog: true, format: (v) => nf1.format(v) }));
+  // dollar price: TR, US, euro area on common dates
+  const keys = ["TUR", "USA", "EUZ"].filter((k) => D.history[k]);
+  const dates = T.map((p) => p[0]).filter((d) => keys.every((k) => D.history[k].points.some((p) => p[0] === d)));
+  const COL = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)"];
+  auto("c-usd", (box) => renderChart(box, { months: dates.map(m), series: keys.map((k, i) => ({ key: k, label: D.history[k].name, color: COL[i],
+    values: dates.map((d) => D.history[k].points.find((p) => p[0] === d)![3]) })) }, { baseline: null, allowLog: false, format: (v) => `${nf2.format(v)} $` }));
+  const adj = T.filter((p) => p[5] != null);
+  auto("c-val", (box) => renderChart(box, { months: T.map((p) => m(p[0])), series: [
+    { key: "raw", label: "Ham", color: "var(--cat-1)", values: T.map((p) => 100 * p[4]) },
+    ...(adj.length === T.length ? [{ key: "adj", label: "Düzeltilmiş", color: "var(--cat-2)", values: T.map((p) => 100 * (p[5] as number)) }] : []),
+  ] }, { baseline: 0, allowLog: false, format: (v) => fmtPct(v) }));
+
+  let mode = "raw";
+  function bars() {
+    const rows = D.snapshot.filter((x) => x.iso !== "USA" && (mode === "raw" || x.valuation_adj != null))
+      .map((x) => ({ label: x.name, sub: `${nf2.format(x.dollar_price)} $`, value: 100 * (mode === "raw" ? x.valuation : (x.valuation_adj as number)), emphasis: x.iso === "TUR" }))
+      .sort((a, b) => b.value - a.value);
+    renderDivBars(document.getElementById("bars")!, rows, { format: (v) => fmtPct(v), edges: [5, 15, 30], label: "Ülkeler, Big Mac endeksi (dolara karşı)" });
+  }
+  document.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) => b.addEventListener("click", () => {
+    mode = b.dataset.m!;
+    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    bars();
+  }));
+  bars();
+</script>
+<style is:global>
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(5, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 5px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+  details.card { margin-top: 12px; }
+  details.card summary { cursor: pointer; font-weight: 600; }
+  table.bm td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.bm tr.em { background: color-mix(in srgb, var(--accent) 10%, transparent); font-weight: 600; }
+</style>

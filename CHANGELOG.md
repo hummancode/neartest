@@ -144,4 +144,9 @@
 - 2026-11-02 — `docs/VERI-KAYNAKLARI.md`: Türkiye ve dünya veri kaynakları araştırması (TCMB EVDS 3, TÜİK, BDDK,
   SGK, TOBB, SEGE, BETAM, BIS, OECD, IMF, FRED, Dünya Bankası…; erişim, lisans, öncelik, doğrulanamayanlar).
   `docs/EVDS.md`'ye EVDS 3 geçişi uyarısı eklendi.
+- 2026-11-02 — **Big Mac endeksi (gerçek veri)**: The Economist, CC BY 4.0, GitHub'dan günlük iş akışında indirilir
+  (`pipeline/bigmac.py`). 2.056 ölçümün ham endeksi `big_mac` motor fonksiyonuyla (önce test) yeniden hesaplanıp
+  yayımlanan değerle karşılaştırıldı: 0 uyuşmazlık. 2005 öncesi eski TL yeni TL'ye çevrildi. Yeni `/big-mac`
+  sayfası: Türkiye fiyatı, ima edilen kur, Big Mac TL fiyatı ve doların endeksli seyri, dolar fiyatı (TR/ABD/Euro),
+  TL'nin yıllar içindeki konumu, 54 ülke sıralaması (ham/gelire göre düzeltilmiş), CSV indirme, metodoloji.
 

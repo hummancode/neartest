@@ -716,3 +716,24 @@ def test_growth_windows_shrinking_and_missing_base():
     assert close(g[5]["annual_pct"], 100 * (0.9 ** 0.2 - 1), 1e-9)
     assert e.growth_windows({}, (1,)) == {}
     assert e.growth_windows({"2023": 0.0, "2024": 5.0}, (1,)) == {}   # zero base: undefined
+
+
+# --- Big Mac index -------------------------------------------------------------
+
+def test_big_mac_valuation_turkey_july_2026():
+    # The Economist, 2026-07: Türkiye 325 TL, USD/TRY 47.0275, ABD 6.22 $.
+    # dollar price = 325 / 47.0275 = 6.91085…; implied rate = 325 / 6.22 = 52.2508…;
+    # valuation = 52.2508 / 47.0275 − 1 = +0.11107 (the published USD_raw value).
+    b = e.big_mac(local_price=325, fx=47.0275, us_price=6.22)
+    assert close(b["dollar_price"], 6.910850034550, 1e-9)
+    assert close(b["implied_rate"], 52.250803858521, 1e-9)
+    assert abs(b["valuation"] - 0.11107) < 5e-6
+
+
+def test_big_mac_us_is_zero_and_undervalued_is_negative():
+    assert e.big_mac(local_price=6.22, fx=1.0, us_price=6.22)["valuation"] == 0.0
+    # 100 local, 50 per $, US 4 $: dollar price 2 $ -> half the US price -> −50 %
+    b = e.big_mac(local_price=100, fx=50, us_price=4)
+    assert close(b["dollar_price"], 2.0) and close(b["implied_rate"], 25.0) and close(b["valuation"], -0.5)
+    with pytest.raises(e.SeriesError):
+        e.big_mac(local_price=100, fx=0, us_price=4)

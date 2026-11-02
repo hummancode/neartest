@@ -31,6 +31,10 @@ jobs:
         run: python -m pipeline.worldbank
         continue-on-error: true
 
+      - name: fetch Big Mac index (The Economist, CC BY 4.0)
+        run: python -m pipeline.bigmac
+        continue-on-error: true
+
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
       - run: python -m pipeline.params          # regulated rates registry -> site/data/mevzuat.json

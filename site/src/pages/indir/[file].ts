@@ -11,10 +11,11 @@ import { status } from "../../lib/status.ts";
 import { provinces } from "../../lib/provinces.ts";
 import { shiftMonth } from "../../lib/engine.ts";
 import { districts } from "../../lib/districts.ts";
+import bigmac from "../../../data/bigmac.json";
 
 const JSON_FILES: Record<string, unknown> = {
   reel_tablo: tablo, fiyatlar: prices, makro: macro, ulkeler: countries, reel_faiz: realRates,
-  seviyeler: levels, konut: housing, durum: status, iller: provinces, ilceler: districts,
+  seviyeler: levels, konut: housing, durum: status, iller: provinces, ilceler: districts, bigmac,
 };
 
 const esc = (v: unknown) => {
@@ -58,7 +59,11 @@ const csvDistricts = () => toCsv([["plaka", "il", "ilce", "yil", "nufus", "ornek
 const csvPopulation = () => toCsv([["plaka", "il", "yil", "nufus", "ornek_veri"],
   ...provinces.provinces.flatMap((p) => (p.history.population?.points ?? []).map(([y, v]) => [p.plaka, p.name, y, v, p.history.population.sample]))]);
 
+const csvBigMac = () => toCsv([["tarih", "ulke_kodu", "ulke", "yerel_fiyat", "kur_dolar", "dolar_fiyati", "ham_endeks", "duzeltilmis_endeks"],
+  ...Object.entries((bigmac as any).history).flatMap(([iso, h]: [string, any]) => h.points.map((p: any[]) => [p[0], iso, h.name, p[1], p[2], p[3], p[4], p[5]]))]);
+
 const CSV_FILES: Record<string, () => string> = {
+  bigmac: csvBigMac,
   iller: csvProvinces, ilceler: csvDistricts, nufus_iller: csvPopulation,
   fiyatlar: csvPrices, makro: csvMacro, ulkeler: csvCountries, reel_tablo: csvTablo, reel_faiz: csvRates,
 };

@@ -305,3 +305,5 @@ table { border-collapse: collapse; width: 100%; }
 /* Default data-status tags (pages may refine). */
 .tag { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
 .tag.est { color: var(--accent); }
+.dbars li.em { background: color-mix(in srgb, var(--accent) 10%, transparent); border-radius: 4px; }
+.dbars li.em .db-name { font-weight: 700; }
