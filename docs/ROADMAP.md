@@ -29,8 +29,11 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
 
 | ✅ | **Türkiye profili** (factbook tarzı): göstergeler, dış ticaret (12 ay, partner, ürün), benzer ülkeler içinde sıra, öne çıkan iller | TÜİK, EVDS, Dünya Bankası; dağılımlar elle |
-| 🟡 | **İller ekonomik haritası**: 81 il, 20 gösterge (nüfus, GSYH, ihracat, ihracat/GSYH, 4/a çalışan, şirketler, borsa şirketleri, mevduat/kredi, SEGE), il kartı, tablo | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
-| 🟡 | **Tahmin/simülasyon**: il bazında hane serveti modeli (varsayımlar canlı değiştirilebilir) | sonraki: senaryo motoru (faiz/kur/enflasyon şoklarının hane bütçesine etkisi), il bazında projeksiyon |
+| 🟡 | **İller ekonomik haritası**: 81 il, 36 gösterge (gelir, ihracat, çalışan, ücret, şirketler + BIST listesi, mevduat/kredi, konut fiyatı/kira/getiri/erişilebilirlik, otomobil, Gini, SEGE), il kartı, 81 il künye sayfası (`/il/…`), tablo, CSV | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
+| 🟡 | **Tahmin/simülasyon**: il bazında hane serveti, medyan servet, servet Gini'si ve en zengin %10 payı (log-normal), yastık altı altın dağılımı — varsayımlar canlı değiştirilebilir | sonraki: senaryo motoru (faiz/kur/enflasyon şoklarının hane bütçesine etkisi), il bazında projeksiyon |
+
+| ⬜ | İl karşılaştırma (iki il yan yana), il bazında zaman serileri (yıllar içinde değişim) | il verisinin yıllık geçmişi |
+| ⬜ | Senaryo motoru: faiz/kur/enflasyon şoklarının hane bütçesine, kredi taksitlerine, il servetine etkisi | varsayım tabanlı |
 
 ## 3. Hane ve kişisel karar araçları
 | | Fikir | Veri / not |

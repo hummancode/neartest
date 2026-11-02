@@ -191,7 +191,8 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     events = build_events(data, is_sample)
     countries = build_countries(allow_sample) or {"sample": True, "indicators": [], "countries": [], "source": ""}
     from pipeline.provinces import build_provinces
-    provinces = build_provinces(data["usdtry"], allow_sample)
+    provinces = build_provinces(data["usdtry"], allow_sample, gold_gram_tl=data["gold_gram_tl"].get(end),
+                                gold_sample=is_sample.get("gold_gram_tl", True))
     from pipeline.trade import build_trade
     trade = build_trade(allow_sample)
     for d in (prices, housing, macro, stocks_out, events, countries, provinces, trade):

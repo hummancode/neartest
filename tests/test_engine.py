@@ -617,3 +617,51 @@ def test_province_wealth_rejects_bad_inputs():
     with pytest.raises(e.SeriesError):
         e.province_wealth(population=10, deposits_tl=1, m2_price=1, household_size=3, ownership_rate=1.5,
                           dwelling_m2=100, household_deposit_share=0.5)
+
+
+# --- distributions: normal CDF / inverse, lognormal inequality ---------------------
+
+def test_normal_cdf_and_inverse():
+    assert close(e.normal_cdf(0.0), 0.5)
+    assert close(e.normal_cdf(1.959963984540054), 0.975, tol=1e-9)
+    for p in (0.001, 0.025, 0.3, 0.5, 0.8, 0.999):
+        assert close(e.normal_cdf(e.normal_ppf(p)), p, tol=1e-9)
+
+
+def test_lognormal_gini_round_trip():
+    # Gini of a lognormal is 2*Phi(sigma/sqrt2) - 1; sigma = 1 -> 2*Phi(0.7071) - 1 = 0.5205
+    assert close(e.gini_from_sigma(1.0), 2 * e.normal_cdf(1 / math.sqrt(2)) - 1)
+    assert close(e.sigma_from_gini(e.gini_from_sigma(0.8)), 0.8, tol=1e-9)
+
+
+def test_top_share_lognormal():
+    # sigma -> 0 means perfect equality: top 10 % holds 10 %
+    assert close(e.top_share_lognormal(1e-9, 0.10), 0.10, tol=1e-6)
+    # known: sigma = 1, top 10 % share = 1 - Phi(Phi^-1(0.9) - 1) = 1 - Phi(0.2816) = 0.389
+    assert close(e.top_share_lognormal(1.0, 0.10), 1 - e.normal_cdf(e.normal_ppf(0.9) - 1.0), tol=1e-12)
+
+
+def test_wealth_inequality_from_income_gini():
+    r = e.wealth_inequality(income_gini=0.40, multiplier=1.0)
+    assert close(r["wealth_gini"], 0.40, tol=1e-9)           # multiplier 1: same dispersion as income
+    r2 = e.wealth_inequality(income_gini=0.40, multiplier=1.8)
+    assert r2["wealth_gini"] > 0.40 and r2["top10_share"] > r["top10_share"]
+    assert close(r2["median_to_mean"], math.exp(-r2["sigma_wealth"] ** 2 / 2))
+
+
+# --- gold allocation and housing affordability ------------------------------------
+
+def test_gold_allocation():
+    # beta 0: by household count only -> 1:3 split of 400 g
+    assert e.gold_allocation([100, 300], [5.0, 1.0], beta=0.0, total=400.0) == [100.0, 300.0]
+    # beta 1: by total wealth (households x wealth): 500 vs 300 -> 250 / 150
+    out = e.gold_allocation([100, 300], [5.0, 1.0], beta=1.0, total=400.0)
+    assert close(out[0], 250.0) and close(out[1], 150.0)
+
+
+def test_housing_affordability():
+    # 100 m2 at 20.000 TL/m2 = 2M TL; rent 100 TL/m2 -> 10.000/month -> 6 % gross yield, 16.7 years;
+    # wage 25.000/month -> 2M / 300k = 6.67 years of salary; rent / wage = 40 %
+    r = e.housing_affordability(m2_price=20000, rent_m2=100, monthly_wage=25000, dwelling_m2=100)
+    assert close(r["gross_yield"], 0.06) and close(r["amortization_years"], 2e6 / 120000)
+    assert close(r["price_to_annual_wage"], 2e6 / 300000) and close(r["rent_to_wage"], 0.4)

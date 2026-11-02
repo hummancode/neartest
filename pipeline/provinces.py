@@ -55,15 +55,35 @@ INDICATORS = {
     "loans_mn_tl": ("Banka kredisi", "milyon TL", "Finans", "BDDK il bazında kredi", "observed"),
     "deposits_per_capita": ("Kişi başı mevduat", "TL", "Finans", "mevduat / nüfus", "derived"),
     "loan_deposit": ("Kredi / mevduat", "%", "Finans", "kredi / mevduat", "derived"),
-    "m2_price_tl": ("Konut m² fiyatı", "TL", "Konut", "Belirlenecek (resmî il bazında seri doğrulanacak)", "observed"),
+    "m2_price_tl": ("Konut m² satış fiyatı", "TL", "Konut", "Belirlenecek (resmî il bazında seri doğrulanacak)", "observed"),
+    "rent_m2_tl": ("Konut m² kira", "TL", "Konut", "Belirlenecek (ilan verisi / BETAM — doğrulanacak)", "observed"),
+    "house_sales": ("Konut satış sayısı (yıllık)", "adet", "Konut", "TÜİK konut satış istatistikleri", "observed"),
+    "gross_rent_yield": ("Brüt kira getirisi", "%", "Konut", "yıllık kira / satış fiyatı", "derived"),
+    "amortization_years": ("Kira ile amortisman süresi", "yıl", "Konut", "satış fiyatı / yıllık kira", "derived"),
+    "price_to_wage_years": ("100 m² ev kaç yıllık maaş", "yıl", "Konut", "100 m² fiyat / (ortalama ücret × 12)", "derived"),
+    "rent_to_wage": ("100 m² kira / ortalama ücret", "%", "Konut", "aylık kira / aylık ortalama ücret", "derived"),
+    "avg_wage_tl": ("Ortalama aylık kazanç (brüt)", "TL", "Gelir", "SGK — prime esas ortalama günlük kazanç × 30", "observed"),
+    "income_gini": ("Gelir Gini katsayısı", "katsayı", "Gelir", "TÜİK Gelir ve Yaşam Koşulları — İBBS-2 bölge değeri ile atanır", "observed"),
+    "cars": ("Kayıtlı otomobil", "adet", "Gelir", "TÜİK motorlu kara taşıtları", "observed"),
+    "cars_per_1000": ("1.000 kişiye otomobil", "adet", "Gelir", "otomobil / nüfus × 1.000", "derived"),
     "sege_score": ("SEGE gelişmişlik skoru", "skor", "Gelişmişlik", "Sanayi ve Teknoloji Bakanlığı, SEGE", "observed"),
     "wealth_per_household": ("Tahmini hane serveti (hane başına)", "TL", "Model tahmini", "Model: konut + mevduat (varsayımlar değiştirilebilir)", "estimate"),
     "wealth_total_bn": ("Tahmini toplam hane serveti", "milyar TL", "Model tahmini", "Model: konut + mevduat", "estimate"),
+    "wealth_median_hh": ("Tahmini medyan hane serveti", "TL", "Model tahmini", "Model: ortalama × log-normal medyan/ortalama oranı", "estimate"),
+    "wealth_gini": ("Tahmini servet Gini katsayısı", "katsayı", "Model tahmini", "Model: gelir Gini'sinden log-normal varsayım", "estimate"),
+    "top10_share": ("En zengin %10'un tahmini servet payı", "%", "Model tahmini", "Model: log-normal varsayım", "estimate"),
+    "gold_tonnes": ("Tahmini yastık altı altın", "ton", "Model tahmini", "Model: Türkiye toplamı varsayımı illere dağıtılır", "estimate"),
+    "gold_value_bn": ("Tahmini yastık altı altın değeri", "milyar TL", "Model tahmini", "Model: ton × gram altın fiyatı", "estimate"),
+    "gold_per_household_g": ("Hane başına tahmini altın", "gram", "Model tahmini", "Model", "estimate"),
 }
 OBSERVED = [k for k, v in INDICATORS.items() if v[4] == "observed"]
 
 # Default model assumptions (illustrative; users change them on the page).
-WEALTH_DEFAULTS = {"ownership_rate": 0.57, "dwelling_m2": 110.0, "household_deposit_share": 0.55, "household_size": 3.2}
+WEALTH_DEFAULTS = {"ownership_rate": 0.57, "dwelling_m2": 110.0, "household_deposit_share": 0.55, "household_size": 3.2,
+                   # Wealth more unequal than income: dispersion multiplier on the income-implied lognormal sigma.
+                   "inequality_multiplier": 1.8,
+                   # National household gold outside banks (tonnes) — an assumption, no official statistic exists.
+                   "gold_total_tonnes": 3500.0, "gold_beta": 0.5}
 
 
 def parse_province_csv(text: str) -> dict[int, tuple[str, float]]:
@@ -121,6 +141,11 @@ def sample_provinces() -> dict[str, dict[int, tuple[str, float]]]:
             "loans_mn_tl": pop * gdp_pc / 1e6 * (0.40 + 0.40 * _noise(p, 7)),
             "m2_price_tl": 15_000 + 45_000 * dev * (0.7 + 0.6 * _noise(p, 8)),
             "sege_score": -1.5 + 4.0 * dev + 0.4 * _noise(p, 9),
+            "rent_m2_tl": (15_000 + 45_000 * dev * (0.7 + 0.6 * _noise(p, 8))) * (0.0045 + 0.002 * _noise(p, 10)),
+            "house_sales": pop * (0.010 + 0.006 * _noise(p, 11)),
+            "avg_wage_tl": 28_000 + 30_000 * dev * (0.8 + 0.4 * _noise(p, 12)),
+            "income_gini": 0.36 + 0.08 * _noise(p // 3, 13),
+            "cars": pop * (0.08 + 0.22 * dev),
         }
         for k, v in vals.items():
             out[k][p] = ("2024", round(v, 2))
@@ -132,8 +157,29 @@ def _avg_fx(usdtry: dict[str, float], year: str) -> float | None:
     return sum(vals) / len(vals) if len(vals) == 12 else None
 
 
+def parse_bist_list(text: str) -> dict[int, list[dict]]:
+    """plaka;kod;unvan;sektor -> {plaka: [{code, name, sector}]} (companies by registered head office)."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return {}
+    delim = ";" if ";" in lines[0] else ("\t" if "\t" in lines[0] else ",")
+    out: dict[int, list[dict]] = {}
+    for i, row in enumerate(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim)):
+        if len(row) < 3:
+            continue
+        try:
+            plaka = int(row[0].strip())
+        except ValueError:
+            if i == 0:
+                continue
+            raise ValueError(f"satır {i + 1}: plaka okunamadı")
+        out.setdefault(plaka, []).append({"code": row[1].strip(), "name": row[2].strip(),
+                                          "sector": row[3].strip() if len(row) > 3 else ""})
+    return {p: sorted(v, key=lambda x: x["code"]) for p, v in out.items()}
+
+
 def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Path | None = None,
-                    geo_names: dict[int, str] | None = None) -> dict:
+                    gold_gram_tl: float | None = None, gold_sample: bool = True) -> dict:
     directory = directory or (MANUAL / "iller")
     synthetic = sample_provinces() if allow_sample else {}
     data, sample_flag = {}, {}
@@ -145,6 +191,9 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
             data[k], sample_flag[k] = synthetic[k], True
         else:
             data[k], sample_flag[k] = {}, False
+
+    bist_path = directory / "bist_sirketler.csv"
+    bist = parse_bist_list(bist_path.read_text(encoding="utf-8-sig")) if bist_path.exists() else {}
 
     provinces = []
     for p in range(1, 82):
@@ -169,6 +218,18 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
             d("deposits_per_capita", v["deposits_mn_tl"][1] * 1e6 / pop[1], v["deposits_mn_tl"][0], "deposits_mn_tl", "population")
         if v["deposits_mn_tl"] and v["loans_mn_tl"] and v["deposits_mn_tl"][1] > 0:
             d("loan_deposit", 100 * v["loans_mn_tl"][1] / v["deposits_mn_tl"][1], v["loans_mn_tl"][0], "loans_mn_tl", "deposits_mn_tl")
+        if v["m2_price_tl"] and v["rent_m2_tl"] and v["avg_wage_tl"]:
+            a = e.housing_affordability(m2_price=v["m2_price_tl"][1], rent_m2=v["rent_m2_tl"][1],
+                                        monthly_wage=v["avg_wage_tl"][1], dwelling_m2=100)
+            deps = ("m2_price_tl", "rent_m2_tl", "avg_wage_tl")
+            d("gross_rent_yield", 100 * a["gross_yield"], v["rent_m2_tl"][0], "m2_price_tl", "rent_m2_tl")
+            d("amortization_years", a["amortization_years"], v["rent_m2_tl"][0], "m2_price_tl", "rent_m2_tl")
+            d("price_to_wage_years", a["price_to_annual_wage"], v["avg_wage_tl"][0], *deps)
+            d("rent_to_wage", 100 * a["rent_to_wage"], v["avg_wage_tl"][0], *deps)
+        if pop and v["cars"]:
+            d("cars_per_1000", 1000 * v["cars"][1] / pop[1], v["cars"][0], "cars", "population")
+        if bist:
+            out["listed_companies"] = {"value": len(bist.get(p, [])), "year": "liste", "sample": False}
         if pop and v["deposits_mn_tl"] and v["m2_price_tl"]:
             hs = v["household_size"][1] if v["household_size"] else WEALTH_DEFAULTS["household_size"]
             w = e.province_wealth(population=pop[1], deposits_tl=v["deposits_mn_tl"][1] * 1e6, m2_price=v["m2_price_tl"][1],
@@ -178,13 +239,35 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
             deps = ("population", "deposits_mn_tl", "m2_price_tl")
             d("wealth_per_household", w["per_household"], v["deposits_mn_tl"][0], *deps)
             d("wealth_total_bn", w["total"] / 1e9, v["deposits_mn_tl"][0], *deps)
-        provinces.append({"plaka": p, "name": NAMES[p - 1], "region": REGION_OF[p], "values": out})
+            if v["income_gini"]:
+                ineq = e.wealth_inequality(income_gini=v["income_gini"][1], multiplier=WEALTH_DEFAULTS["inequality_multiplier"])
+                d("wealth_gini", ineq["wealth_gini"], v["income_gini"][0], "income_gini")
+                d("top10_share", 100 * ineq["top10_share"], v["income_gini"][0], "income_gini")
+                d("wealth_median_hh", w["per_household"] * ineq["median_to_mean"], v["deposits_mn_tl"][0], *deps, "income_gini")
+        provinces.append({"plaka": p, "name": NAMES[p - 1], "region": REGION_OF[p], "values": out,
+                          "companies": bist.get(p, [])})
+
+    # Household gold: national total (assumption) split by households x wealth^beta.
+    with_w = [x for x in provinces if "wealth_per_household" in x["values"]]
+    if with_w:
+        hh = [x["values"]["population"]["value"] / (x["values"]["household_size"]["value"] if "household_size" in x["values"]
+                                                    else WEALTH_DEFAULTS["household_size"]) for x in with_w]
+        alloc = e.gold_allocation(hh, [x["values"]["wealth_per_household"]["value"] for x in with_w],
+                                  beta=WEALTH_DEFAULTS["gold_beta"], total=WEALTH_DEFAULTS["gold_total_tonnes"])
+        for x, h, t in zip(with_w, hh, alloc):
+            smp = x["values"]["wealth_per_household"]["sample"]
+            x["values"]["gold_tonnes"] = {"value": t, "year": "varsayım", "sample": smp}
+            x["values"]["gold_per_household_g"] = {"value": t * 1e6 / h, "year": "varsayım", "sample": smp}
+            if gold_gram_tl:
+                x["values"]["gold_value_bn"] = {"value": t * 1e6 * gold_gram_tl / 1e9, "year": "varsayım", "sample": smp or gold_sample}
 
     return {
         "indicators": [{"id": k, "label": l, "unit": u, "group": g, "source": s, "kind": kind,
                         "sample": (sample_flag.get(k, False) if kind == "observed" else None)}
                        for k, (l, u, g, s, kind) in INDICATORS.items()],
         "wealth_defaults": WEALTH_DEFAULTS,
+        "gold_gram_tl": gold_gram_tl,
+        "has_company_list": bool(bist),
         "sample": any(sample_flag.values()),
         "provinces": provinces,
     }

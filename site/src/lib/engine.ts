@@ -605,3 +605,72 @@ export function provinceWealth(p: WealthParams) {
   const total = housing + financial;
   return { households, housing, financial, total, per_household: total / households, per_capita: total / p.population };
 }
+
+// --- distributions (same algorithms as reel/engine.py) ------------------------------
+
+export function normalCdf(x: number): number {
+  if (x < -8) return 0.0;
+  if (x > 8) return 1.0;
+  let s = x, t = 0.0, b = x, i = 1.0;
+  const q = x * x;
+  while (s !== t) { t = s; i += 2.0; b *= q / i; s = t + b; }
+  return 0.5 + s * Math.exp(-0.5 * q - 0.91893853320467274178);
+}
+
+export function normalPpf(p: number): number {
+  if (!(p > 0 && p < 1)) throw new SeriesError("p must be in (0, 1)");
+  const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.38357751867269e2, -3.066479806614716e1, 2.506628277459239];
+  const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1];
+  const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416];
+  const lo = 0.02425;
+  let x: number;
+  if (p < lo) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  } else if (p > 1 - lo) {
+    const q = Math.sqrt(-2 * Math.log(1 - p));
+    x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  } else {
+    const q = p - 0.5, r = q * q;
+    x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  }
+  for (let k = 0; k < 3; k++) {
+    const pdf = Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+    if (pdf === 0) break;
+    x -= (normalCdf(x) - p) / pdf;
+  }
+  return x;
+}
+
+export const giniFromSigma = (sigma: number) => 2.0 * normalCdf(sigma / Math.SQRT2) - 1.0;
+export function sigmaFromGini(gini: number): number {
+  if (!(gini > 0 && gini < 1)) throw new SeriesError("Gini must be in (0, 1)");
+  return Math.SQRT2 * normalPpf((gini + 1.0) / 2.0);
+}
+export const topShareLognormal = (sigma: number, p: number) => 1.0 - normalCdf(normalPpf(1.0 - p) - sigma);
+
+/** MODEL: wealth lognormal with dispersion = multiplier x income-implied dispersion. */
+export function wealthInequality(p: { income_gini: number; multiplier: number }) {
+  if (!(p.multiplier > 0)) throw new SeriesError("multiplier must be positive");
+  const sInc = sigmaFromGini(p.income_gini);
+  const sW = sInc * p.multiplier;
+  return { sigma_income: sInc, sigma_wealth: sW, wealth_gini: giniFromSigma(sW), top10_share: topShareLognormal(sW, 0.1),
+    top1_share: topShareLognormal(sW, 0.01), median_to_mean: Math.exp((-sW * sW) / 2.0) };
+}
+
+/** MODEL: split a national total across provinces by households x wealth^beta. */
+export function goldAllocation(households: number[], wealthPerHousehold: number[], opts: { beta: number; total: number }): number[] {
+  if (households.length !== wealthPerHousehold.length || households.length === 0) throw new SeriesError("need matching, non-empty lists");
+  const w = households.map((h, k) => h * Math.max(wealthPerHousehold[k], 0) ** opts.beta);
+  const s = w.reduce((a, x) => a + x, 0);
+  if (!(s > 0)) throw new SeriesError("weights sum to zero");
+  return w.map((x) => (opts.total * x) / s);
+}
+
+export function housingAffordability(p: { m2_price: number; rent_m2: number; monthly_wage: number; dwelling_m2: number }) {
+  if (!(p.m2_price > 0) || !(p.rent_m2 > 0) || !(p.monthly_wage > 0) || !(p.dwelling_m2 > 0)) throw new SeriesError("inputs must be positive");
+  const price = p.m2_price * p.dwelling_m2, rent = p.rent_m2 * p.dwelling_m2;
+  return { price, rent, gross_yield: (12 * rent) / price, amortization_years: price / (12 * rent),
+    price_to_annual_wage: price / (12 * p.monthly_wage), rent_to_wage: rent / p.monthly_wage };
+}

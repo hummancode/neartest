@@ -6,6 +6,7 @@ import { countries } from "../lib/countries.ts";
 import { provinces, formatP } from "../lib/provinces.ts";
 import { trade } from "../lib/trade.ts";
 import { DISCLAIMER } from "../config.ts";
+import { provinceUrl } from "../lib/slug.ts";
 
 const ind = Object.fromEntries(macro.indicators.map((i) => [i.id, i]));
 const wb = Object.fromEntries(countries.indicators.map((i) => [i.id, i]));
@@ -135,7 +136,7 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
       <section class="card">
         <h3>{title}</h3>
         <ol class="toplist">{top(id).map((p) => (
-          <li><a href={`/iller#g=${id}&il=${p.plaka}`}>{p.name}</a> <span class="muted small">{formatP(provinces.indicators.find((i) => i.id === id)!.unit, p.values[id].value)}{["gdp_mn_tl", "exports_mn_usd"].includes(id) ? ` · %${nf1.format((100 * p.values[id].value) / sum(id))}` : ""}</span></li>
+          <li><a href={provinceUrl(p.plaka, p.name)}>{p.name}</a> <span class="muted small">{formatP(provinces.indicators.find((i) => i.id === id)!.unit, p.values[id].value)}{["gdp_mn_tl", "exports_mn_usd"].includes(id) ? ` · %${nf1.format((100 * p.values[id].value) / sum(id))}` : ""}</span></li>
         ))}</ol>
       </section>
     ))}

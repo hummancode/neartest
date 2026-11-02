@@ -146,12 +146,102 @@
   },
   {
    "id": "m2_price_tl",
-   "label": "Konut m² fiyatı",
+   "label": "Konut m² satış fiyatı",
    "unit": "TL",
    "group": "Konut",
    "source": "Belirlenecek (resmî il bazında seri doğrulanacak)",
    "kind": "observed",
    "sample": true
+  },
+  {
+   "id": "rent_m2_tl",
+   "label": "Konut m² kira",
+   "unit": "TL",
+   "group": "Konut",
+   "source": "Belirlenecek (ilan verisi / BETAM — doğrulanacak)",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "house_sales",
+   "label": "Konut satış sayısı (yıllık)",
+   "unit": "adet",
+   "group": "Konut",
+   "source": "TÜİK konut satış istatistikleri",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "gross_rent_yield",
+   "label": "Brüt kira getirisi",
+   "unit": "%",
+   "group": "Konut",
+   "source": "yıllık kira / satış fiyatı",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "amortization_years",
+   "label": "Kira ile amortisman süresi",
+   "unit": "yıl",
+   "group": "Konut",
+   "source": "satış fiyatı / yıllık kira",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "price_to_wage_years",
+   "label": "100 m² ev kaç yıllık maaş",
+   "unit": "yıl",
+   "group": "Konut",
+   "source": "100 m² fiyat / (ortalama ücret × 12)",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "rent_to_wage",
+   "label": "100 m² kira / ortalama ücret",
+   "unit": "%",
+   "group": "Konut",
+   "source": "aylık kira / aylık ortalama ücret",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "avg_wage_tl",
+   "label": "Ortalama aylık kazanç (brüt)",
+   "unit": "TL",
+   "group": "Gelir",
+   "source": "SGK — prime esas ortalama günlük kazanç × 30",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "income_gini",
+   "label": "Gelir Gini katsayısı",
+   "unit": "katsayı",
+   "group": "Gelir",
+   "source": "TÜİK Gelir ve Yaşam Koşulları — İBBS-2 bölge değeri ile atanır",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "cars",
+   "label": "Kayıtlı otomobil",
+   "unit": "adet",
+   "group": "Gelir",
+   "source": "TÜİK motorlu kara taşıtları",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "cars_per_1000",
+   "label": "1.000 kişiye otomobil",
+   "unit": "adet",
+   "group": "Gelir",
+   "source": "otomobil / nüfus × 1.000",
+   "kind": "derived",
+   "sample": null
   },
   {
    "id": "sege_score",
@@ -179,14 +269,73 @@
    "source": "Model: konut + mevduat",
    "kind": "estimate",
    "sample": null
+  },
+  {
+   "id": "wealth_median_hh",
+   "label": "Tahmini medyan hane serveti",
+   "unit": "TL",
+   "group": "Model tahmini",
+   "source": "Model: ortalama × log-normal medyan/ortalama oranı",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "wealth_gini",
+   "label": "Tahmini servet Gini katsayısı",
+   "unit": "katsayı",
+   "group": "Model tahmini",
+   "source": "Model: gelir Gini'sinden log-normal varsayım",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "top10_share",
+   "label": "En zengin %10'un tahmini servet payı",
+   "unit": "%",
+   "group": "Model tahmini",
+   "source": "Model: log-normal varsayım",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "gold_tonnes",
+   "label": "Tahmini yastık altı altın",
+   "unit": "ton",
+   "group": "Model tahmini",
+   "source": "Model: Türkiye toplamı varsayımı illere dağıtılır",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "gold_value_bn",
+   "label": "Tahmini yastık altı altın değeri",
+   "unit": "milyar TL",
+   "group": "Model tahmini",
+   "source": "Model: ton × gram altın fiyatı",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "gold_per_household_g",
+   "label": "Hane başına tahmini altın",
+   "unit": "gram",
+   "group": "Model tahmini",
+   "source": "Model",
+   "kind": "estimate",
+   "sample": null
   }
  ],
  "wealth_defaults": {
   "ownership_rate": 0.57,
   "dwelling_m2": 110.0,
   "household_deposit_share": 0.55,
-  "household_size": 3.2
+  "household_size": 3.2,
+  "inequality_multiplier": 1.8,
+  "gold_total_tonnes": 3500.0,
+  "gold_beta": 0.5
  },
+ "gold_gram_tl": 5184.3248063519495,
+ "has_company_list": false,
  "sample": true,
  "provinces": [
   {
@@ -249,6 +398,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 283.45,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 21577.85,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42945.24,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 432455.58,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.82,
      "year": "2024",
@@ -284,6 +458,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.254756841725836,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.784059504909743,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.097845690620582,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 66.00265826899559,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 201.41061432863245,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3439737.6502597234,
      "year": "2024",
@@ -293,8 +492,39 @@
      "value": 2001.5115702845899,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1550820.7191950832,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 62.993053493610624,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 108.25796913878851,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 326.5764498547809,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 2,
@@ -356,6 +586,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 195.74,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9085.4,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 40450.0,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 137035.07,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.3,
      "year": "2024",
@@ -391,6 +646,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.791391018445543,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.83467865535915,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.210778739184178,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 48.39060568603214,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 170.10942933457932,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2361962.331700397,
      "year": "2024",
@@ -400,8 +680,39 @@
      "value": 417.26452450528996,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1064901.0169955043,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 15.847917253072056,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 89.70852154766987,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 82.16075054411452,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 3,
@@ -463,6 +774,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 214.29,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 12227.07,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46959.56,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 166970.78,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.82,
      "year": "2024",
@@ -498,6 +834,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.358708268373591,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.589341546502403,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.201208018133049,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 45.632880716940285,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 196.17374975095086,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2559823.5614250256,
      "year": "2024",
@@ -507,8 +868,39 @@
      "value": 767.1694048457026,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 999223.209870708,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 27.988748146104353,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 93.39039918256233,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 145.10276131258593,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 4,
@@ -570,6 +962,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 163.51,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9231.62,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42459.59,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 123197.77,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.72,
      "year": "2024",
@@ -605,6 +1022,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.050014091168938,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.52888712209243,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.365201202680793,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 38.50955696934427,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 199.93599660258448,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2424475.855596883,
      "year": "2024",
@@ -614,8 +1056,39 @@
      "value": 511.6192385396765,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 946390.440025061,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 19.179405923724563,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 90.88791641121198,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 99.43226990145877,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 5,
@@ -677,6 +1150,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 180.42,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 19505.33,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45125.76,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 266398.64,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.24,
      "year": "2024",
@@ -712,6 +1210,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.039205294318649,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.55847005136164,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.620340946427643,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 39.981598093860356,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 217.61859959723034,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2715234.483078092,
      "year": "2024",
@@ -721,8 +1244,39 @@
      "value": 1093.3765344262408,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1059887.625310612,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 38.731408828373006,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 96.18356853083539,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 200.79620357389305,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 6,
@@ -784,6 +1338,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 372.1,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 76576.97,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 54828.76,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 1729121.54,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 2.58,
      "year": "2024",
@@ -819,6 +1398,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.225881121535981,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.839142703574309,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.392050814207726,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 67.86584267089025,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 297.5939099788828,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4611356.85429662,
      "year": "2024",
@@ -828,8 +1432,39 @@
      "value": 9467.684513396945,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1534002.6968051689,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 257.35145470692544,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 125.34631809358761,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 1334.1935305878737,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 7,
@@ -891,6 +1526,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 305.57,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 31975.12,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46589.43,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 567746.4,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.74,
      "year": "2024",
@@ -926,6 +1586,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.4734572259169205,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.447696108911215,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 10.131809940580942,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 65.58783827147059,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 246.381916654729,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4127869.6810884583,
      "year": "2024",
@@ -935,8 +1620,39 @@
      "value": 3118.6863420360883,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1373167.0358475966,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 89.59956991593512,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 118.59331382876023,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 464.51327295364825,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 8,
@@ -998,6 +1714,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 259.25,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14420.42,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45794.45,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 195428.06,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.13,
      "year": "2024",
@@ -1033,6 +1774,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.126586129294736,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.03196399871424,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.943728261102966,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 56.611663640462986,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 215.71154848840973,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3161443.1933447993,
      "year": "2024",
@@ -1042,8 +1808,39 @@
      "value": 1022.9181290693716,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1051677.9632590364,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 33.581137270073,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.78627069972464,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 174.09552297474946,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 9,
@@ -1105,6 +1902,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 162.74,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9637.09,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 44054.36,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 153024.69,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.09,
      "year": "2024",
@@ -1140,6 +1962,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.480762268484607,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 18.245637212731964,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.740070676318983,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 36.94072504968861,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 215.18106660390956,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2726196.526219988,
      "year": "2024",
@@ -1149,8 +1996,39 @@
      "value": 594.6987319787555,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1118424.183196116,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 21.024014534537528,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 96.37753085591284,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 108.99532008050683,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 10,
@@ -1212,6 +2090,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 205.18,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 4478.93,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41148.86,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 66301.96,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.86,
      "year": "2024",
@@ -1247,6 +2150,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.222319490540895,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.071177340221595,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.013549261551029,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.86286375855856,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 192.56261519834075,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2919587.5541576156,
      "year": "2024",
@@ -1256,8 +2184,39 @@
      "value": 288.8661487405425,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1197762.998420307,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 9.868090304833427,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.7373827390648,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 51.159385358669105,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 11,
@@ -1319,6 +2278,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 265.98,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 11496.71,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 52748.61,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 230185.26,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.58,
      "year": "2024",
@@ -1354,6 +2338,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.421920961759816,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.473600771987869,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.793938898737489,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 50.42407752545517,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 243.07127273351648,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3298548.1549625406,
      "year": "2024",
@@ -1363,8 +2372,39 @@
      "value": 958.1844168937373,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1353231.8710207837,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 30.795333020877713,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 106.01287928139871,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 159.65300890000566,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 12,
@@ -1426,6 +2466,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 224.71,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13960.4,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41043.8,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 183890.75,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.95,
      "year": "2024",
@@ -1461,6 +2526,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.957739624813801,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.372483793926987,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.868766618425519,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 54.748829299431335,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 196.53469565483002,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2887129.900152806,
      "year": "2024",
@@ -1470,8 +2560,39 @@
      "value": 769.6262314990933,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1242712.0351397253,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 26.438932432646318,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.18143279203301,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 137.0680132640314,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 13,
@@ -1533,6 +2654,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 168.38,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8686.87,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 39030.26,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 100346.03,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.26,
      "year": "2024",
@@ -1568,6 +2714,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.3619149081910304,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.583422417547611,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 5.860008789761244,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.14088607147377,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 158.54459624353728,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 1983128.661781542,
      "year": "2024",
@@ -1577,8 +2748,39 @@
      "value": 443.51999798653975,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 853601.3066457538,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 18.383786877281356,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 82.20015970852906,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 95.30752234257717,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 14,
@@ -1640,6 +2842,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 207.56,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14326.41,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46001.07,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 226741.58,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.7,
      "year": "2024",
@@ -1675,6 +2902,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.055200168621396,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.51473068028522,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.451560365878446,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 45.12068958395968,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 234.19803560716997,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3117264.171051178,
      "year": "2024",
@@ -1684,8 +2936,39 @@
      "value": 973.5535274378091,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1341769.104975196,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 32.18624007874968,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.05854806195761,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 166.86392286346128,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 15,
@@ -1747,6 +3030,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 282.18,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9141.76,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 47857.63,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 131696.17,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.19,
      "year": "2024",
@@ -1782,6 +3090,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.331604086104387,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.639579937155952,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.042221619972963,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 58.96238489035082,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 219.8053042515171,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3381996.9707641187,
      "year": "2024",
@@ -1791,8 +3124,39 @@
      "value": 651.5500789761336,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1387466.8107083386,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 20.6803750323977,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 107.34549495219521,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 107.2137812851209,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 16,
@@ -1854,6 +3218,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 344.72,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 39654.05,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 53402.04,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 881754.92,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 2.36,
      "year": "2024",
@@ -1889,6 +3278,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.236688110960311,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.818475864469715,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.92008058119128,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 64.55184109071489,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 285.2704231729124,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4271769.051420683,
      "year": "2024",
@@ -1898,8 +3312,39 @@
      "value": 4649.225061683309,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1752496.478587361,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 131.3027745920482,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 120.64271387733133,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 680.7162314603939,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 17,
@@ -1961,6 +3406,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 282.4,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8180.85,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41831.21,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.4,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 111921.17,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.77,
      "year": "2024",
@@ -1996,6 +3466,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.148067165844522,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.989795797922572,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.444427577718486,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 67.50940266848603,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 202.02766724817008,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3421937.7168269916,
      "year": "2024",
@@ -2005,8 +3500,39 @@
      "value": 574.4596814628296,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6547899407402815,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 52.12751539948209,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1403852.5319364227,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 18.1267822773518,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 107.97749948547914,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 93.97512701981583,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 18,
@@ -2068,6 +3594,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 267.9,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 16250.47,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 48279.16,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 278014.5,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.68,
      "year": "2024",
@@ -2103,6 +3654,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.874435315611108,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.022912778399903,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.445976966735405,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 55.48978068383956,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 250.0760443386528,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4008554.063976794,
      "year": "2024",
@@ -2112,8 +3688,39 @@
      "value": 1495.4325780656482,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1807274.0797425273,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 43.59836275104481,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 116.86678273018273,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 226.02807352657243,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 19,
@@ -2175,6 +3782,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 256.46,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 11378.23,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 48546.88,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 180715.34,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.21,
      "year": "2024",
@@ -2210,6 +3842,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.463858601307801,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.470635446723339,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.172717106983326,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 52.82728776802957,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 212.99274139452132,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3527038.0454837205,
      "year": "2024",
@@ -2219,8 +3876,39 @@
      "value": 819.8747202644204,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1590180.4830704099,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 25.482359550847654,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 109.62315266355391,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 132.108828743839,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 20,
@@ -2282,6 +3970,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 306.4,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 11252.49,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46845.85,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 218526.45,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.03,
      "year": "2024",
@@ -2317,6 +4030,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.170846670104386,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.945354656222804,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.12109966339957,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 65.40600714897904,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 217.26222933160918,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3757772.75445022,
      "year": "2024",
@@ -2326,8 +4064,39 @@
      "value": 1067.6945609033637,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1694208.2327668662,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 32.14985283968841,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 113.15206191398751,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 166.67527959736125,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 21,
@@ -2389,6 +4158,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 197.88,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 24264.43,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45068.74,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 332919.74,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.48,
      "year": "2024",
@@ -2424,6 +4218,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.052971841398429,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.178420423152078,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.225214712755079,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.90626407572078,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 188.94038424529262,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2639009.210335774,
      "year": "2024",
@@ -2433,8 +4252,39 @@
      "value": 1076.3955946857138,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1244242.2286689999,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 38.67663432556623,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 94.82386839362702,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 200.51223476023634,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 22,
@@ -2496,6 +4346,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 178.36,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 4244.63,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 38642.13,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 72598.3,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.44,
      "year": "2024",
@@ -2531,6 +4406,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.140622175807844,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.284994767137626,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.5166448295336385,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 46.15687592790563,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 171.68119937118752,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2619952.856805182,
      "year": "2024",
@@ -2540,8 +4440,39 @@
      "value": 267.6066171744948,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1235257.5234643556,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 9.650444677747462,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 94.48088530044983,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 50.03103973517331,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 23,
@@ -2603,6 +4534,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 179.22,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8534.09,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 36311.98,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 128563.14,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.15,
      "year": "2024",
@@ -2638,6 +4594,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.2615093782599285,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.970590149908864,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.882382526831824,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.35561211478966,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 154.7075139722226,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2464042.6030369056,
      "year": "2024",
@@ -2647,8 +4628,39 @@
      "value": 588.4018534979856,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1161748.8290417595,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 21.879991126954764,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 91.62654735089237,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 113.43298076223213,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 24,
@@ -2710,6 +4722,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 210.67,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 12190.55,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42211.79,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 190335.85,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.46,
      "year": "2024",
@@ -2745,6 +4782,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.837835242694681,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.624511479248746,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.298780348649829,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.90785749668517,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 177.19491393519434,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2744017.4507444296,
      "year": "2024",
@@ -2754,8 +4816,39 @@
      "value": 763.6052543905483,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1181111.909960494,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 26.9074591307401,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 96.69202377198478,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 139.49700784739719,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 25,
@@ -2817,6 +4910,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 253.84,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 7699.16,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41089.14,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 95594.42,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.85,
      "year": "2024",
@@ -2852,6 +4970,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.05528548835839,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.173770879294043,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.756255302495989,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 61.77788096806115,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 195.7713059433289,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3135436.202230406,
      "year": "2024",
@@ -2861,8 +5004,39 @@
      "value": 462.54445536859674,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1349590.9220150756,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 15.247607739464003,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.3585004615964,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 79.0485510412272,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 26,
@@ -2924,6 +5098,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 225.93,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13452.44,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 49893.32,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 261924.41,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.21,
      "year": "2024",
@@ -2959,6 +5158,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.7357149521603805,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.927053364611458,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 5.853707804304598,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 45.282614987336984,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 219.57447866567895,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2767039.3634990375,
      "year": "2024",
@@ -2968,8 +5192,39 @@
      "value": 904.3084458150555,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1191021.269442578,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 31.73263482377912,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 97.09679266104595,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 164.5122858878258,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 27,
@@ -3031,6 +5286,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 211.56,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 24566.65,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42379.87,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 318582.99,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.45,
      "year": "2024",
@@ -3066,6 +5346,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.475224751298694,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.44347939118926,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.709373577597098,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.9199266066649,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 174.04285671978445,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2925864.10249974,
      "year": "2024",
@@ -3075,8 +5380,39 @@
      "value": 1228.383692010552,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1379488.808685781,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 41.91835028778329,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.84453321933324,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 217.31834323830526,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 28,
@@ -3138,6 +5474,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 236.57,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14972.43,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 49210.41,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 280353.1,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.08,
      "year": "2024",
@@ -3173,6 +5534,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.702114701920671,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.537353285144636,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.430760212456402,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 48.073161755815484,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 219.5666348429749,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3633371.302319792,
      "year": "2024",
@@ -3182,8 +5568,39 @@
      "value": 1414.4088166475362,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1713064.884000599,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 43.3129016884633,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 111.26334349927721,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 224.54815065858352,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 29,
@@ -3245,6 +5662,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 245.6,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 6842.59,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 49167.83,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 110970.72,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.51,
      "year": "2024",
@@ -3280,6 +5722,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.8153829032636155,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.195772258414767,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.589522186898765,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.95136047289457,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 225.15662253217,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3707812.8099348247,
      "year": "2024",
@@ -3289,8 +5756,39 @@
      "value": 560.5622903196365,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1748162.6271148126,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 16.992692336518065,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 112.3973613792264,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 88.09563640691727,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 30,
@@ -3352,6 +5850,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 175.17,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9090.19,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 35658.53,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 104492.72,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": -0.09,
      "year": "2024",
@@ -3387,6 +5910,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.976373708798028,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.334094498677475,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.041522276250125,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.12429087794702,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 147.3094237288059,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2153993.356106883,
      "year": "2024",
@@ -3396,8 +5944,39 @@
      "value": 477.4741725279464,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1015566.5556012387,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 18.989998075111714,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 85.66815136766168,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 98.45031809337743,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 31,
@@ -3459,6 +6038,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 275.04,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 26941.6,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 48094.79,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 411810.92,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.44,
      "year": "2024",
@@ -3494,6 +6098,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.527419770515509,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.284764640294743,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.597167316182619,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 57.18706745574729,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 233.67552744779945,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3283615.825023438,
      "year": "2024",
@@ -3503,8 +6132,39 @@
      "value": 1872.7443159411414,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1548161.8844748659,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 60.32530595818541,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 105.77265011968882,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 312.7459801297917,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 32,
@@ -3566,6 +6226,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 195.37,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 10744.67,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 39251.78,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 116933.32,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.47,
      "year": "2024",
@@ -3601,6 +6286,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.998048436271505,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.289698179522613,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.1124884867217055,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.773538932501914,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 171.82884563653968,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2538814.468151755,
      "year": "2024",
@@ -3610,8 +6320,39 @@
      "value": 414.3211635070592,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1197002.3293811542,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 15.178150366620102,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 93.0063707689444,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 78.68846146020853,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 33,
@@ -3673,6 +6414,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 244.86,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 23138.38,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45660.49,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 353270.64,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.18,
      "year": "2024",
@@ -3708,6 +6474,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.315114921682274,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.670325219853522,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.330880227814755,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 53.62623134355326,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 218.98637776030768,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2953529.392072483,
      "year": "2024",
@@ -3717,8 +6508,39 @@
      "value": 1701.6636071607106,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1392532.4621220578,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 57.7963321130526,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 100.31545890242559,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 299.63495828985435,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 34,
@@ -3780,6 +6602,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 343.05,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 219985.62,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 63415.26,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 4638940.07,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 2.88,
      "year": "2024",
@@ -3815,6 +6662,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.136151735826193,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.296859058446287,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.815918282129568,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 54.09581226979121,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 300.0000003233497,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4945595.655597549,
      "year": "2024",
@@ -3824,8 +6696,39 @@
      "value": 27312.287895287398,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 2331753.499198086,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 716.8792239762225,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 129.80951245379518,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 3716.5347440182654,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 35,
@@ -3887,6 +6790,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 271.88,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 52379.2,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 61842.14,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 1313323.76,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 2.54,
      "year": "2024",
@@ -3922,6 +6850,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.914602991461867,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.462146290029915,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.358072882557644,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.96354977366566,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 288.7169625467361,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3670290.279974549,
      "year": "2024",
@@ -3931,8 +6884,39 @@
      "value": 5797.055084421016,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1730471.4738894957,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 176.62591959362328,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 111.82719267550102,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 915.6861363939461,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 36,
@@ -3994,6 +6978,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 247.99,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13156.67,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43426.87,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 200390.85,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.82,
      "year": "2024",
@@ -4029,6 +7038,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.71317245778384,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.96483393147573,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.403594057473326,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 57.105197772715364,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 191.66492296865528,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2878118.672391239,
      "year": "2024",
@@ -4038,8 +7072,39 @@
      "value": 819.9320851247978,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1297612.3539856474,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 28.211147293489102,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.02653069444435,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 146.25575072928422,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 37,
@@ -4101,6 +7166,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 211.46,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 16577.36,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 49581.04,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 260775.94,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.57,
      "year": "2024",
@@ -4136,6 +7226,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.562795565938699,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.237408966234751,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.498658559804313,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 42.64936758083332,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 240.87007564369185,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2964634.1996185454,
      "year": "2024",
@@ -4145,8 +7260,39 @@
      "value": 1080.68552755095,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1336618.2567021125,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 36.6362483204065,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 100.50386717265809,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 189.9342109791534,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 38,
@@ -4208,6 +7354,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 281.95,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 7968.4,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43800.87,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 122368.21,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.92,
      "year": "2024",
@@ -4243,6 +7414,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.772911699089025,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.865191818880415,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.281435581835094,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 64.37086751929813,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 202.71108381015807,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3196162.3864541734,
      "year": "2024",
@@ -4252,8 +7448,39 @@
      "value": 565.8034208434764,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1441003.749355964,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 18.473465182755504,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 104.35460866704071,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 95.7724438062384,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 39,
@@ -4315,6 +7542,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 226.27,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 6611.87,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42732.89,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 112807.01,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.03,
      "year": "2024",
@@ -4350,6 +7602,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.437667195623058,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.533577142352057,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.225005376420832,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 52.94984729560767,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 200.95153904082778,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3054959.0570829543,
      "year": "2024",
@@ -4359,8 +7636,39 @@
      "value": 564.126578901342,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1377341.6125672236,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 18.8395741009726,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 102.02342822321997,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 97.67047135277798,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 40,
@@ -4422,6 +7730,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 197.06,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13049.56,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45334.31,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 211069.1,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.9,
      "year": "2024",
@@ -4457,6 +7790,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.022468323135938,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.240007273588414,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.18987215937186,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.468181163449934,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 208.47431402675033,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2628757.879565273,
      "year": "2024",
@@ -4466,8 +7824,39 @@
      "value": 737.2512038645918,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1185186.953158866,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 26.542230251253006,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 94.63951574236027,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 137.6035427074761,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 41,
@@ -4529,6 +7918,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 249.99,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 32984.42,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 50028.61,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 471612.71,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.43,
      "year": "2024",
@@ -4564,6 +7978,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.619618648663685,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.794801792071684,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.891957022191901,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 49.96940750502563,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 224.4785959929547,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3860084.0074791946,
      "year": "2024",
@@ -4573,8 +8012,39 @@
      "value": 2558.279893886154,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1740335.7073410286,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 76.00582809907877,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 114.68208862588313,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 394.03890004137617,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 42,
@@ -4636,6 +8106,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 202.68,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 29546.12,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 47198.49,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 391037.63,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.06,
      "year": "2024",
@@ -4671,6 +8166,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.457020233409111,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.487019768436289,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.650444043160421,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 42.94205174784194,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 203.29105170261263,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2830838.569641942,
      "year": "2024",
@@ -4680,8 +8200,39 @@
      "value": 1596.8385721072634,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1105013.5035903617,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 55.398840901269004,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 98.20978668483437,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 287.20558512759385,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 43,
@@ -4743,6 +8294,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 226.92,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 5781.68,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45269.07,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 74192.15,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.92,
      "year": "2024",
@@ -4778,6 +8354,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.975670184718573,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.734524648921795,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.388505293643835,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 50.12694097758138,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 202.95918999881988,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3285251.9350132025,
      "year": "2024",
@@ -4787,8 +8388,39 @@
      "value": 384.9136578407251,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1282393.0653683038,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 12.39584671428867,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 105.79899822909123,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 64.26409561662307,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 44,
@@ -4850,6 +8482,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 244.13,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 10903.91,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 39708.27,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 129759.52,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.61,
      "year": "2024",
@@ -4885,6 +8542,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.553624608403058,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.238677480577287,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.139257472897544,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 61.48089554140738,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 176.47706278628584,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2761719.533256817,
      "year": "2024",
@@ -4894,8 +8576,39 @@
      "value": 674.6274984727198,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1078032.9935111958,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 23.695805112641995,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 97.00341000623533,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 122.84675025195124,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 45,
@@ -4957,6 +8670,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 275.69,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 15358.18,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 51193.8,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 261102.18,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.92,
      "year": "2024",
@@ -4992,6 +8730,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.746396755218189,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.909227755812688,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.951906285526762,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 53.85222429278546,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 248.84913240822968,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3309844.0016404567,
      "year": "2024",
@@ -5001,8 +8764,39 @@
      "value": 1055.5674611121797,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1101044.613320286,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 33.86721207072561,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 106.19424419020017,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 175.57862766024493,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 46,
@@ -5064,6 +8858,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 212.12,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14814.78,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43741.23,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 184407.12,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.88,
      "year": "2024",
@@ -5099,6 +8918,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.887652182007151,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.518735464202653,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.040758036906293,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 48.49429245588201,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 193.27706448880474,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2772306.004995721,
      "year": "2024",
@@ -5108,8 +8952,39 @@
      "value": 736.7906084507453,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 922228.5375876157,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 25.829780423157295,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 97.18915327301829,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 133.90997139039834,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 47,
@@ -5171,6 +9046,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 197.44,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 4699.02,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46284.76,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 82473.73,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.06,
      "year": "2024",
@@ -5206,6 +9106,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.53222003071432,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 18.07592601971907,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.710768800212712,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 42.65766960874378,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 199.82402615936064,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3295314.1614781073,
      "year": "2024",
@@ -5215,8 +9140,39 @@
      "value": 298.2633652263925,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.705874674767458,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 58.00888133828251,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1096211.1522160072,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 9.590664899380203,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 105.96089746700818,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 49.72112194726571,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 48,
@@ -5278,6 +9234,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 219.29,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 10505.23,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 49256.19,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 157854.29,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.25,
      "year": "2024",
@@ -5313,6 +9294,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.232119377195409,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.0459057260553,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.143684208353643,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 44.52029277944558,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 220.04868233941315,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3123546.41794943,
      "year": "2024",
@@ -5322,8 +9328,39 @@
      "value": 737.075536932724,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1408264.5233010144,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 24.343623973841638,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.16234314304921,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 126.20525364409121,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 49,
@@ -5385,6 +9422,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 262.8,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13741.23,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46423.5,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 252360.71,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.91,
      "year": "2024",
@@ -5420,6 +9482,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.244151282761028,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.804239599188229,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.814477940410927,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 56.609260396135575,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 197.52490314665695,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3129998.8930830928,
      "year": "2024",
@@ -5429,8 +9516,39 @@
      "value": 1311.1253902579485,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1411173.6498521685,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 43.258290357403304,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.26884212706865,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 224.26502778026125,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 50,
@@ -5492,6 +9610,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 308.19,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 16041.71,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45109.82,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.38,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 249089.92,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.19,
      "year": "2024",
@@ -5527,6 +9670,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.209146696977359,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.871267183663758,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.476840815000667,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 68.31993565924228,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 226.46741709786545,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3695995.410567569,
      "year": "2024",
@@ -5536,8 +9704,39 @@
      "value": 1392.1915648066893,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6278914147784544,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 49.22918574003573,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1666355.6478864986,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 42.26983008806378,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 112.21810414621181,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 219.14052868583104,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 51,
@@ -5599,6 +9798,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 289.91,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9196.93,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42479.36,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 158489.06,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.82,
      "year": "2024",
@@ -5634,6 +9858,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.603094895756092,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.152538718912764,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.97624752350318,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 68.24726172899027,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 201.3383534789966,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3357856.894038956,
      "year": "2024",
@@ -5643,8 +9892,39 @@
      "value": 732.1966850969973,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1445327.8234132288,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 23.32350857850196,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 106.96170259651552,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 120.91664409469021,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 52,
@@ -5706,6 +9986,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 205.46,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9060.43,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45878.32,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 138667.05,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.05,
      "year": "2024",
@@ -5741,6 +10046,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.5644553016833385,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.971210941302445,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.048169592958068,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 44.78367996038216,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 201.97800494737928,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3164752.331803594,
      "year": "2024",
@@ -5750,8 +10080,39 @@
      "value": 765.0513517830275,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1362209.5115154607,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 25.102555633187638,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.84057395521151,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 130.13980187196455,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 53,
@@ -5813,6 +10174,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 250.19,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9437.46,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42935.98,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 147136.69,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.72,
      "year": "2024",
@@ -5848,6 +10234,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.607975922317698,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.144100483632437,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.65912994183433,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 58.27047618337813,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 180.84059559323074,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2837845.4341368973,
      "year": "2024",
@@ -5857,8 +10268,39 @@
      "value": 723.8075479144383,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1221498.441993063,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 25.079908895292363,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 98.33125552800699,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 130.02239382691113,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 54,
@@ -5920,6 +10362,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 194.46,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 6724.1,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 42241.8,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.42,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 89887.39,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.6,
      "year": "2024",
@@ -5955,6 +10422,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.129674805610725,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.31407915938154,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.510181463226789,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 46.034970100705934,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 193.57800690138876,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2784748.268390409,
      "year": "2024",
@@ -5964,8 +10456,39 @@
      "value": 413.1277438824516,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6807947940588666,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 55.05836010505239,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1032473.3371438235,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 14.45069070379939,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 97.40700427493141,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 74.91707428462668,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 55,
@@ -6027,6 +10550,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 215.82,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 12582.5,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46623.09,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.42,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 283106.43,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.31,
      "year": "2024",
@@ -6062,6 +10610,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.788201753866433,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.276522873999937,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.997366040446197,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 46.29036814162254,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 227.51770489145446,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3343199.6785783386,
      "year": "2024",
@@ -6071,8 +10644,39 @@
      "value": 1280.0103774591812,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6807947940588666,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 55.05836010505239,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1239524.7958534732,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 40.862934178950454,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 106.7280006620036,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 211.84672332425976,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 56,
@@ -6134,6 +10738,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 248.5,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 5873.14,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 47106.79,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.42,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 107621.16,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.84,
      "year": "2024",
@@ -6169,6 +10798,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.506900835652493,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.321076458752513,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.027198202212462,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 52.75248005648443,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 198.11322838685658,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2994659.34633211,
      "year": "2024",
@@ -6178,8 +10832,39 @@
      "value": 425.86138055424766,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6807947940588666,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 55.05836010505239,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1110299.9736143416,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 14.36454121886341,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 101.01152530162925,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 74.47044737281865,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 57,
@@ -6241,6 +10926,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 259.19,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8904.16,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 44862.75,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 148046.7,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.39,
      "year": "2024",
@@ -6276,6 +10986,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.394266749715905,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.523991409133583,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.8133492336812465,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 57.77398844252749,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 217.58459897617882,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3163127.237829617,
      "year": "2024",
@@ -6285,8 +11020,39 @@
      "value": 629.3049316257367,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1491353.8264839868,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 20.653802503263293,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 103.81390956853235,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 107.0760206631619,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 58,
@@ -6348,6 +11114,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 176.49,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9824.53,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 44439.39,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 172543.76,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.7,
      "year": "2024",
@@ -6383,6 +11174,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.876461493205295,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.542363117834816,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 5.77546556482136,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 39.71476656182724,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 188.95358113769655,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2395642.111833217,
      "year": "2024",
@@ -6392,8 +11208,39 @@
      "value": 575.6817642184774,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1129499.3093038183,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 21.71044467967332,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 90.34584517690627,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 112.55399690976209,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 59,
@@ -6455,6 +11302,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 261.93,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 16142.21,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 50556.59,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 246214.93,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.47,
      "year": "2024",
@@ -6490,6 +11362,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.710103207177904,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.51281831023556,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.073263248173978,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 51.809269572967644,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 241.98597107027726,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 4074704.9794357247,
      "year": "2024",
@@ -6499,8 +11396,39 @@
      "value": 1219.386684526939,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1921145.2483474687,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 35.26067152076613,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 117.82713034926458,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 182.80277405373556,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 60,
@@ -6562,6 +11490,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 216.81,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 12027.32,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 53085.24,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.36,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 187075.76,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.72,
      "year": "2024",
@@ -6597,6 +11550,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.028339954330758,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.588314653383147,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.774976434127453,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 40.841861127499854,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 240.30799067484182,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3264171.3125042804,
      "year": "2024",
@@ -6606,8 +11584,39 @@
      "value": 825.0334051186288,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6001324674960518,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 46.37523372283536,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1606858.9346233276,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 26.655220352432295,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 105.4590093723287,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 138.18932009189209,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 61,
@@ -6669,6 +11678,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 309.07,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 7059.83,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 50101.42,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.36,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 123344.99,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.67,
      "year": "2024",
@@ -6704,6 +11738,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.529427241461425,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.281222700359143,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.193036245280073,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 61.68887029549263,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 235.46831816427513,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3685830.4102568217,
      "year": "2024",
@@ -6713,8 +11772,39 @@
      "value": 566.2001787735691,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6001324674960518,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 46.37523372283536,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1814429.7462389308,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 17.214703357203827,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 112.0636826271769,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 89.24661364874198,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 62,
@@ -6776,6 +11866,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 209.03,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 19369.23,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 39558.5,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.36,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 243031.89,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.48,
      "year": "2024",
@@ -6811,6 +11926,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.160007544189501,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.23374635219825,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 8.578030006193359,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 52.84072955243501,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 181.67617019833685,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2879205.7734278454,
      "year": "2024",
@@ -6820,8 +11960,39 @@
      "value": 1356.187266985663,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6001324674960518,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 46.37523372283536,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1417351.3209703926,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 46.65310203706939,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.04523070180733,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 241.86483418404748,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 63,
@@ -6883,6 +12054,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 221.05,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 37904.31,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 40102.37,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 433887.04,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.36,
      "year": "2024",
@@ -6918,6 +12114,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.908132720735492,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.475691774108421,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.979208377626226,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 55.121430479046495,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 181.69821378704327,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2928900.723405711,
      "year": "2024",
@@ -6927,8 +12148,39 @@
      "value": 1540.546524928373,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1143291.9152462496,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 52.54358593266568,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.89633182657037,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 272.403015965404,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 64,
@@ -6990,6 +12242,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 270.1,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 7366.55,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 52043.47,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 119386.31,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.42,
      "year": "2024",
@@ -7025,6 +12302,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.412126780938862,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.491404418116744,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.001893481225086,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 51.8989221894697,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 227.13502535861437,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3316010.4366846546,
      "year": "2024",
@@ -7034,8 +12336,39 @@
      "value": 500.8492920665848,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1294399.5994256167,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 16.054483403745937,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 106.29312123560834,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 83.23165656320575,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 65,
@@ -7097,6 +12430,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 189.72,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 11928.49,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43483.2,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 202557.33,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.83,
      "year": "2024",
@@ -7132,6 +12490,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.9359442407542895,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.84651943214562,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.3502448455188825,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.63064355889171,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 190.08975008405218,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2830599.1812915583,
      "year": "2024",
@@ -7141,8 +12524,39 @@
      "value": 874.2759780029635,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1104920.0587141286,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 30.332385926506653,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 98.20563406798567,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 157.2529407946292,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 66,
@@ -7204,6 +12618,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 250.06,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 4353.39,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 48174.84,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.43,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 82287.12,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.0,
      "year": "2024",
@@ -7239,6 +12678,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.650265137856836,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.036994454664214,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.805217066280518,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 51.90676294929054,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 204.01621297648032,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3255321.205058717,
      "year": "2024",
@@ -7248,8 +12712,39 @@
      "value": 426.29507127317515,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6934522326240877,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 56.531999930920406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1144307.4831981887,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 13.79147141221676,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 105.31594747991024,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 71.4994673584491,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 67,
@@ -7311,6 +12806,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 161.27,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 17382.86,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 47219.49,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.43,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 273086.64,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.71,
      "year": "2024",
@@ -7346,6 +12866,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.843257083504434,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 17.113742998284444,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 5.844902885086927,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 34.15327018567969,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 200.0673551532879,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2579262.819381731,
      "year": "2024",
@@ -7355,8 +12900,39 @@
      "value": 938.833446342394,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6934522326240877,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 56.531999930920406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 906660.0680654296,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 34.12227430739255,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 93.74433109161369,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 176.900953140961,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 68,
@@ -7418,6 +12994,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 330.52,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 13898.05,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46474.95,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.43,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 203408.22,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.56,
      "year": "2024",
@@ -7453,6 +13054,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.516481817127445,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.30409657509379,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 9.461591674654843,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 71.11788178362752,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 227.02920329173685,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3796566.5097558154,
      "year": "2024",
@@ -7462,8 +13088,39 @@
      "value": 1149.1747517440601,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6934522326240877,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 56.531999930920406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1334565.529454365,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 34.426096761554234,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 113.73463072363008,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 178.47606742679812,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 69,
@@ -7525,6 +13182,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 228.93,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 7784.38,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43937.22,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 149850.17,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.95,
      "year": "2024",
@@ -7560,6 +13242,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.117490830319523,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.049895164460752,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.320541672868697,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 52.103888229614896,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 192.76461879350893,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2898485.880339335,
      "year": "2024",
@@ -7569,8 +13276,39 @@
      "value": 594.5137387863616,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1131419.527799523,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 20.383254003581634,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 99.37629708164268,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 105.67340936494095,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 70,
@@ -7632,6 +13370,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 259.81,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 10998.81,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 44551.05,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 168010.57,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.09,
      "year": "2024",
@@ -7667,6 +13430,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.612409097035436,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.13644586428544,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.660829542738049,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 58.317368501976944,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 219.89535367314173,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3091942.8566019004,
      "year": "2024",
@@ -7676,8 +13464,39 @@
      "value": 705.1917196985407,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1206935.1624338685,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 23.409314179290053,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 102.63912597491498,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 121.36148819937985,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 71,
@@ -7739,6 +13558,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 296.46,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8791.61,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 48607.15,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 157483.8,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.08,
      "year": "2024",
@@ -7774,6 +13618,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.6809426682116975,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.019235309991233,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.940565328351898,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 60.991027040260526,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 221.87930789528068,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3367587.9357055784,
      "year": "2024",
@@ -7783,8 +13652,39 @@
      "value": 818.5687796689305,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1314532.7972387115,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 26.037118504982352,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 107.11657753839339,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 134.98487935130538,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 72,
@@ -7846,6 +13746,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 206.36,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 8834.19,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46424.2,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 149352.27,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.59,
      "year": "2024",
@@ -7881,6 +13806,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.883930961649283,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.52658380177037,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.457205150187475,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 44.450954459096764,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 193.7796170321637,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2823269.4376992406,
      "year": "2024",
@@ -7890,8 +13840,39 @@
      "value": 487.8891978590063,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1102058.9045196702,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 16.948928786029796,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 98.07840151682812,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 87.86875194650692,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 73,
@@ -7953,6 +13934,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 168.9,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 5023.44,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 40945.68,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 75662.58,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.93,
      "year": "2024",
@@ -7988,6 +13994,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.924282132390811,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 16.8796822577462,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.962830592466246,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 41.249772869811906,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 194.97517204954335,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2745531.992942631,
      "year": "2024",
@@ -7997,8 +14028,39 @@
      "value": 228.14526624963142,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1071714.2119215582,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 8.037026926726252,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 96.71870435095632,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 41.66655806554548,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 74,
@@ -8060,6 +14122,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 190.89,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14411.2,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41306.15,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.41,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 224022.77,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.97,
      "year": "2024",
@@ -8095,6 +14182,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.055334050977366,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.173673319712924,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.550144470012334,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 46.213457318099124,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 197.89952769982716,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2512481.3876013393,
      "year": "2024",
@@ -8104,8 +14216,39 @@
      "value": 785.6727451912304,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6679060799058396,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 53.58965361860588,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 980743.2647669812,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 28.93260093537437,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 92.52277336835967,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 149.99600074154296,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 75,
@@ -8167,6 +14310,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 219.23,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 9973.05,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 43772.24,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 125888.63,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.99,
      "year": "2024",
@@ -8202,6 +14370,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.183535178777394,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 13.920722528850979,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.9720900735260525,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 50.084254312779066,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 199.60601286003757,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2706202.752746444,
      "year": "2024",
@@ -8211,8 +14404,39 @@
      "value": 555.9488594753853,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1275922.695199308,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 19.726584336101908,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 96.02346676818294,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 102.26902051824693,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 76,
@@ -8274,6 +14498,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 199.14,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 6399.25,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 41421.14,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 104343.81,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.58,
      "year": "2024",
@@ -8309,6 +14558,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 7.795774255036858,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 12.827462254360416,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.16704618301991,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 48.076899863209945,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 183.54671281494157,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2281410.4597671963,
      "year": "2024",
@@ -8318,8 +14592,39 @@
      "value": 421.0879283101943,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1075641.276222879,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 16.273025043042725,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 88.1655517749793,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 84.3646474050329,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 77,
@@ -8381,6 +14686,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 151.14,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14374.59,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46004.62,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 225072.05,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.67,
      "year": "2024",
@@ -8416,6 +14746,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 5.4341739212505,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 18.402061003043535,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.045669978363041,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 32.85322213290752,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 190.2514303553312,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2468383.956706412,
      "year": "2024",
@@ -8425,8 +14780,39 @@
      "value": 960.5782911326042,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1163795.6940333748,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 35.68811630653263,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 91.70722943597823,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 185.01878665993064,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 78,
@@ -8488,6 +14874,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 198.55,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 14045.17,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 46913.05,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 267854.46,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.25,
      "year": "2024",
@@ -8523,6 +14934,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.5489922396668385,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.269524888776965,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.46251771450943,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 42.32297836103174,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 224.46946057731597,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2805408.2077782005,
      "year": "2024",
@@ -8532,8 +14968,39 @@
      "value": 1033.2196861558107,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1207536.4337092065,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 36.00740771705019,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 97.7676659705025,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 186.67409703993195,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 79,
@@ -8595,6 +15062,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 228.95,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 6290.07,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 45657.0,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 115454.01,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.65,
      "year": "2024",
@@ -8630,6 +15122,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.968284086041086,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 14.350735240591105,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 7.196269648319717,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 50.14565126924677,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 196.25156050267958,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2990541.4579264144,
      "year": "2024",
@@ -8639,8 +15156,39 @@
      "value": 440.9332349467901,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1287223.6407349596,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 14.883159518405646,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 100.9420520775562,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 77.15913308816353,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 80,
@@ -8702,6 +15250,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 191.04,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 5537.09,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 44392.33,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.39,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 67266.21,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 0.64,
      "year": "2024",
@@ -8737,6 +15310,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.629677035755164,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.083691024567282,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.491185151428938,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 43.034461133263335,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 183.29811315201957,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 2622251.3039704114,
      "year": "2024",
@@ -8746,8 +15344,39 @@
      "value": 246.7451741031487,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6414503529328561,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 50.67352122859931,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1128699.9086644477,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 8.894237621693081,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 94.52231957962233,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 46.110616735732215,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   },
   {
    "plaka": 81,
@@ -8809,6 +15438,31 @@
      "year": "2024",
      "sample": true
     },
+    "rent_m2_tl": {
+     "value": 215.04,
+     "year": "2024",
+     "sample": true
+    },
+    "house_sales": {
+     "value": 10600.83,
+     "year": "2024",
+     "sample": true
+    },
+    "avg_wage_tl": {
+     "value": 47857.01,
+     "year": "2024",
+     "sample": true
+    },
+    "income_gini": {
+     "value": 0.37,
+     "year": "2024",
+     "sample": true
+    },
+    "cars": {
+     "value": 194567.24,
+     "year": "2024",
+     "sample": true
+    },
     "sege_score": {
      "value": 1.6,
      "year": "2024",
@@ -8844,6 +15498,31 @@
      "year": "2024",
      "sample": true
     },
+    "gross_rent_yield": {
+     "value": 6.460124662220858,
+     "year": "2024",
+     "sample": true
+    },
+    "amortization_years": {
+     "value": 15.47957744295635,
+     "year": "2024",
+     "sample": true
+    },
+    "price_to_wage_years": {
+     "value": 6.955571050789286,
+     "year": "2024",
+     "sample": true
+    },
+    "rent_to_wage": {
+     "value": 44.933856085033305,
+     "year": "2024",
+     "sample": true
+    },
+    "cars_per_1000": {
+     "value": 238.43000955485942,
+     "year": "2024",
+     "sample": true
+    },
     "wealth_per_household": {
      "value": 3007140.8097039484,
      "year": "2024",
@@ -8853,9 +15532,40 @@
      "value": 873.2854949683224,
      "year": "2024",
      "sample": true
+    },
+    "wealth_gini": {
+     "value": 0.6141173426960436,
+     "year": "2024",
+     "sample": true
+    },
+    "top10_share": {
+     "value": 47.79596072456752,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_median_hh": {
+     "value": 1417809.217312841,
+     "year": "2024",
+     "sample": true
+    },
+    "gold_tonnes": {
+     "value": 29.395210879422205,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_per_household_g": {
+     "value": 101.22180976860318,
+     "year": "varsayım",
+     "sample": true
+    },
+    "gold_value_bn": {
+     "value": 152.39432095013527,
+     "year": "varsayım",
+     "sample": true
     }
-   }
+   },
+   "companies": []
   }
  ],
- "generated_at": "2026-11-02T08:02:29+00:00"
+ "generated_at": "2026-11-02T08:35:04+00:00"
 }

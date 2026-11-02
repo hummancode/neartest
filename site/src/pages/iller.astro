@@ -5,7 +5,7 @@ import { DISCLAIMER } from "../config.ts";
 
 const P = provinces;
 const groups = [...new Set(P.indicators.map((i) => i.group))];
-const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.wealth_defaults };
+const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.wealth_defaults, gold_gram_tl: P.gold_gram_tl, has_company_list: P.has_company_list };
 ---
 <Base title="İller: ekonomik harita" description="81 ilin ekonomik profili harita üzerinde: nüfus, gelir, ihracat, ücretli çalışan, şirketler, borsa şirketleri, mevduat ve tahmini hane serveti." sample={P.sample}>
   <h1>İller</h1>
@@ -42,13 +42,23 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
   </div>
 
   <section class="card sim" id="sim">
-    <h2 class="c-title">Servet tahmini: varsayımlar</h2>
-    <p class="muted small">Tahmini hane serveti = sahibi oturduğu konutların değeri + hanelere ait banka mevduatı. Resmî istatistik değildir; aşağıdaki varsayımları değiştirince harita ve il kartı güncellenir.</p>
+    <h2 class="c-title">Model tahminleri: varsayımlar</h2>
+    <p class="muted small">Servet, eşitsizlik ve yastık altı altın rakamları <strong>model tahminidir, resmî istatistik değildir</strong>. Varsayımları değiştirince harita ve il kartı anında güncellenir. Formüller: <a href="/metodoloji#iller">Metodoloji</a>.</p>
+    <h3 class="sim-h">Hane serveti</h3>
     <div class="form-grid">
       <div class="field"><label for="own">Ev sahipliği oranı: <strong id="own-v"></strong></label><input id="own" type="range" min="30" max="90" step="1" /></div>
       <div class="field"><label for="m2">Ortalama konut büyüklüğü: <strong id="m2-v"></strong></label><input id="m2" type="range" min="60" max="200" step="5" /></div>
       <div class="field"><label for="dep">Mevduatın hanelere ait payı: <strong id="dep-v"></strong></label><input id="dep" type="range" min="20" max="90" step="1" /></div>
       <div class="field"><label for="hs">Hane büyüklüğü</label><select id="hs"><option value="il">İl verisi (TÜİK)</option><option value="3">3 kişi (tüm iller)</option><option value="3.5">3,5 kişi</option><option value="4">4 kişi</option></select></div>
+    </div>
+    <h3 class="sim-h">Servet eşitsizliği</h3>
+    <div class="form-grid">
+      <div class="field"><label for="mult">Servetin gelire göre dağınıklığı: <strong id="mult-v"></strong></label><input id="mult" type="range" min="1" max="3" step="0.1" /><small>1 = servet gelir kadar eşitsiz; servet genelde gelirden daha eşitsiz dağılır (log-normal varsayım)</small></div>
+    </div>
+    <h3 class="sim-h">Yastık altı altın</h3>
+    <div class="form-grid">
+      <div class="field"><label for="gold">Türkiye toplamı (varsayım): <strong id="gold-v"></strong></label><input id="gold" type="range" min="500" max="8000" step="100" /><small>Bankacılık sistemi dışındaki hane altını için resmî istatistik yoktur; dile getirilen tahminler geniş bir aralıktadır.</small></div>
+      <div class="field"><label for="beta">Dağıtım: <strong id="beta-v"></strong></label><input id="beta" type="range" min="0" max="1.5" step="0.1" /><small>0 = her haneye eşit; 1 = hane servetiyle orantılı</small></div>
     </div>
     <p class="small"><button class="btn btn-ghost" type="button" id="sim-reset">Varsayılanlara dön</button> <span class="muted" id="sim-total"></span></p>
     <p class="muted small">Dahil olmayanlar: ikinci konutlar, arsa, araç, yastık altı altın ve döviz, menkul kıymetler, borçlar. Mevduat bankanın şubesinin bulunduğu ile göre kaydedilir.</p>
@@ -72,8 +82,9 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
 </Base>
 
 <script>
-  import { provinceWealth } from "../lib/engine.ts";
+  import { provinceWealth, wealthInequality, goldAllocation, SeriesError } from "../lib/engine.ts";
   import { formatP, ADDITIVE } from "../lib/provinces.ts";
+  import { provinceUrl } from "../lib/slug.ts";
   import { readHash, writeHash } from "../lib/share.ts";
 
   const data = JSON.parse(document.getElementById("p-data")!.textContent!);
@@ -81,7 +92,8 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
   const IND: Record<string, any> = Object.fromEntries(data.indicators.map((i: any) => [i.id, i]));
   const provs: any[] = data.provinces;
   const indSel = $<HTMLSelectElement>("ind"), regSel = $<HTMLSelectElement>("region");
-  const sliders = { own: $<HTMLInputElement>("own"), m2: $<HTMLInputElement>("m2"), dep: $<HTMLInputElement>("dep") };
+  const sliders = { own: $<HTMLInputElement>("own"), m2: $<HTMLInputElement>("m2"), dep: $<HTMLInputElement>("dep"),
+    mult: $<HTMLInputElement>("mult"), gold: $<HTMLInputElement>("gold"), beta: $<HTMLInputElement>("beta") };
   const hsSel = $<HTMLSelectElement>("hs");
   const CLASSES = 5;
   let selected: number | null = null;
@@ -93,6 +105,9 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
     sliders.m2.value = String(data.defaults.dwelling_m2);
     sliders.dep.value = String(Math.round(data.defaults.household_deposit_share * 100));
     hsSel.value = "il";
+    sliders.mult.value = String(data.defaults.inequality_multiplier);
+    sliders.gold.value = String(data.defaults.gold_total_tonnes);
+    sliders.beta.value = String(data.defaults.gold_beta);
   }
 
   function recomputeWealth() {
@@ -113,6 +128,35 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
       total += w.total; sample ||= s;
     }
     $("sim-total").textContent = `Türkiye toplamı (tahmin): ${formatP("milyar TL", total / 1e9)}${sample ? " — örnek veriyle" : ""}`;
+    // Inequality (lognormal model from the income Gini).
+    const mult = Number(sliders.mult.value);
+    $("mult-v").textContent = `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(mult)} ×`;
+    for (const p of provs) {
+      const v = values[p.plaka];
+      if (!p.values.income_gini || !v.wealth_per_household) continue;
+      try {
+        const q = wealthInequality({ income_gini: p.values.income_gini.value, multiplier: mult });
+        const s = p.values.income_gini.sample;
+        v.wealth_gini = { value: q.wealth_gini, year: p.values.income_gini.year, sample: s };
+        v.top10_share = { value: 100 * q.top10_share, year: p.values.income_gini.year, sample: s };
+        v.wealth_median_hh = { value: v.wealth_per_household.value * q.median_to_mean, year: v.wealth_per_household.year, sample: s || v.wealth_per_household.sample };
+      } catch (e) { if (!(e instanceof SeriesError)) throw e; }
+    }
+    // Household gold: national total split by households x wealth^beta.
+    const tons = Number(sliders.gold.value), beta = Number(sliders.beta.value);
+    $("gold-v").textContent = `${new Intl.NumberFormat("tr-TR").format(tons)} ton`;
+    $("beta-v").textContent = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(beta);
+    const withW = provs.filter((p) => values[p.plaka].wealth_per_household);
+    if (withW.length) {
+      const hh = withW.map((p) => p.values.population.value / (hsSel.value === "il" ? (p.values.household_size?.value ?? data.defaults.household_size) : Number(hsSel.value)));
+      const alloc = goldAllocation(hh, withW.map((p) => values[p.plaka].wealth_per_household.value), { beta, total: tons });
+      withW.forEach((p, k) => {
+        const s = values[p.plaka].wealth_per_household.sample;
+        values[p.plaka].gold_tonnes = { value: alloc[k], year: "varsayım", sample: s };
+        values[p.plaka].gold_per_household_g = { value: (alloc[k] * 1e6) / hh[k], year: "varsayım", sample: s };
+        if (data.gold_gram_tl) values[p.plaka].gold_value_bn = { value: (alloc[k] * 1e6 * data.gold_gram_tl) / 1e9, year: "varsayım", sample: true };
+      });
+    }
   }
 
   function quantileBreaks(xs: number[]): number[] {
@@ -168,7 +212,8 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
     box.replaceChildren();
     const h = document.createElement("h2"); h.className = "pc-title"; h.textContent = p.name;
     const sub = document.createElement("p"); sub.className = "muted small"; sub.textContent = `${p.region} · plaka ${String(pl).padStart(2, "0")}`;
-    box.append(h, sub);
+    const link = document.createElement("a"); link.href = provinceUrl(pl, p.name); link.textContent = "İl künyesi →"; link.className = "small";
+    box.append(h, sub, link);
     const groups = [...new Set(data.indicators.map((i: any) => i.group))] as string[];
     for (const g of groups) {
       const items = data.indicators.filter((i: any) => i.group === g && values[pl][i.id]);
@@ -194,6 +239,24 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
         dl.append(dt, dd);
       }
       box.appendChild(dl);
+    }
+    const ch = document.createElement("h3"); ch.className = "pc-group"; ch.textContent = "Borsa şirketleri (merkezi bu ilde)";
+    box.appendChild(ch);
+    if (!data.has_company_list) {
+      const n = document.createElement("p"); n.className = "muted small"; n.textContent = "Şirket listesi henüz girilmedi (KAP merkez adresleri).";
+      box.appendChild(n);
+    } else if (!p.companies.length) {
+      const n = document.createElement("p"); n.className = "muted small"; n.textContent = "Bu ilde merkezi bulunan borsa şirketi yok.";
+      box.appendChild(n);
+    } else {
+      const ul = document.createElement("ul"); ul.className = "companies";
+      for (const c of p.companies) {
+        const li = document.createElement("li");
+        const code = document.createElement("strong"); code.textContent = c.code;
+        li.append(code, document.createTextNode(` ${c.name}${c.sector ? " · " + c.sector : ""}`));
+        ul.appendChild(li);
+      }
+      box.appendChild(ul);
     }
   }
 
@@ -280,6 +343,8 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
   .tag.est { color: var(--accent); }
   .sim { margin-top: 12px; }
   .sim input[type="range"] { width: 100%; padding: 0; }
+  .sim-h { font-family: var(--font-body); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 6px; }
+  .companies { padding-left: 1.1em; margin: 4px 0; font-size: 0.85rem; }
   .table-view { margin-top: 12px; }
   .table-view summary { cursor: pointer; font-weight: 600; }
   .scroll-x { overflow-x: auto; margin-top: 8px; }

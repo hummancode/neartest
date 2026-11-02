@@ -1,0 +1,115 @@
+---
+import Base from "../../layouts/Base.astro";
+import { provinces, geo, formatP } from "../../lib/provinces.ts";
+import { provinceUrl, slugify } from "../../lib/slug.ts";
+import { DISCLAIMER } from "../../config.ts";
+
+export function getStaticPaths() {
+  return provinces.provinces.map((p) => ({ params: { slug: `${String(p.plaka).padStart(2, "0")}-${slugify(p.name)}` }, props: { plaka: p.plaka } }));
+}
+const { plaka } = Astro.props as { plaka: number };
+const P = provinces;
+const p = P.provinces[plaka - 1];
+const g = geo.provinces.find((x) => x.plaka === plaka)!;
+const groups = [...new Set(P.indicators.map((i) => i.group))];
+const vals = (id: string, list = P.provinces) => list.map((x) => x.values[id]?.value).filter((x): x is number => x != null);
+const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; };
+const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+const regionList = P.provinces.filter((x) => x.region === p.region);
+const rank = (id: string) => { const v = p.values[id]?.value; const xs = vals(id); return v == null ? null : [xs.filter((x) => x > v).length + 1, xs.length]; };
+const key = ["population", "gdp_per_capita_tl", "exports_mn_usd", "avg_wage_tl", "m2_price_tl", "wealth_per_household"].filter((id) => p.values[id]);
+const ind = Object.fromEntries(P.indicators.map((i) => [i.id, i]));
+const neighbors = P.provinces.filter((x) => x.region === p.region && x.plaka !== plaka);
+const sample = Object.values(p.values).some((v) => v.sample);
+---
+<Base title={`${p.name} ekonomik künyesi`} description={`${p.name}: nüfus, gelir, ihracat, ücretli çalışan, şirketler, konut fiyatı ve kira, mevduat, tahmini servet — 81 il içindeki yeri.`} sample={sample}>
+  <p class="muted small crumb"><a href="/iller">İller</a> / {p.region} / {p.name}</p>
+  <div class="hero">
+    <div>
+      <h1>{p.name}</h1>
+      <p class="lead">{p.region} bölgesi · plaka {String(plaka).padStart(2, "0")}</p>
+    </div>
+    <svg class="mini" viewBox={`0 0 ${geo.width} ${geo.height}`} role="img" aria-label={`${p.name} Türkiye haritasında`}>
+      {geo.provinces.map((x) => <path d={x.d} class={x.plaka === plaka ? "me" : x.plaka && P.provinces[x.plaka - 1].region === p.region ? "reg" : ""}></path>)}
+    </svg>
+  </div>
+
+  <div class="keys">
+    {key.map((id) => (
+      <div class="card k">
+        <span class="k-label">{ind[id].label}{ind[id].kind === "estimate" && <span class="tag est">tahmin</span>}</span>
+        <span class="k-value">{formatP(ind[id].unit, p.values[id].value)}</span>
+        <span class="muted small">{rank(id) ? `${rank(id)![0]}/${rank(id)![1]}. sırada` : ""} · {p.values[id].year}{p.values[id].sample ? " · örnek" : ""}</span>
+      </div>
+    ))}
+  </div>
+
+  {groups.map((grp) => {
+    const items = P.indicators.filter((i) => i.group === grp && p.values[i.id]);
+    if (!items.length) return null;
+    return (
+      <section>
+        <h2>{grp}</h2>
+        <div class="card scroll-x">
+          <table class="data facts">
+            <thead><tr><th scope="col">Gösterge</th><th scope="col">{p.name}</th><th scope="col">81 il içinde</th><th scope="col">{p.region} ort.</th><th scope="col">İl medyanı</th></tr></thead>
+            <tbody>
+              {items.map((i) => {
+                const v = p.values[i.id];
+                const r = rank(i.id);
+                const ra = mean(vals(i.id, regionList));
+                const md = median(vals(i.id));
+                return (
+                  <tr>
+                    <th scope="row">{i.label}{i.kind === "estimate" && <span class="tag est">tahmin</span>}{v.sample && <span class="tag">örnek</span>}<br /><span class="muted small">{i.source} · {v.year}</span></th>
+                    <td><strong>{formatP(i.unit, v.value)}</strong></td>
+                    <td>{r ? `${r[0]}/${r[1]}` : "—"}</td>
+                    <td>{ra != null ? formatP(i.unit, ra) : "—"}</td>
+                    <td>{md != null ? formatP(i.unit, md) : "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  })}
+
+  <h2>Borsa şirketleri</h2>
+  {!P.has_company_list ? <p class="muted">Şirket listesi henüz girilmedi (KAP merkez adresleri).</p>
+    : p.companies.length === 0 ? <p class="muted">Bu ilde merkezi bulunan borsa şirketi yok.</p>
+    : <ul class="companies">{p.companies.map((c) => <li><strong>{c.code}</strong> {c.name}{c.sector ? ` · ${c.sector}` : ""}</li>)}</ul>}
+
+  {neighbors.length > 0 && (
+    <>
+      <h2>Aynı bölgedeki iller</h2>
+      <p class="others">{neighbors.map((x) => <a href={provinceUrl(x.plaka, x.name)}>{x.name}</a>)}</p>
+    </>
+  )}
+  <p><a class="btn btn-ghost" href={`/iller#il=${plaka}`}>Haritada gör ve varsayımları değiştir →</a></p>
+  <p class="muted small">Model tahminleri varsayılan varsayımlarla hesaplanmıştır (ev sahipliği %{Math.round(P.wealth_defaults.ownership_rate * 100)}, konut {P.wealth_defaults.dwelling_m2} m², mevduatın hanelere ait payı %{Math.round(P.wealth_defaults.household_deposit_share * 100)}, servet dağınıklığı {P.wealth_defaults.inequality_multiplier}×, Türkiye yastık altı altın {new Intl.NumberFormat("tr-TR").format(P.wealth_defaults.gold_total_tonnes)} ton). Resmî istatistik değildir. Yöntem: <a href="/metodoloji#iller">Metodoloji</a>.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .hero { display: grid; gap: 12px; align-items: center; }
+  @media (min-width: 720px) { .hero { grid-template-columns: 1fr 320px; } }
+  .mini { width: 100%; height: auto; }
+  .mini path { fill: var(--line); stroke: var(--surface); stroke-width: 1; }
+  .mini path.reg { fill: color-mix(in srgb, var(--series-1) 30%, var(--line)); }
+  .mini path.me { fill: var(--series-1); }
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-top: 8px; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(3, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .facts { min-width: 640px; font-size: 0.88rem; }
+  .facts th, .facts td { text-align: left; vertical-align: top; }
+  .facts tbody th { font-weight: 600; }
+  .scroll-x { overflow-x: auto; padding: 4px 8px; }
+  .tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: middle; }
+  .tag.est { color: var(--accent); }
+  .companies { padding-left: 1.2em; }
+  .others { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+</style>

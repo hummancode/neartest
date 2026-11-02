@@ -1448,6 +1448,119 @@
     }
    ],
    "raises": true
+  },
+  {
+   "name": "normal_cdf 1.96",
+   "fn": "normal_cdf",
+   "args": [
+    1.959963984540054
+   ],
+   "expect": 0.975,
+   "tol": 1e-09
+  },
+  {
+   "name": "normal_cdf 0",
+   "fn": "normal_cdf",
+   "args": [
+    0.0
+   ],
+   "expect": 0.5,
+   "tol": 1e-15
+  },
+  {
+   "name": "normal_ppf 0.975",
+   "fn": "normal_ppf",
+   "args": [
+    0.975
+   ],
+   "expect": 1.959963984540054,
+   "tol": 1e-09
+  },
+  {
+   "name": "normal_ppf rejects 1",
+   "fn": "normal_ppf",
+   "args": [
+    1.0
+   ],
+   "raises": true
+  },
+  {
+   "name": "gini_from_sigma 1",
+   "fn": "gini_from_sigma",
+   "args": [
+    1.0
+   ],
+   "expect": 0.5204998778130465,
+   "tol": 1e-09,
+   "note": "2*Phi(1/sqrt2)-1 (erf(0.5))"
+  },
+  {
+   "name": "top_share_lognormal sigma 1 top 10%",
+   "fn": "top_share_lognormal",
+   "args": [
+    1.0,
+    0.1
+   ],
+   "expect": 0.389143691645361,
+   "tol": 1e-09,
+   "note": "1 - Phi(1.2815515655 - 1), Phi via math.erf"
+  },
+  {
+   "name": "wealth_inequality multiplier 1",
+   "fn": "wealth_inequality",
+   "args": [
+    {
+     "income_gini": 0.4,
+     "multiplier": 1.0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "wealth_gini": 0.4
+   }
+  },
+  {
+   "name": "gold_allocation beta 1",
+   "fn": "gold_allocation",
+   "args": [
+    [
+     100,
+     300
+    ],
+    [
+     5.0,
+     1.0
+    ],
+    {
+     "beta": 1.0,
+     "total": 400.0
+    }
+   ],
+   "expect": [
+    250.0,
+    150.0
+   ],
+   "tol": 1e-09
+  },
+  {
+   "name": "housing_affordability",
+   "fn": "housing_affordability",
+   "args": [
+    {
+     "m2_price": 20000,
+     "rent_m2": 100,
+     "monthly_wage": 25000,
+     "dwelling_m2": 100
+    }
+   ],
+   "subset": true,
+   "tol": 1e-12,
+   "expect": {
+    "gross_yield": 0.06,
+    "rent_to_wage": 0.4,
+    "price_to_annual_wage": 6.666666666666667
+   }
   }
  ]
 }

@@ -104,3 +104,11 @@
   ekonomi, dış ticaret 12 aylık + partner/ürün, benzer ülkeler içinde sıra, öne çıkan iller). Yeni seriler:
   ihracat/ithalat 12 aylık (EVDS), Dünya Bankası nüfus, ihracat/ithalat/GSYH, kentli nüfus. İl ve dış ticaret
   verisi elle yüklenir (`data/manual/iller/`, `dis_ticaret_*.csv`); şu an örnek.
+- 2026-11-02 — İller derinleşti: 36 gösterge — konut m² satış ve kira, konut satışı, brüt kira getirisi, amortisman,
+  "100 m² ev kaç yıllık maaş", kira/maaş, SGK ortalama kazanç, gelir Gini'si (bölge), otomobil ve 1.000 kişiye
+  otomobil, borsa şirketleri listesi (`iller/bist_sirketler.csv`). Model tahminleri: medyan hane serveti, servet
+  Gini'si ve en zengin %10 payı (gelir Gini'sinden log-normal), yastık altı altın (Türkiye toplamı varsayımı
+  illere hane × servet^β ile dağıtılır; TL değeri). Haritada eşitsizlik ve altın kaydırıcıları. 81 il künye
+  sayfası (`/il/34-istanbul`…): değer, sıra, bölge ortalaması, il medyanı, şirketler. Motor: `normal_cdf`/`normal_ppf`
+  (iki dilde aynı algoritma), `gini_from_sigma`, `sigma_from_gini`, `top_share_lognormal`, `wealth_inequality`,
+  `gold_allocation`, `housing_affordability` (önce test; 82 ortak vaka). Sonuçlar Python ile birebir doğrulandı.

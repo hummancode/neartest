@@ -871,3 +871,103 @@ def province_wealth(*, population: float, deposits_tl: float, m2_price: float, h
     total = housing + financial
     return {"households": households, "housing": housing, "financial": financial, "total": total,
             "per_household": total / households, "per_capita": total / population}
+
+
+# ---------------------------------------------------------------------------
+# Distributions (same algorithms in the TypeScript port, so results match exactly)
+# ---------------------------------------------------------------------------
+
+def normal_cdf(x: float) -> float:
+    """Standard normal CDF (Marsaglia's series; ~1e-15 accurate for |x| < 8)."""
+    if x < -8:
+        return 0.0
+    if x > 8:
+        return 1.0
+    s, t, b, q, i = x, 0.0, x, x * x, 1.0
+    while s != t:
+        t = s
+        i += 2.0
+        b *= q / i
+        s = t + b
+    return 0.5 + s * math.exp(-0.5 * q - 0.91893853320467274178)
+
+
+def normal_ppf(p: float) -> float:
+    """Inverse standard normal CDF: Acklam's approximation refined by Newton steps."""
+    if not 0 < p < 1:
+        raise SeriesError("p must be in (0, 1)")
+    a = [-3.969683028665376e01, 2.209460984245205e02, -2.759285104469687e02, 1.383577518672690e02, -3.066479806614716e01, 2.506628277459239e00]
+    b = [-5.447609879822406e01, 1.615858368580409e02, -1.556989798598866e02, 6.680131188771972e01, -1.328068155288572e01]
+    c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e00, -2.549732539343734e00, 4.374664141464968e00, 2.938163982698783e00]
+    d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e00, 3.754408661907416e00]
+    lo = 0.02425
+    if p < lo:
+        q = math.sqrt(-2 * math.log(p))
+        x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
+    elif p > 1 - lo:
+        q = math.sqrt(-2 * math.log(1 - p))
+        x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
+    else:
+        q = p - 0.5
+        r = q * q
+        x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
+    for _ in range(3):                                    # Newton refinement against our CDF
+        pdf = math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
+        if pdf == 0:
+            break
+        x -= (normal_cdf(x) - p) / pdf
+    return x
+
+
+def gini_from_sigma(sigma: float) -> float:
+    """Gini coefficient of a lognormal distribution with log-standard-deviation sigma."""
+    return 2.0 * normal_cdf(sigma / math.sqrt(2.0)) - 1.0
+
+
+def sigma_from_gini(gini: float) -> float:
+    if not 0 < gini < 1:
+        raise SeriesError("Gini must be in (0, 1)")
+    return math.sqrt(2.0) * normal_ppf((gini + 1.0) / 2.0)
+
+
+def top_share_lognormal(sigma: float, p: float) -> float:
+    """Share of the total held by the top fraction p of a lognormal population."""
+    return 1.0 - normal_cdf(normal_ppf(1.0 - p) - sigma)
+
+
+def wealth_inequality(*, income_gini: float, multiplier: float) -> dict:
+    """MODEL: wealth assumed lognormal with dispersion = multiplier x that implied by the income Gini.
+
+    Wealth is usually more unequal than income (multiplier > 1); the multiplier is an assumption.
+    """
+    if multiplier <= 0:
+        raise SeriesError("multiplier must be positive")
+    s_inc = sigma_from_gini(income_gini)
+    s_w = s_inc * multiplier
+    return {"sigma_income": s_inc, "sigma_wealth": s_w, "wealth_gini": gini_from_sigma(s_w),
+            "top10_share": top_share_lognormal(s_w, 0.10), "top1_share": top_share_lognormal(s_w, 0.01),
+            "median_to_mean": math.exp(-s_w * s_w / 2.0)}
+
+
+def gold_allocation(households: list[float], wealth_per_household: list[float], *, beta: float, total: float) -> list[float]:
+    """MODEL: split a national total (e.g. grams of household gold) across provinces.
+
+    weight_i = households_i x wealth_per_household_i ** beta  (beta 0: per household, 1: per wealth).
+    """
+    if len(households) != len(wealth_per_household) or not households:
+        raise SeriesError("need matching, non-empty lists")
+    w = [h * (max(x, 0.0) ** beta) for h, x in zip(households, wealth_per_household)]
+    s = sum(w)
+    if s <= 0:
+        raise SeriesError("weights sum to zero")
+    return [total * x / s for x in w]
+
+
+def housing_affordability(*, m2_price: float, rent_m2: float, monthly_wage: float, dwelling_m2: float) -> dict:
+    """Gross rental yield, years of rent to repay the price, price in years of wages, rent / wage."""
+    if m2_price <= 0 or rent_m2 <= 0 or monthly_wage <= 0 or dwelling_m2 <= 0:
+        raise SeriesError("inputs must be positive")
+    price = m2_price * dwelling_m2
+    rent = rent_m2 * dwelling_m2
+    return {"price": price, "rent": rent, "gross_yield": 12 * rent / price, "amortization_years": price / (12 * rent),
+            "price_to_annual_wage": price / (12 * monthly_wage), "rent_to_wage": rent / monthly_wage}

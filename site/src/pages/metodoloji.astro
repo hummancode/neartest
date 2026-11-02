@@ -275,6 +275,25 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dahil olmayanlar: ikinci konutlar, arsa, araç, bankadışı altın ve döviz, menkul kıymetler, borçlar. Mevduat şubenin bulunduğu ile kaydedilir; büyük şehirlerde fazla, diğerlerinde eksik görünebilir.</li>
     </ul>
 
+    <h3>Konut erişilebilirliği</h3>
+    <p class="formula card">Brüt kira getirisi = 12 × m² kira / m² fiyat &nbsp;&nbsp; Amortisman = 1 / getiri &nbsp;&nbsp; Ev/maaş = 100 m² fiyat / (12 × ortalama aylık kazanç)</p>
+    <p>Ortalama kazanç SGK'nın prime esas kazancıdır (brüt, tavan ve tabanla sınırlı); gerçek ücret dağılımını tam yansıtmaz.</p>
+
+    <h3>Servet eşitsizliği (model)</h3>
+    <p class="formula card">σ<sub>gelir</sub> = √2 · Φ<sup>−1</sup>((G<sub>gelir</sub> + 1) / 2) &nbsp;&nbsp; σ<sub>servet</sub> = k · σ<sub>gelir</sub> &nbsp;&nbsp; G<sub>servet</sub> = 2Φ(σ<sub>servet</sub> / √2) − 1</p>
+    <p class="formula card">En zengin %p'nin payı = 1 − Φ(Φ<sup>−1</sup>(1 − p) − σ) &nbsp;&nbsp; Medyan / ortalama = e<sup>−σ²/2</sup></p>
+    <ul>
+      <li>Servetin log-normal dağıldığı varsayılır. k (varsayılan 1,8) servetin gelirden ne kadar daha eşitsiz dağıldığını temsil eden bir varsayımdır; sayfada değiştirilebilir.</li>
+      <li>Gelir Gini'si TÜİK'in bölge (İBBS-2) değeridir; aynı bölgedeki iller aynı değeri alır. Log-normal dağılım en üst kesimlerdeki servet yoğunlaşmasını genellikle eksik tahmin eder.</li>
+    </ul>
+
+    <h3>Yastık altı altın (model)</h3>
+    <p class="formula card">Altın<sub>il</sub> = Türkiye toplamı × hane<sub>il</sub> · (hane serveti<sub>il</sub>)<sup>β</sup> / Σ hane · (hane serveti)<sup>β</sup></p>
+    <ul>
+      <li>Türkiye toplamı (varsayılan 3.500 ton) bir varsayımdır; bankacılık sistemi dışındaki hane altını için resmî istatistik yoktur. β = 0 her haneye eşit, β = 1 servetle orantılı dağıtır.</li>
+      <li>TL değeri = ton × 1.000.000 g × gram altın fiyatı (son ay).</li>
+    </ul>
+
     <h2 id="mevzuat">Mevzuat oranları</h2>
     <p>KKDF, BSMV, stopaj ve kredi kartı azami faizleri gibi düzenlenen oranlar <a href="/mevzuat">Mevzuat takibi</a> sayfasındaki kayıttan gelir. Her oranın tarihli geçmişi, kaynağı ve kontrol durumu (doğrulandı / doğrulanmadı / örnek) tutulur; hesaplayıcılar bu değeri varsayılan olarak kullanır, kullanıcı değiştirebilir.</p>
 

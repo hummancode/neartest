@@ -76,7 +76,11 @@ Aralık'a (`2025-12`) yazılır. CDS için ücretsiz resmî kaynak yoktur.
 
 Sütunlar `plaka;yil;deger` (plaka 1–81). Göstergeler: `population`, `household_size`, `gdp_mn_tl`,
 `exports_mn_usd`, `insured_employees`, `companies_active`, `companies_new`, `listed_companies`,
-`deposits_mn_tl`, `loans_mn_tl`, `m2_price_tl`, `sege_score` (ayrıntı: `pipeline/provinces.py`).
+`deposits_mn_tl`, `loans_mn_tl`, `m2_price_tl`, `rent_m2_tl`, `house_sales`, `avg_wage_tl`, `income_gini`,
+`cars`, `sege_score` (ayrıntı: `pipeline/provinces.py`). Gelir Gini'si bölge değeridir; bölgedeki her ile aynı yazılır.
+
+Borsa şirketleri listesi: `iller/bist_sirketler.csv` — `plaka;kod;unvan;sektor` (KAP'taki merkez adresine göre).
+Liste varsa il bazında şirket sayısı bu listeden sayılır.
 Aynı il için birden çok yıl varsa en son yıl kullanılır.
 
 ## Dış ticaret dağılımı

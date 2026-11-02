@@ -31,8 +31,10 @@ def expand(arg):
 def call(fn, args):
     args = [expand(a) for a in args]
     if fn in ("rent_vs_buy", "holding_returns", "loan_cost", "installment_vs_cash", "card_minimum_payoff",
-              "refinance_compare", "deposit_net", "required_saving", "breakeven_gross_rate", "province_wealth"):
+              "refinance_compare", "deposit_net", "required_saving", "breakeven_gross_rate", "province_wealth", "wealth_inequality", "housing_affordability"):
         return getattr(e, fn)(**args[0])
+    if fn == "gold_allocation":
+        return e.gold_allocation(args[0], args[1], **args[2])
     if fn == "asset_windows":
         if len(args) == 5:
             args[4] = tuple(args[4])
