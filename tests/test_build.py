@@ -132,7 +132,7 @@ def test_paths_end_values_match_reel_tablo():
 
 
 def test_prices_are_contiguous_and_tl_is_flat():
-    *_, prices, _, _, _, _ = build.build(allow_sample=True)
+    *_, prices, _, _, _, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in prices["instruments"]}
     assert {"tl", "cpi", "gold", "car", "house_ist"} <= ids
     assert "min_wage" not in ids or "min_wage_net" in build.ORIGIN
@@ -143,7 +143,7 @@ def test_prices_are_contiguous_and_tl_is_flat():
 
 
 def test_housing_gold_return_is_currency_return():
-    *_, housing, _, _, _ = build.build(allow_sample=True)
+    *_, housing, _, _, _, _ = build.build(allow_sample=True)
     ist = next(c for c in housing["cities"] if c["id"] == "ist")
     w = ist["sources"]["kfe"]["windows"][0]
     assert w["years"] == 1 and w["gold"] is not None
@@ -151,7 +151,7 @@ def test_housing_gold_return_is_currency_return():
 
 
 def test_housing_adds_betam_when_present():
-    *_, base_housing, _, _, _ = build.build(allow_sample=True)
+    *_, base_housing, _, _, _, _ = build.build(allow_sample=True)
     data, is_sample = build.load_series(allow_sample=True)
     data = dict(data)
     data["betam_sale_ist"] = dict(data["house_ist"])        # stand-in values, test only
@@ -176,7 +176,7 @@ def test_car_new_from_basket(tmp_path, monkeypatch):
 
 
 def test_macro_indicators_and_end_month_not_held_back():
-    tablo, *_, macro, _, _ = build.build(allow_sample=True)
+    tablo, *_, macro, _, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in macro["indicators"]}
     assert {"gdp_growth", "cds_5y", "policy_rate", "inflation", "bist100_usd"} <= ids
     gdp = next(i for i in macro["indicators"] if i["id"] == "gdp_growth")
@@ -220,3 +220,16 @@ def test_events_derived_and_manual(tmp_path, monkeypatch):
     out = build.build_events(data, {"policy_rate": True})
     assert [(x["month"], x["origin"]) for x in out["events"]] == [("2024-02", "manual"), ("2024-03", "derived")]
     assert out["events"][1]["type"] == "hike" and out["sample"] is True
+
+
+def test_countries_from_raw_or_sample(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "RAW", tmp_path)
+    (tmp_path / "wb_inflation.json").write_text('{"TUR": {"2023": 53.9, "2024": 58.5}, "BRA": {"2023": 4.6}}')
+    (tmp_path / "wb_meta.json").write_text('{"inflation": {"code": "FP.CPI.TOTL.ZG", "verified": true}}')
+    out = build.build_countries(allow_sample=True)
+    inf = next(i for i in out["indicators"] if i["id"] == "inflation")
+    assert inf["sample"] is False and inf["verified"] is True
+    assert inf["latest"] == {"TUR": ["2024", 58.5], "BRA": ["2023", 4.6]}
+    growth = next(i for i in out["indicators"] if i["id"] == "gdp_growth")
+    assert growth["sample"] is True and out["sample"] is True
+    assert out["source"].startswith("Dünya Bankası")

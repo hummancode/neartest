@@ -33,6 +33,12 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#taksit">Taksitli mi, peşin mi?</a></li>
         <li><a href="#maas">Reel maaş</a></li>
         <li><a href="#olaylar">Olay penceresi</a></li>
+        <li><a href="#kart">Kredi kartı</a></li>
+        <li><a href="#yapilandirma">Kredi yapılandırma</a></li>
+        <li><a href="#mevduat">Mevduat net getirisi</a></li>
+        <li><a href="#birikim">Birikim hedefi</a></li>
+        <li><a href="#erime">Paranın erime hızı</a></li>
+        <li><a href="#ulkeler">Ülke karşılaştırması</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
@@ -219,6 +225,41 @@ import { DISCLAIMER } from "../config.ts";
       <li>Olay öncesi ve sonrası hareket, olayın nedensel etkisi değildir; aynı dönemdeki diğer gelişmeleri içerir.</li>
     </ul>
 
+    <h2 id="kart">Kredi kartı</h2>
+    <ul>
+      <li><strong>Asgari ödeme:</strong> her ay kalan borca faiz ve faizin KKDF + BSMV'si eklenir; ardından max(asgari oran × borç, en az ödeme) ödenir. Yeni harcama yapılmadığı varsayılır. Bankalar faizi günlük hesaplar; burada aylık adım kullanıldığından sonuç yaklaşıktır. Asgari ödeme faizi karşılamıyorsa borç büyür ve “bitmiyor” gösterilir.</li>
+      <li><strong>Nakit avans:</strong> ücret baştan kesilen, faizine KKDF ve BSMV eklenen eşit taksitli kredi gibi hesaplanır; gerçek yıllık maliyet iç verim oranıdır (bkz. <a href="#kredi">Kredinin gerçek maliyeti</a>).</li>
+    </ul>
+
+    <h2 id="yapilandirma">Kredi yapılandırma</h2>
+    <p class="formula card">Yeni anapara = kalan anapara × (1 + erken kapama ücreti) (+ krediye eklenen masraflar)</p>
+    <ul>
+      <li>İki planın taksitleri faiz × (1 + KKDF + BSMV) etkin oranla hesaplanır.</li>
+      <li>Karşılaştırma toplam ödemeyle ve bugünkü değerle yapılır: BD = peşin ödeme + Σ taksit / (1 + g)<sup>t</sup>, g kullanıcının paraya biçtiği aylık getiri.</li>
+    </ul>
+
+    <h2 id="mevduat">Mevduat net getirisi</h2>
+    <p class="formula card">Vadelik net oran = brüt × gün / 365 × (1 − stopaj) &nbsp;&nbsp; Yıllık net = (1 + vadelik net)<sup>365/gün</sup> − 1</p>
+    <ul>
+      <li>Her vade sonunda anapara ve net faizin aynı koşullarla yeniden yatırıldığı varsayılır. Stopaj oranı vadeye ve döneme göre değişir; kullanıcı girer.</li>
+      <li>Enflasyonu telafi eden brüt faiz = ((1 + enflasyon)<sup>gün/365</sup> − 1) / (1 − stopaj) × 365 / gün.</li>
+    </ul>
+
+    <h2 id="birikim">Birikim hedefi</h2>
+    <p class="formula card">Hedef<sub>nominal</sub> = Hedef<sub>bugün</sub> × (1 + π)<sup>yıl</sup> = Mevcut × (1 + r<sub>a</sub>)<sup>n</sup> + Σ<sub>t=1..n</sub> c<sub>t</sub> × (1 + r<sub>a</sub>)<sup>n−t</sup></p>
+    <p>r<sub>a</sub> aylık getiri; c<sub>t</sub> = c (sabit) veya c × (1 + π<sub>a</sub>)<sup>t−1</sup> (enflasyonla artan). c bu eşitlikten çözülür.</p>
+
+    <h2 id="erime">Paranın erime hızı</h2>
+    <p class="formula card">Yarılanma süresi = ln 2 / ln(1 + π)</p>
+    <p>π son 12 aylık TÜFE değişimidir; sabit kalacağı varsayımıyla paranın alım gücünün yarıya inme süresidir. Tahmin değildir.</p>
+
+    <h2 id="ulkeler">Ülke karşılaştırması</h2>
+    <ul>
+      <li>Kaynak: Dünya Bankası World Development Indicators (CC BY 4.0). Göstergeler: FP.CPI.TOTL.ZG (enflasyon), NY.GDP.MKTP.KD.ZG (büyüme), NY.GDP.PCAP.CD (kişi başı GSYH, cari $), SL.UEM.TOTL.ZS (işsizlik), BN.CAB.XOKA.GD.ZS (cari denge/GSYH), FR.INR.RINR (reel faiz).</li>
+      <li>Her kod, API'nin döndürdüğü gösterge adı beklenen adla eşleşirse “doğrulandı” sayılır; eşleşmezse kullanılmaz.</li>
+      <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
+    </ul>
+
     <h2 id="kisisel">9. Kişisel enflasyon</h2>
     <p>
       Kullanıcı aylık harcamasını TÜFE ana harcama gruplarına dağıtır. Her grubun payı
@@ -292,7 +333,7 @@ import { DISCLAIMER } from "../config.ts";
   </article>
 </Base>
 
-<style>
+<style is:global>
   .prose { max-width: 760px; }
   .prose p, .prose li { color: var(--ink-2); }
   .prose strong { color: var(--ink); }

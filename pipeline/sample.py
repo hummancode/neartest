@@ -91,3 +91,31 @@ def write(dest: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
     for name, series in build_sample().items():
         (dest / f"{name}.json").write_text(json.dumps(series, indent=0))
+
+
+def sample_worldbank() -> dict[str, dict[str, dict[str, float]]]:
+    """SYNTHETIC annual country data (2005–2024) for the country comparison page. NOT real."""
+    from pipeline.worldbank import COUNTRIES, INDICATORS
+    out = {}
+    for ki, key in enumerate(INDICATORS):
+        out[key] = {}
+        for ci, (iso, _) in enumerate(COUNTRIES):
+            series = {}
+            for y in range(2005, 2025):
+                t = y - 2005
+                w = math.sin(t / 3.0 + ci * 0.7 + ki)
+                if key == "inflation":
+                    v = 4 + 3 * ci % 9 + 3 * w + (25 * max(0.0, t - 13) / 7 if iso in ("TUR", "ARG") else 0)
+                elif key == "gdp_growth":
+                    v = 3 + 2.5 * w
+                elif key == "gdp_pc_usd":
+                    v = (3000 + 1100 * ci) * (1 + 0.03 * t) * (1 + 0.08 * w)
+                elif key == "unemployment":
+                    v = 6 + (ci * 1.3) % 8 + 1.5 * w
+                elif key == "current_account":
+                    v = -2 + 3 * w - (ci % 3)
+                else:
+                    v = 2 + 4 * w - (8 if iso in ("TUR", "ARG") and t > 15 else 0)
+                series[str(y)] = round(v, 2)
+            out[key][iso] = series
+    return out

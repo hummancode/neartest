@@ -269,7 +269,7 @@ const payload = { cities: h.cities, reference: h.reference, end: h.end_month, sa
   update();
 </script>
 
-<style>
+<style is:global>
   .cities { display: grid; gap: 16px; }
   @media (min-width: 860px) { .cities { grid-template-columns: 1fr 1fr; } }
   .city { padding: 14px 10px 8px; min-width: 0; }

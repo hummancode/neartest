@@ -209,7 +209,7 @@ const payload = { instruments: prices.instruments, series: prices.series, end: p
   }).observe(box);
 </script>
 
-<style>
+<style is:global>
   .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
   @media (max-width: 640px) {
     .presets { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }

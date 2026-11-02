@@ -1,0 +1,74 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+const ref = housing.reference;
+const payload = { deposit_rate: ref.deposit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
+---
+<Base title="Birikim hedefi" description="Bugünkü parayla bir hedefe N yılda ulaşmak için ayda ne kadar biriktirmeli? Enflasyon ve getiri varsayımlarıyla." sample={ref.sample}>
+  <h1>Birikim hedefi</h1>
+  <p class="lead">Bugünkü fiyatlarla 1 milyon TL'lik bir hedef, 5 yıl sonra nominal olarak çok daha büyük bir rakamdır. Hedefinizi bugünkü parayla girin; aylık ne biriktirmeniz gerektiğini görün.</p>
+  <form id="f" class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="target">Hedef (bugünkü TL)</label><input id="target" inputmode="decimal" value="1.000.000" /><small>ör. bugün 1.000.000 TL'lik bir araç</small></div>
+      <div class="field"><label for="years">Süre (yıl)</label><input id="years" inputmode="numeric" value="5" /></div>
+      <div class="field"><label for="current">Mevcut birikim (TL)</label><input id="current" inputmode="decimal" value="0" /></div>
+      <div class="field"><label for="ret">Beklenen yıllık getiri (%)</label><input id="ret" inputmode="decimal" /><small id="ref-ret"></small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
+      <div class="field"><label for="grow">Aylık birikim</label><select id="grow"><option value="1">Enflasyonla artsın (reel sabit)</option><option value="0">Hep aynı TL</option></select></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Aylık birikim</p><p class="s-value" id="o-monthly">—</p><p class="muted small" id="o-monthly-sub"></p></div>
+    <div class="card stat"><p class="s-label">Hedefin o günkü TL karşılığı</p><p class="s-value" id="o-target">—</p><p class="muted small" id="o-target-sub"></p></div>
+    <div class="card stat"><p class="s-label">Toplam yatıracağınız</p><p class="s-value" id="o-total">—</p><p class="muted small" id="o-total-sub"></p></div>
+  </section>
+  <h2>Nasıl hesaplanıyor?</h2>
+  <ul>
+    <li>Nominal hedef = bugünkü hedef × (1 + enflasyon)<sup>yıl</sup>. Mevcut birikim ve her ay sonu yatırılan tutar beklenen getiriyle aylık bileşik büyür.</li>
+    <li>“Enflasyonla artsın” seçilirse aylık tutar her ay enflasyon kadar artar; gösterilen tutar ilk aydır.</li>
+    <li>Vergi ve masraflar dahil değildir; getiri garantili değildir. Ayrıntılar: <a href="/metodoloji#birikim">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="b-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { requiredSaving, SeriesError } from "../lib/engine.ts";
+  import { readNumber, tl, num } from "../lib/inputs.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  const ref = JSON.parse(document.getElementById("b-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const F = ["target", "years", "current", "ret", "inf", "grow"];
+  const MONEY = new Set(["target", "current"]);
+  const sn = ref.sample ? " (örnek veri)" : "";
+  if (ref.deposit_rate != null) $("ref-ret").textContent = `referans: TL mevduat faizi (brüt) %${num(ref.deposit_rate * 100)}${sn}`;
+  if (ref.cpi_12m != null) $("ref-inf").textContent = `referans: son 12 ay TÜFE %${num(ref.cpi_12m * 100)}${sn}`;
+  function update() {
+    const err = $<HTMLElement>("err");
+    const v: Record<string, number | null> = {};
+    for (const f of F) v[f] = f === "grow" ? Number(($(f) as unknown as HTMLSelectElement).value) : readNumber($(f), MONEY.has(f));
+    if (F.some((f) => v[f] === null)) { err.textContent = "Tüm alanları doldurun."; err.hidden = false; return; }
+    if (!Number.isInteger(v.years!) || v.years! < 1 || v.years! > 50) { err.textContent = "Süre 1–50 yıl arasında olmalı."; err.hidden = false; return; }
+    let r;
+    try { r = requiredSaving({ target_today: v.target!, years: v.years!, inflation: v.inf! / 100, nominal_return: v.ret! / 100, current: v.current!, grow_with_inflation: v.grow === 1 }); }
+    catch (e) { if (e instanceof SeriesError) { err.textContent = "Bu değerlerle hesap yapılamadı."; err.hidden = false; return; } throw e; }
+    err.hidden = true;
+    writeHash(Object.fromEntries(F.map((f) => [f, ($(f) as HTMLInputElement).value])));
+    $("o-monthly").textContent = r.monthly === 0 ? "Gerek yok" : tl(r.monthly);
+    $("o-monthly-sub").textContent = r.monthly === 0 ? "mevcut birikiminiz beklenen getiriyle hedefe ulaşıyor"
+      : v.grow === 1 ? "ilk ay; her ay enflasyon kadar artırarak" : "her ay aynı tutar";
+    $("o-target").textContent = tl(r.target_nominal);
+    $("o-target-sub").textContent = `${v.years} yıl sonra, bugünkü ${tl(v.target!)} için`;
+    $("o-total").textContent = tl(r.total_contributed);
+    $("o-total-sub").textContent = `getiriden gelecek kısım ≈ ${tl(Math.max(0, r.target_nominal - r.total_contributed))}`;
+  }
+  const h = readHash();
+  if (h.get("target")) F.forEach((f) => h.get(f) !== null && (($(f) as HTMLInputElement).value = h.get(f)!));
+  else {
+    $("ret").value = ref.deposit_rate != null ? num(+(ref.deposit_rate * 100).toFixed(1)) : "40";
+    $("inf").value = ref.cpi_12m != null ? num(+(ref.cpi_12m * 100).toFixed(1)) : "30";
+  }
+  F.forEach((f) => $(f).addEventListener("input", update));
+  update();
+</script>

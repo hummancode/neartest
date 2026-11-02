@@ -33,6 +33,7 @@ OUT_HOUSING = ROOT / "site" / "data" / "konut.json"
 OUT_MACRO = ROOT / "site" / "data" / "makro.json"
 OUT_STOCKS = ROOT / "site" / "data" / "borsa.json"
 OUT_EVENTS = ROOT / "site" / "data" / "olaylar.json"
+OUT_COUNTRIES = ROOT / "site" / "data" / "ulkeler.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -186,9 +187,10 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     housing = build_housing(data, is_sample, end)
     macro = build_macro(data, is_sample, end)
     events = build_events(data, is_sample)
-    for d in (prices, housing, macro, stocks_out, events):
+    countries = build_countries(allow_sample) or {"sample": True, "indicators": [], "countries": [], "source": ""}
+    for d in (prices, housing, macro, stocks_out, events, countries):
         d["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -553,6 +555,43 @@ def build_events(data: dict, is_sample: dict, threshold: float = 1.0) -> dict:
     }
 
 
+def build_countries(allow_sample: bool) -> dict | None:
+    """World Bank indicators per country (data/raw/wb_*.json from pipeline.worldbank, or sample)."""
+    from pipeline import worldbank as wb
+
+    meta_path = RAW / "wb_meta.json"
+    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+    synthetic = sample.sample_worldbank() if allow_sample else {}
+    indicators = []
+    for key, (code, _expected, label, unit, kind) in wb.INDICATORS.items():
+        path = RAW / f"wb_{key}.json"
+        if path.exists():
+            data, is_sample = json.loads(path.read_text()), False
+        elif allow_sample:
+            data, is_sample = synthetic[key], True
+        else:
+            continue
+        latest = {}
+        for iso, years in data.items():
+            if years:
+                y = max(years)
+                latest[iso] = [y, years[y]]
+        indicators.append({
+            "id": key, "label": label, "unit": unit, "kind": kind, "code": code,
+            "verified": bool(meta.get(key, {}).get("verified")), "sample": is_sample,
+            "series": {iso: [[y, v] for y, v in sorted(years.items())] for iso, years in data.items()},
+            "latest": latest,
+        })
+    if not indicators:
+        return None
+    return {
+        "source": "Dünya Bankası, World Development Indicators (CC BY 4.0)",
+        "countries": [{"iso": iso, "name": name} for iso, name in wb.COUNTRIES],
+        "sample": any(i["sample"] for i in indicators),
+        "indicators": indicators,
+    }
+
+
 USED_BY = {
     "cpi_tr": "Tüm reel hesaplar", "usdtry": "USD getirisi, nominal illüzyon", "eurtry": "Reel Tablo",
     "deposit_rate": "Reel Tablo, reel faiz", "credit_rate": "Reel Tablo, reel faiz",
@@ -658,7 +697,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -671,8 +710,9 @@ def main() -> int:
     write_if_changed(OUT_MACRO, macro)
     write_if_changed(OUT_STOCKS, stocks_out)
     write_if_changed(OUT_EVENTS, events)
+    write_if_changed(OUT_COUNTRIES, countries)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (11 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (12 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

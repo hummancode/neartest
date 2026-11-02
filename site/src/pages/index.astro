@@ -84,6 +84,11 @@ function sparkLabel(row: Row) {
       ["/taksit", "Taksitli mi, peşin mi?", "“Faizsiz taksit”in gizli faizi ve bugünkü değeri."],
       ["/maas", "Reel maaş takibi", "Zamlarınız enflasyonu, doları, altını yendi mi?"],
       ["/olaylar", "Olay penceresi", "Faiz kararları etrafında piyasalar ortalama ne yaptı?"],
+      ["/ulkeler", "Ülke karşılaştırması", "Türkiye ve benzer ekonomiler: enflasyon, büyüme, gelir, işsizlik."],
+      ["/kart", "Kredi kartı", "Yalnızca asgari ödeme yaparsanız borç kaç ayda biter? Nakit avansın maliyeti."],
+      ["/yapilandirma", "Kredi yapılandırma", "Krediyi kapatıp yenisine geçmek gerçekten kârlı mı?"],
+      ["/mevduat", "Mevduat getirisi", "Stopaj sonrası net ve reel getiri; enflasyonu yeniyor mu?"],
+      ["/birikim", "Birikim hedefi", "Bugünkü parayla hedefe ulaşmak için ayda ne biriktirmeli?"],
       ["/portfoy", "Portföyüm", "Kendi alımlarınızın gerçek getirisi. Veriler tarayıcınızda kalır."],
       ["/konut", "Konut", "Şehirlerde konutun reel getirisi; kirala mı, satın al mı?"],
       ["/reel-faiz", "Reel Faiz", "Mevduat ve kredi faizi enflasyonun üstünde mi?"],
@@ -127,7 +132,7 @@ function sparkLabel(row: Row) {
   <p class="disclaimer"><strong>{DISCLAIMER}</strong></p>
 </Base>
 
-<style>
+<style is:global>
   .assets { display: grid; gap: 16px; margin-top: 20px; }
   @media (min-width: 860px) { .assets { grid-template-columns: 1fr 1fr; } }
   .assets > * { min-width: 0; }
@@ -164,7 +169,7 @@ function sparkLabel(row: Row) {
     .lbl-short { display: inline; }
     .asset { padding: 12px 6px 6px; }
     .asset-head h3 { font-size: 1.35rem; }
-    .trend :global(svg) { width: 100px; }
+    .trend svg { width: 100px; }
     .data tbody th { font-size: 0.72rem; }
     .cum { font-size: 0.72rem; letter-spacing: -0.01em; }
     tr.real .cum { font-size: 0.76rem; }

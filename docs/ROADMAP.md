@@ -24,7 +24,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | **Makro Pano** (örnek veriyle; seri kodları doğrulanacak): GSYH büyümesi, kişi başı GSYH ($), TÜFE, işsizlik, cari denge, rezervler, politika faizi, CDS, bütçe | TÜİK/TCMB/HMB via EVDS; **CDS**: resmi ücretsiz kaynak yok (lisanslı veri) → elle |
 | ✅ | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
 | ✅ | Olay penceresi: faiz artış/indirim ayları (politika faizi serisinden) ve elle eklenen resmi olaylar etrafında ortalama/medyan hareket | `data/manual/events.csv`; ay düzeyinde (günlük veriyle iyileştirilebilir) |
-| ⬜ | Ülke karşılaştırması: Türkiye ve benzer ekonomiler (enflasyon, büyüme, borç/GSYH) | Dünya Bankası / IMF açık verileri (lisansları uygun) |
+| ✅ | Ülke karşılaştırması: Türkiye ve 11 benzer ekonomi (enflasyon, büyüme, kişi başı GSYH, işsizlik, cari denge, reel faiz) | Dünya Bankası WDI (CC BY 4.0); kodlar API adıyla doğrulanır; günlük işte çekilir |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
 
@@ -34,16 +34,19 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | Nominal illüzyon, kişisel enflasyon, kirala/satın al | — |
 | ✅ | **Taksitli mi peşin mi?** Bugünkü değer ve taksit planının gizli faizi | — |
 | ✅ | Reel maaş takibi: her zam enflasyona karşı, bugünkü TL / dolar / altın karşılığı | tarayıcıda saklanır |
-| ⬜ | Paranın erime hızı: TL'nin alım gücünün yarılanma süresi | TÜFE |
-| ⬜ | Birikim hedefi: reel hedefe ulaşmak için aylık birikim | varsayım girdileri |
+| ✅ | Paranın erime hızı: yarılanma süresi ve 1.000 TL'nin alım gücü (nominal illüzyon sayfasında) | TÜFE |
+| ✅ | Birikim hedefi: bugünkü parayla hedef için aylık birikim | varsayım girdileri |
+| ✅ | Mevduat net/reel getirisi (stopaj, vade, yenileme) ve enflasyonu telafi eden brüt faiz | — |
 | ✅ | Kredinin gerçek maliyeti: KKDF, BSMV, tahsis ücreti, sigorta → iç verim oranı, ödeme planı, reel maliyet | oranlar kullanıcıdan (mevzuat değişebilir) |
-| ⬜ | Kredi kartı asgari ödeme / nakit avans maliyeti, kredi yapılandırma karşılaştırması | — |
+| ✅ | Kredi kartı asgari ödeme ve nakit avans maliyeti; kredi yapılandırma karşılaştırması | oranlar kullanıcıdan |
+| ⬜ | Emeklilik / BES reel getiri ve devlet katkısı hesaplayıcısı | BES kuralları kullanıcıdan |
+| ⬜ | Döviz/altın tevdiat vs TL mevduat: başabaş kur | kur + faiz |
 
 ## 4. Platform
 | | Fikir | Not |
 |---|---|---|
 | ✅ | Paylaşılabilir bağlantı ve PNG kartlar | — |
-| ⬜ | Her tablo/grafik için CSV indirme | statik, kolay |
+| ✅ | Veri setlerinin CSV/JSON indirilmesi (`/indir/…`, Veri durumu sayfasında) | — |
 | ⬜ | Haftalık bülten taslağının otomatik üretimi (yalnızca rakamlar) | elle onaylanır |
 | ⬜ | E-posta uyarıları ("reel mevduat faizi pozitife döndü") | sunucu gerektirir — sonraki faz |
 | ⬜ | Açık JSON uç noktaları (site/data zaten statik) | lisanslar uygun serilerle |

@@ -496,3 +496,93 @@ export function eventStudy(series: Series, kind: string, events: string[], befor
   const med = n ? offsets.map((_, i) => median(paths.map((p) => p[i]))) : [];
   return { offsets, n, events: used, skipped, paths, mean, median: med };
 }
+
+// --- credit card minimum payment ----------------------------------------------
+
+export function cardMinimumPayoff(p: { balance: number; monthly_rate: number; kkdf: number; bsmv: number; min_share: number; min_floor: number; max_months?: number }) {
+  if (!(p.balance > 0) || !(p.min_share > 0 && p.min_share <= 1)) throw new SeriesError("balance must be positive and minimum share in (0, 1]");
+  const maxMonths = p.max_months ?? 600;
+  let bal = p.balance, paid = 0, interestTotal = 0, taxTotal = 0, months = 0;
+  const balances = [p.balance];
+  while (bal > 1e-9 && months < maxMonths) {
+    months++;
+    const interest = bal * p.monthly_rate;
+    const tax = interest * (p.kkdf + p.bsmv);
+    bal += interest + tax;
+    const pay = Math.min(bal, Math.max(p.min_share * bal, p.min_floor));
+    bal -= pay;
+    paid += pay; interestTotal += interest; taxTotal += tax;
+    balances.push(Math.max(bal, 0));
+  }
+  return { months, paid_off: bal <= 1e-9, total_paid: paid, total_interest: interestTotal, total_tax: taxTotal, remaining: Math.max(bal, 0), balances };
+}
+
+// --- loan restructuring -------------------------------------------------------
+
+export interface RefiParams {
+  balance: number; rate_old: number; months_old: number; rate_new: number; months_new: number;
+  kkdf: number; bsmv: number; prepay_penalty: number; new_fees: number; fees_financed: boolean; annual_discount: number;
+}
+export function refinanceCompare(p: RefiParams) {
+  if (!(p.balance > 0) || !(p.months_old > 0) || !(p.months_new > 0)) throw new SeriesError("balance and terms must be positive");
+  const tax = 1.0 + p.kkdf + p.bsmv;
+  const oldPayment = mortgagePayment(p.balance, p.rate_old * tax, p.months_old);
+  const newPrincipal = p.balance * (1.0 + p.prepay_penalty) + (p.fees_financed ? p.new_fees : 0.0);
+  const upfront = p.fees_financed ? 0.0 : p.new_fees;
+  const newPayment = mortgagePayment(newPrincipal, p.rate_new * tax, p.months_new);
+  const md = (1.0 + p.annual_discount) ** (1 / 12) - 1.0;
+  const pvOld = presentValue(Array(p.months_old).fill(oldPayment), md, 1);
+  const pvNew = upfront + presentValue(Array(p.months_new).fill(newPayment), md, 1);
+  const saving = pvOld - pvNew;
+  return {
+    old_payment: oldPayment, new_payment: newPayment, new_principal: newPrincipal, upfront,
+    total_old: oldPayment * p.months_old, total_new: upfront + newPayment * p.months_new,
+    pv_old: pvOld, pv_new: pvNew, saving_pv: saving,
+    better: Math.abs(saving) < 1e-9 ? "equal" : saving > 0 ? "new" : "old",
+  };
+}
+
+// --- deposit net return, savings goal, half-life ----------------------------------
+
+export function depositNet(p: { principal: number; gross_annual: number; days: number; withholding: number; inflation: number }) {
+  if (!(p.principal > 0) || !(p.days > 0)) throw new SeriesError("principal and term must be positive");
+  const grossTerm = (p.gross_annual * p.days) / 365.0;
+  const netTerm = grossTerm * (1.0 - p.withholding);
+  const netAnnual = (1.0 + netTerm) ** (365.0 / p.days) - 1.0;
+  return {
+    gross_interest_term: p.principal * grossTerm,
+    tax_term: p.principal * grossTerm * p.withholding,
+    net_interest_term: p.principal * netTerm,
+    net_term_rate: netTerm,
+    net_annual: netAnnual,
+    real_annual: realReturn(netAnnual, p.inflation),
+  };
+}
+
+export function requiredSaving(p: { target_today: number; years: number; inflation: number; nominal_return: number; current: number; grow_with_inflation: boolean }) {
+  if (!(p.target_today > 0) || !(p.years > 0)) throw new SeriesError("target and years must be positive");
+  const n = 12 * p.years;
+  const mi = (1.0 + p.inflation) ** (1 / 12) - 1.0;
+  const mr = (1.0 + p.nominal_return) ** (1 / 12) - 1.0;
+  const targetNominal = p.target_today * (1.0 + p.inflation) ** p.years;
+  const fvCurrent = p.current * (1.0 + mr) ** n;
+  const g = (t: number) => (p.grow_with_inflation ? (1.0 + mi) ** (t - 1) : 1.0);
+  let factor = 0;
+  for (let t = 1; t <= n; t++) factor += g(t) * (1.0 + mr) ** (n - t);
+  const monthly = Math.max(0.0, (targetNominal - fvCurrent) / factor);
+  let contributions = 0;
+  for (let t = 1; t <= n; t++) contributions += monthly * g(t);
+  return { monthly, target_nominal: targetNominal, fv_current: fvCurrent, total_contributed: contributions + p.current };
+}
+
+export function halfLifeYears(annualInflation: number): number {
+  if (!(annualInflation > 0)) throw new SeriesError("inflation must be positive");
+  return Math.log(2.0) / Math.log(1.0 + annualInflation);
+}
+
+/** Gross annual deposit rate whose net, rolled-over return exactly matches inflation. */
+export function breakevenGrossRate(p: { inflation: number; days: number; withholding: number }): number {
+  if (!(p.days > 0) || !(p.withholding < 1)) throw new SeriesError("term must be positive and withholding below 100 %");
+  const netTerm = (1.0 + p.inflation) ** (p.days / 365.0) - 1.0;
+  return (netTerm / (1.0 - p.withholding)) * 365.0 / p.days;
+}

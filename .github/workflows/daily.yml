@@ -26,6 +26,10 @@ jobs:
         if: ${{ env.EVDS_API_KEY == '' }}
         run: echo "::warning::EVDS_API_KEY secret yok; yalnızca örnek veri kullanılacak."
 
+      - name: fetch World Bank (country comparison, no key needed)
+        run: python -m pipeline.worldbank
+        continue-on-error: true
+
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
 

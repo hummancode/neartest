@@ -84,6 +84,14 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
     </div>
   </section>
 
+  <h2 id="erime">Paranın erime hızı</h2>
+  <section class="card melt">
+    <p class="melt-big" id="melt-big">—</p>
+    <p class="muted" id="melt-sub"></p>
+    <div id="melt-chart" class="chart-box"></div>
+    <p class="muted small" id="melt-note"></p>
+  </section>
+
   <h2>Nasıl hesaplanıyor?</h2>
   <p class="formula card">Bugünkü karşılık = Tutar × Seviye<sub>bugün</sub> / Seviye<sub>o ay</sub></p>
   <p>
@@ -103,7 +111,8 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
 </Base>
 
 <script>
-  import { valueToday, SeriesError } from "../lib/engine.ts";
+  import { valueToday, windowReturn, halfLifeYears, SeriesError } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
   import { parseAmount, drawCard, downloadCanvas, type CardData } from "../lib/card.ts";
   import { readHash, writeHash, copyLink } from "../lib/share.ts";
 
@@ -231,9 +240,35 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
 
   document.getElementById("copy-link")!.addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
   update();
+
+  // Purchasing-power half-life at the latest 12-month inflation, and 1.000 TL's purchasing power over time.
+  function melt() {
+    const cpi = S.cpi_tr;
+    let infl: number;
+    try { infl = windowReturn(cpi, END, 12); } catch { return; }
+    const tlFull = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(x) + " TL";
+    if (infl > 0) {
+      const hl = halfLifeYears(infl);
+      const y = Math.floor(hl), m = Math.round((hl - y) * 12);
+      $("melt-big").textContent = `${y > 0 ? `${y} yıl ` : ""}${m > 0 ? `${m} ay` : ""}`.trim();
+      $("melt-sub").textContent = `Son 12 ayın enflasyonu (%${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(infl * 100)}) sürerse, paranın alım gücü bu sürede yarıya iner.` + (data.sample ? " (örnek veri)" : "");
+    } else {
+      $("melt-big").textContent = "—";
+      $("melt-sub").textContent = "Son 12 ayda fiyatlar düşmüş; yarılanma süresi tanımlı değil.";
+    }
+    const months = Object.keys(cpi).filter((m) => m <= END).sort();
+    const first = months[0];
+    const values = months.map((m) => valueToday(1000, cpi[m], cpi[first]));   // 1.000 TL of `first`, in that month's prices
+    renderChart($("melt-chart"), { months, series: [{ key: "pp", label: "Alım gücü", color: "var(--series-2)", values }] },
+      { baseline: null, format: tlFull, allowLog: false });
+    $("melt-note").textContent = `Başlangıç: ${label(first)} itibarıyla cebinizdeki 1.000 TL. Çizgi, bu paranın her ayın fiyatlarıyla ölçülen alım gücüdür; ${label(END)} itibarıyla ${tlFull(values[values.length - 1])}.`;
+  }
+  melt();
+  let lastMeltW = 0;
+  new ResizeObserver(() => { const w = $("melt-chart").clientWidth; if (Math.abs(w - lastMeltW) > 2) { lastMeltW = w; melt(); } }).observe($("melt-chart"));
 </script>
 
-<style>
+<style is:global>
   .privacy { color: var(--ink-2); }
   .form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
   .field:first-child { grid-column: 1 / -1; }
@@ -259,5 +294,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
   .r p { margin-bottom: 0; }
   .missing { border-style: dashed; }
   .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }
+  .melt-big { font-family: var(--font-head); font-size: clamp(2.4rem, 10vw, 3.4rem); margin: 0; line-height: 1.1; }
+  .melt .chart-box { min-height: 240px; margin-top: 8px; }
   .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 12px 16px; overflow-x: auto; }
 </style>

@@ -35,6 +35,12 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   installment_vs_cash: e.installmentVsCash,
   salary_analysis: e.salaryAnalysis,
   event_study: e.eventStudy,
+  card_minimum_payoff: e.cardMinimumPayoff,
+  refinance_compare: e.refinanceCompare,
+  deposit_net: e.depositNet,
+  required_saving: e.requiredSaving,
+  half_life_years: e.halfLifeYears,
+  breakeven_gross_rate: e.breakevenGrossRate,
 };
 
 function expand(arg: any): any {

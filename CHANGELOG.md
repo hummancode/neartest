@@ -78,3 +78,13 @@
   olaylar etrafında ortalama/medyan yol). Motor: `irr`, `amortization`, `loan_cost`, `present_value`,
   `installment_vs_cash`, `salary_analysis`, `event_study`, `derive_rate_events` (önce test; TS; 59
   ortak vaka). Sayfa sonuçları Python ile birebir doğrulandı. Örnek politika faizi basamaklı hâle getirildi.
+- 2026-11-02 — Borç araçları, ülkeler, birikim: `/kart` (yalnızca asgari ödemeyle borcun seyri, toplam faiz+vergi,
+  bitmeyen borç uyarısı; nakit avansın gerçek yıllık maliyeti), `/yapilandirma` (erken kapama ücreti ve
+  masraflarla mevcut vs yeni kredi: taksit, toplam, bugünkü değer), `/mevduat` (stopaj sonrası net ve
+  reel yıllık getiri, enflasyonu telafi eden brüt faiz), `/birikim` (bugünkü parayla hedef için aylık
+  birikim), paranın erime hızı (nominal illüzyon sayfasında), `/ulkeler` (Dünya Bankası WDI; 12 ülke,
+  6 gösterge; `pipeline/worldbank.py` kodları API adıyla doğrular, günlük işte çalışır; şimdilik örnek
+  veri). `/indir/*.csv|json` veri indirme. Motor: `card_minimum_payoff`, `refinance_compare`,
+  `deposit_net`, `breakeven_gross_rate`, `required_saving`, `half_life_years` (önce test; TS; 71 ortak
+  vaka). Menüye "Borç" grubu. Hata düzeltmesi: JS ile üretilen öğelere sayfa stilleri uygulanmıyordu
+  (Astro kapsamlı stil) → sayfa stilleri genel yapıldı; ülke sıralama çubukları, kredi gider işaretleri vb. düzeldi.

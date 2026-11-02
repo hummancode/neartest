@@ -1,0 +1,120 @@
+---
+import Base from "../layouts/Base.astro";
+import { countries } from "../lib/countries.ts";
+import { DISCLAIMER } from "../config.ts";
+const c = countries;
+const payload = { countries: c.countries, indicators: c.indicators };
+---
+<Base title="Ülke karşılaştırması" description="Türkiye ve benzer ekonomiler: enflasyon, büyüme, kişi başı gelir, işsizlik, cari denge ve reel faiz." sample={c.sample}>
+  <h1>Ülke karşılaştırması</h1>
+  <p class="lead">Türkiye'nin rakamlarını tek başına değil, benzer gelişmekte olan ekonomilerle yan yana görün.</p>
+
+  {c.indicators.length === 0 ? <p class="card">Ülke verisi henüz yok.</p> : (
+    <>
+      <section class="card controls">
+        <div class="form-grid three">
+          <div class="field"><label for="ind">Gösterge</label><select id="ind">{c.indicators.map((i) => <option value={i.id}>{i.label}</option>)}</select></div>
+          <div class="field"><label for="c2">Karşılaştır (1)</label><select id="c2">{c.countries.filter((x) => x.iso !== "TUR").map((x, k) => <option value={x.iso} selected={k === 0}>{x.name}</option>)}</select></div>
+          <div class="field"><label for="c3">Karşılaştır (2)</label><select id="c3"><option value="">— yok —</option>{c.countries.filter((x) => x.iso !== "TUR").map((x, k) => <option value={x.iso} selected={k === 6}>{x.name}</option>)}</select></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="c-title" id="rank-title"></h2>
+        <p class="muted small" id="rank-sub"></p>
+        <table class="data rank" id="rank"><thead><tr><th scope="col">#</th><th scope="col">Ülke</th><th scope="col">Değer</th><th scope="col" class="bar-col"><span class="sr-only">Çubuk</span></th></tr></thead><tbody></tbody></table>
+      </section>
+
+      <section class="card">
+        <h2 class="c-title" id="chart-title"></h2>
+        <div id="chart" class="chart-box"></div>
+      </section>
+      <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+    </>
+  )}
+
+  <h2>Kaynak ve notlar</h2>
+  <ul class="small">
+    <li>{c.source || "Dünya Bankası"}. Gösterge kodları API'den dönen gösterge adıyla karşılaştırılarak doğrulanır{c.sample ? "; şu an ÖRNEK VERİ gösteriliyor" : ""}.</li>
+    <li>Yıllık verilerdir; her ülkenin son yayımlanmış yılı farklı olabilir (tabloda yazar). Ülkeler arası tanım farkları olabilir.</li>
+    <li>Sıralama yalnızca değere göredir; iyi/kötü yorumu içermez.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="u-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { formatValue } from "../lib/macro.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+  const data = JSON.parse(document.getElementById("u-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const name: Record<string, string> = Object.fromEntries(data.countries.map((x: any) => [x.iso, x.name]));
+  const byId: Record<string, any> = Object.fromEntries(data.indicators.map((i: any) => [i.id, i]));
+  const ind = $<HTMLSelectElement>("ind"), c2 = $<HTMLSelectElement>("c2"), c3 = $<HTMLSelectElement>("c3");
+
+  function draw() {
+    if (!ind) return;
+    const I = byId[ind.value];
+    writeHash({ i: I.id, a: c2.value, b: c3.value });
+    $("rank-title").textContent = `${I.label} — son yıl`;
+    $("rank-sub").textContent = `Kod ${I.code}${I.verified ? " (doğrulandı)" : ""}${I.sample ? " · ÖRNEK VERİ" : ""}`;
+    const rows = Object.entries(I.latest as Record<string, [string, number]>).sort((a, b) => b[1][1] - a[1][1]);
+    const maxAbs = Math.max(...rows.map(([, [, v]]) => Math.abs(v))) || 1;
+    const anyNeg = rows.some(([, [, v]]) => v < 0);
+    const tbody = document.querySelector("#rank tbody")!;
+    tbody.replaceChildren(...rows.map(([iso, [year, v]], k) => {
+      const tr = document.createElement("tr");
+      if (iso === "TUR") tr.className = "tur";
+      const td = (t: string) => { const x = document.createElement("td"); x.textContent = t; return x; };
+      const th = document.createElement("th"); th.scope = "row"; th.textContent = name[iso] ?? iso;
+      const valTd = td(`${formatValue(I.unit, v)}`);
+      const yr = document.createElement("span"); yr.className = "muted small"; yr.textContent = ` ${year}`; valTd.appendChild(yr);
+      const barTd = document.createElement("td"); barTd.className = "bar-col";
+      const track = document.createElement("div"); track.className = "track" + (anyNeg ? " has-neg" : "");
+      const bar = document.createElement("span"); bar.className = "bar" + (v < 0 ? " neg" : "");
+      const w = (Math.abs(v) / maxAbs) * (anyNeg ? 50 : 100);
+      bar.style.width = `${w}%`;
+      if (anyNeg) bar.style.left = v < 0 ? `${50 - w}%` : "50%";
+      track.appendChild(bar); barTd.appendChild(track);
+      tr.append(td(String(k + 1)), th, valTd, barTd);
+      return tr;
+    }));
+    const isos = ["TUR", c2.value, c3.value].filter((x, i, a) => x && a.indexOf(x) === i);
+    const sets = isos.map((iso) => Object.fromEntries((I.series[iso] || []).map(([y, v]: [string, number]) => [y, v])));
+    const years = [...new Set(sets.flatMap((s) => Object.keys(s)))].sort().filter((y) => sets.every((s) => y in s));
+    $("chart-title").textContent = `${I.label}: ${isos.map((x) => name[x]).join(", ")}`;
+    const COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)"];
+    if (years.length > 1) {
+      renderChart($("chart"), { months: years.map((y) => `${y}-12`), series: isos.map((iso, k) => ({ key: iso, label: name[iso], color: COLORS[k], values: years.map((y) => sets[k][y]) })) },
+        { baseline: I.kind === "rate" ? 0 : null, format: (v) => formatValue(I.unit, v), allowLog: false });
+    } else $("chart").replaceChildren();
+  }
+  if (ind) {
+    const h = readHash();
+    if (h.get("i") && byId[h.get("i")!]) ind.value = h.get("i")!;
+    if (h.get("a") && name[h.get("a")!]) c2.value = h.get("a")!;
+    if (h.get("b") !== null && (h.get("b") === "" || name[h.get("b")!])) c3.value = h.get("b")!;
+    [ind, c2, c3].forEach((s) => s.addEventListener("change", draw));
+    $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+    let lastW = 0;
+    new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 2) { lastW = w; draw(); } }).observe($("chart"));
+  }
+</script>
+<style is:global>
+  .c-title { font-size: 1.2rem; margin: 0 0 4px; }
+  .controls { margin-bottom: 12px; }
+  section.card + section.card { margin-top: 12px; }
+  .rank { font-size: 0.9rem; }
+  .rank th, .rank td { text-align: left; }
+  .rank tbody th { font-weight: 600; }
+  .rank tr.tur th, .rank tr.tur td { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .bar-col { width: 40%; }
+  .track { position: relative; height: 12px; }
+  .track.has-neg::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); }
+  .bar { position: absolute; top: 0; height: 12px; border-radius: 3px; background: var(--series-1); }
+  .bar.neg { background: var(--series-2); }
+  .chart-box { min-height: 260px; }
+  .actions { margin-top: 12px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 480px) { .bar-col { width: 30%; } }
+</style>

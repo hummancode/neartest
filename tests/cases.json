@@ -1166,6 +1166,247 @@
      "2024-08"
     ]
    }
+  },
+  {
+   "name": "card_minimum_payoff zero interest",
+   "fn": "card_minimum_payoff",
+   "args": [
+    {
+     "balance": 1000,
+     "monthly_rate": 0.0,
+     "kkdf": 0,
+     "bsmv": 0,
+     "min_share": 0.5,
+     "min_floor": 100
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "months": 5,
+    "paid_off": true,
+    "total_paid": 1000.0,
+    "balances": [
+     1000.0,
+     500.0,
+     250.0,
+     125.0,
+     25.0,
+     0.0
+    ]
+   },
+   "note": "500,250,125,100,25"
+  },
+  {
+   "name": "card_minimum_payoff full payment",
+   "fn": "card_minimum_payoff",
+   "args": [
+    {
+     "balance": 1000,
+     "monthly_rate": 0.1,
+     "kkdf": 0.15,
+     "bsmv": 0.15,
+     "min_share": 1.0,
+     "min_floor": 0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "months": 1,
+    "total_interest": 100.0,
+    "total_tax": 30.0
+   }
+  },
+  {
+   "name": "card_minimum_payoff never pays off",
+   "fn": "card_minimum_payoff",
+   "args": [
+    {
+     "balance": 1000,
+     "monthly_rate": 0.1,
+     "kkdf": 0,
+     "bsmv": 0,
+     "min_share": 0.05,
+     "min_floor": 0,
+     "max_months": 24
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "months": 24,
+    "paid_off": false
+   }
+  },
+  {
+   "name": "refinance_compare equal at zero rates",
+   "fn": "refinance_compare",
+   "args": [
+    {
+     "balance": 1200.0,
+     "rate_old": 0.0,
+     "months_old": 12,
+     "rate_new": 0.0,
+     "months_new": 24,
+     "kkdf": 0.0,
+     "bsmv": 0.0,
+     "prepay_penalty": 0.0,
+     "new_fees": 0.0,
+     "fees_financed": false,
+     "annual_discount": 0.0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "old_payment": 100.0,
+    "new_payment": 50.0,
+    "pv_old": 1200.0,
+    "pv_new": 1200.0,
+    "better": "equal"
+   }
+  },
+  {
+   "name": "refinance_compare cheaper rate",
+   "fn": "refinance_compare",
+   "args": [
+    {
+     "balance": 1200.0,
+     "rate_old": 0.01,
+     "months_old": 12,
+     "rate_new": 0.0,
+     "months_new": 12,
+     "kkdf": 0.0,
+     "bsmv": 0.0,
+     "prepay_penalty": 0.0,
+     "new_fees": 0.0,
+     "fees_financed": false,
+     "annual_discount": 0.0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "old_payment": 106.61854641400993,
+    "saving_pv": 79.42255696811912,
+    "better": "new"
+   }
+  },
+  {
+   "name": "refinance_compare penalty and financed fees",
+   "fn": "refinance_compare",
+   "args": [
+    {
+     "balance": 1200.0,
+     "rate_old": 0.01,
+     "months_old": 12,
+     "rate_new": 0.0,
+     "months_new": 12,
+     "kkdf": 0.0,
+     "bsmv": 0.0,
+     "prepay_penalty": 0.02,
+     "new_fees": 50,
+     "fees_financed": true,
+     "annual_discount": 0.0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "new_principal": 1274.0,
+    "new_payment": 106.16666666666667,
+    "upfront": 0.0
+   }
+  },
+  {
+   "name": "deposit_net one year",
+   "fn": "deposit_net",
+   "args": [
+    {
+     "principal": 100000,
+     "gross_annual": 0.5,
+     "days": 365,
+     "withholding": 0.1,
+     "inflation": 0.0
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "net_interest_term": 45000.0,
+    "net_annual": 0.45
+   }
+  },
+  {
+   "name": "deposit_net monthly rollover",
+   "fn": "deposit_net",
+   "args": [
+    {
+     "principal": 100000,
+     "gross_annual": 0.5,
+     "days": 30,
+     "withholding": 0.1,
+     "inflation": 0.4
+    }
+   ],
+   "subset": true,
+   "tol": 1e-12,
+   "expect": {
+    "net_annual": 0.5556255557983516,
+    "real_annual": 0.11116111128453698
+   }
+  },
+  {
+   "name": "required_saving simple",
+   "fn": "required_saving",
+   "args": [
+    {
+     "target_today": 1200,
+     "years": 1,
+     "inflation": 0,
+     "nominal_return": 0,
+     "current": 600,
+     "grow_with_inflation": false
+    }
+   ],
+   "subset": true,
+   "tol": 1e-09,
+   "expect": {
+    "monthly": 50.0,
+    "target_nominal": 1200.0
+   }
+  },
+  {
+   "name": "half_life 100%",
+   "fn": "half_life_years",
+   "args": [
+    1.0
+   ],
+   "expect": 1.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "half_life rejects zero",
+   "fn": "half_life_years",
+   "args": [
+    0.0
+   ],
+   "raises": true
+  },
+  {
+   "name": "breakeven_gross_rate one year",
+   "fn": "breakeven_gross_rate",
+   "args": [
+    {
+     "inflation": 0.45,
+     "days": 365,
+     "withholding": 0.1
+    }
+   ],
+   "expect": 0.5,
+   "tol": 1e-12,
+   "note": "0.45/0.9"
   }
  ]
 }

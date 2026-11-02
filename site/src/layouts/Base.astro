@@ -23,15 +23,22 @@ const groups = [
     { href: "/iliskiler", label: "İlişkiler" },
     { href: "/reel-faiz", label: "Reel Faiz" },
     { href: "/olaylar", label: "Olay penceresi" },
+    { href: "/ulkeler", label: "Ülke karşılaştırması" },
+  ] },
+  { label: "Borç", items: [
+    { href: "/kredi", label: "Kredinin gerçek maliyeti" },
+    { href: "/kart", label: "Kredi kartı: asgari ödeme, nakit avans" },
+    { href: "/yapilandirma", label: "Kredi yapılandırma" },
+    { href: "/taksit", label: "Taksitli mi, peşin mi?" },
   ] },
   { label: "Hesapla", items: [
     { href: "/portfoy", label: "Portföyüm" },
-    { href: "/kredi", label: "Kredinin gerçek maliyeti" },
-    { href: "/taksit", label: "Taksitli mi, peşin mi?" },
+    { href: "/mevduat", label: "Mevduat: net ve reel getiri" },
+    { href: "/birikim", label: "Birikim hedefi" },
     { href: "/maas", label: "Reel maaş takibi" },
     { href: "/konut", label: "Konut: kirala mı, satın al mı?" },
-    { href: "/nominal-illuzyon", label: "Nominal İllüzyon" },
-    { href: "/kisisel-enflasyon", label: "Kişisel Enflasyon" },
+    { href: "/nominal-illuzyon", label: "Nominal illüzyon ve erime hızı" },
+    { href: "/kisisel-enflasyon", label: "Kişisel enflasyon" },
   ] },
 ];
 const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === path);

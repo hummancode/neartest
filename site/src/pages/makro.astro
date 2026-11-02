@@ -114,7 +114,7 @@ const payload = { indicators: macro.indicators };
   new ResizeObserver(() => { if (Math.abs(chart.clientWidth - lastW) > 2) { lastW = chart.clientWidth; draw(); } }).observe(chart);
 </script>
 
-<style>
+<style is:global>
   .group h2 { font-size: 1.4rem; margin: 1.4em 0 0.5em; }
   .tiles { display: grid; gap: 12px; grid-template-columns: 1fr; }
   @media (min-width: 560px) { .tiles { grid-template-columns: 1fr 1fr; } }
@@ -129,7 +129,7 @@ const payload = { indicators: macro.indicators };
   .t-value { font-family: var(--font-head); font-size: 2.1rem; line-height: 1.15; }
   .t-meta { font-size: 0.8rem; margin-bottom: 4px; }
   .t-meta strong { color: var(--ink); }
-  .tile :global(svg) { max-width: 100%; height: auto; }
+  .tile svg { max-width: 100%; height: auto; }
   .tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; }
   .detail { margin-top: 16px; }
   @media (max-width: 400px) { .detail { padding: 12px 8px; } }

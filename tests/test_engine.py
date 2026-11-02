@@ -509,3 +509,90 @@ def test_derive_rate_events():
     ev = e.derive_rate_events(pr, threshold=1.0)
     assert ev == [{"month": "2024-03", "change": 5.0, "type": "hike"},
                   {"month": "2024-04", "change": -2.5, "type": "cut"}]
+
+
+# --- credit card minimum payment -----------------------------------------------
+
+def test_card_minimum_payoff_zero_interest():
+    # 1000 TL, pay half (at least 100) each month: 500, 250, 125, 100, 25 -> 5 months
+    r = e.card_minimum_payoff(balance=1000, monthly_rate=0.0, kkdf=0, bsmv=0, min_share=0.5, min_floor=100)
+    assert r["months"] == 5 and r["paid_off"] and close(r["total_paid"], 1000.0)
+    assert [round(b, 6) for b in r["balances"]] == [1000.0, 500.0, 250.0, 125.0, 25.0, 0.0]
+
+
+def test_card_full_payment_pays_one_month_interest():
+    r = e.card_minimum_payoff(balance=1000, monthly_rate=0.1, kkdf=0.15, bsmv=0.15, min_share=1.0, min_floor=0)
+    assert r["months"] == 1 and close(r["total_interest"], 100.0) and close(r["total_tax"], 30.0)
+
+
+def test_card_minimum_never_pays_off_when_below_interest():
+    # 5 % of (balance x 1.1) < interest -> balance grows; stops at max_months
+    r = e.card_minimum_payoff(balance=1000, monthly_rate=0.1, kkdf=0, bsmv=0, min_share=0.05, min_floor=0, max_months=24)
+    assert not r["paid_off"] and r["months"] == 24 and r["balances"][-1] > 1000
+
+
+# --- loan restructuring -------------------------------------------------------------
+
+def _refi(**kw):
+    p = dict(balance=1200.0, rate_old=0.0, months_old=12, rate_new=0.0, months_new=24, kkdf=0.0, bsmv=0.0,
+             prepay_penalty=0.0, new_fees=0.0, fees_financed=False, annual_discount=0.0)
+    p.update(kw)
+    return e.refinance_compare(**p)
+
+
+def test_refinance_longer_term_same_cost_at_zero_rates():
+    r = _refi()
+    assert close(r["old_payment"], 100.0) and close(r["new_payment"], 50.0)
+    assert close(r["pv_old"], 1200.0) and close(r["pv_new"], 1200.0) and r["better"] == "equal"
+
+
+def test_refinance_cheaper_rate_wins_and_penalty_counts():
+    r = _refi(rate_old=0.01, months_new=12)
+    old = 1200 * 0.01 / (1 - 1.01 ** -12)
+    assert close(r["old_payment"], old) and close(r["saving_pv"], 12 * old - 1200) and r["better"] == "new"
+    p = _refi(rate_old=0.01, months_new=12, prepay_penalty=0.02, new_fees=50, fees_financed=True)
+    assert close(p["new_principal"], 1200 * 1.02 + 50) and close(p["new_payment"], (1224 + 50) / 12)
+
+
+# --- deposit net return, savings goal, half-life ---------------------------------------
+
+def test_deposit_net_one_year():
+    r = e.deposit_net(principal=100000, gross_annual=0.50, days=365, withholding=0.10, inflation=0.0)
+    assert close(r["net_interest_term"], 45000.0) and close(r["net_annual"], 0.45)
+
+
+def test_deposit_net_monthly_rollover_compounds():
+    r = e.deposit_net(principal=100000, gross_annual=0.50, days=30, withholding=0.10, inflation=0.40)
+    term = 0.50 * 30 / 365 * 0.9
+    assert close(r["net_annual"], (1 + term) ** (365 / 30) - 1)
+    assert close(r["real_annual"], (1 + r["net_annual"]) / 1.40 - 1)
+
+
+def test_required_saving_simple():
+    assert close(e.required_saving(target_today=1200, years=1, inflation=0, nominal_return=0, current=0,
+                                   grow_with_inflation=False)["monthly"], 100.0)
+    assert close(e.required_saving(target_today=1200, years=1, inflation=0, nominal_return=0, current=600,
+                                   grow_with_inflation=False)["monthly"], 50.0)
+    assert e.required_saving(target_today=1000, years=1, inflation=0, nominal_return=0.5, current=1000,
+                             grow_with_inflation=False)["monthly"] == 0.0
+
+
+def test_required_saving_reaches_target():
+    r = e.required_saving(target_today=100000, years=3, inflation=0.3, nominal_return=0.4, current=5000, grow_with_inflation=True)
+    mi, mr = 1.3 ** (1 / 12) - 1, 1.4 ** (1 / 12) - 1
+    fv = 5000 * (1 + mr) ** 36 + sum(r["monthly"] * (1 + mi) ** (t - 1) * (1 + mr) ** (36 - t) for t in range(1, 37))
+    assert close(fv, 100000 * 1.3 ** 3, tol=1e-6)
+
+
+def test_half_life():
+    assert close(e.half_life_years(1.0), 1.0)                # 100 % inflation halves money in a year
+    assert close(e.half_life_years(0.5), math.log(2) / math.log(1.5))
+    with pytest.raises(e.SeriesError):
+        e.half_life_years(0.0)
+
+
+def test_breakeven_gross_rate_round_trips():
+    g = e.breakeven_gross_rate(inflation=0.40, days=30, withholding=0.10)
+    r = e.deposit_net(principal=1, gross_annual=g, days=30, withholding=0.10, inflation=0.40)
+    assert close(r["real_annual"], 0.0, tol=1e-12)
+    assert close(e.breakeven_gross_rate(inflation=0.45, days=365, withholding=0.10), 0.5)   # 0.45 / 0.9

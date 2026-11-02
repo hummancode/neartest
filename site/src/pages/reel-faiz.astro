@@ -104,13 +104,13 @@ const tiles = [
   <p><strong>{DISCLAIMER}</strong></p>
 </Base>
 
-<style>
+<style is:global>
   .tiles { display: grid; gap: 12px; margin-top: 16px; }
   @media (min-width: 640px) { .tiles { grid-template-columns: 1fr 1fr; } }
   .tile-title { font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; margin: 0; color: var(--ink-2); letter-spacing: 0; }
   .tile-value { font-family: var(--font-head); font-size: clamp(2.4rem, 11vw, 3.2rem); margin: 0; line-height: 1.15; }
   .tile p.small { margin: 2px 0 8px; }
-  .tile :global(svg) { max-width: 100%; height: auto; }
+  .tile svg { max-width: 100%; height: auto; }
   .scroll-x { overflow-x: auto; padding: 4px 8px; }
   .rates { min-width: 720px; font-size: 0.88rem; }
   .rates thead th { text-align: right; }

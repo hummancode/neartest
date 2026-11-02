@@ -1,0 +1,72 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+const ref = housing.reference;
+const payload = { deposit_rate: ref.deposit_rate, cpi_12m: ref.cpi_12m, sample: ref.sample };
+---
+<Base title="Mevduatın net ve reel getirisi" description="Brüt faiz, stopaj ve vade ile mevduatın net yıllık getirisi; enflasyonu yeniyor mu?" sample={ref.sample}>
+  <h1>Mevduat: net ve reel getiri</h1>
+  <p class="lead">Banka brüt faizi söyler. Stopaj kesilir, vade sonunda yeniden yatırırsınız, enflasyon da arada alım gücünü yer. Net ve reel getiriyi görün.</p>
+  <form id="f" class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="p">Anapara (TL)</label><input id="p" inputmode="decimal" value="250.000" /></div>
+      <div class="field"><label for="gross">Brüt yıllık faiz (%)</label><input id="gross" inputmode="decimal" /><small id="ref-gross"></small></div>
+      <div class="field"><label for="days">Vade (gün)</label><input id="days" inputmode="numeric" value="32" /><small>her vade sonunda aynı koşullarla yenilendiği varsayılır</small></div>
+      <div class="field"><label for="tax">Stopaj (%)</label><input id="tax" inputmode="decimal" value="15" /><small>vadeye ve döneme göre değişir — bankanızdaki oranı girin (örnek)</small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Net yıllık getiri</p><p class="s-value" id="o-net">—</p><p class="muted small" id="o-net-sub"></p></div>
+    <div class="card stat"><p class="s-label">Reel yıllık getiri</p><p class="s-value" id="o-real">—</p><p class="muted small">beklenen enflasyondan arındırılmış</p></div>
+    <div class="card stat"><p class="s-label">Bir vadede</p><p class="s-value" id="o-term">—</p><p class="muted small" id="o-term-sub"></p></div>
+  </section>
+  <p class="muted small" id="o-break"></p>
+  <h2>Nasıl hesaplanıyor?</h2>
+  <ul>
+    <li>Vade faizi = anapara × brüt faiz × gün / 365; net = brüt × (1 − stopaj).</li>
+    <li>Yıllık net = (1 + vadelik net oran)<sup>365/gün</sup> − 1 (her vade sonunda faizle birlikte yenileme).</li>
+    <li>Reel = (1 + yıllık net) / (1 + enflasyon) − 1. Ayrıntılar: <a href="/metodoloji#mevduat">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="d-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { depositNet, breakevenGrossRate, SeriesError } from "../lib/engine.ts";
+  import { readNumber, tl, pct, num } from "../lib/inputs.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  const ref = JSON.parse(document.getElementById("d-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const F = ["p", "gross", "days", "tax", "inf"];
+  const sn = ref.sample ? " (örnek veri)" : "";
+  if (ref.deposit_rate != null) $("ref-gross").textContent = `referans: ortalama TL mevduat faizi %${num(ref.deposit_rate * 100)}${sn}`;
+  if (ref.cpi_12m != null) $("ref-inf").textContent = `referans: son 12 ay TÜFE %${num(ref.cpi_12m * 100)}${sn}`;
+  function update() {
+    const err = $<HTMLElement>("err");
+    const v = Object.fromEntries(F.map((f) => [f, readNumber($(f), f === "p")])) as Record<string, number | null>;
+    if (F.some((f) => v[f] === null)) { err.textContent = "Tüm alanları doldurun."; err.hidden = false; return; }
+    if (!Number.isInteger(v.days!) || v.days! < 1 || v.days! > 3650) { err.textContent = "Vade 1–3650 gün arasında olmalı."; err.hidden = false; return; }
+    let r;
+    try { r = depositNet({ principal: v.p!, gross_annual: v.gross! / 100, days: v.days!, withholding: v.tax! / 100, inflation: v.inf! / 100 }); }
+    catch (e) { if (e instanceof SeriesError) { err.textContent = "Bu değerlerle hesap yapılamadı."; err.hidden = false; return; } throw e; }
+    err.hidden = true;
+    writeHash(Object.fromEntries(F.map((f) => [f, $(f).value])));
+    $("o-net").textContent = pct(r.net_annual);
+    $("o-net-sub").textContent = `brüt %${num(v.gross!)} · stopaj sonrası, yenilemeyle`;
+    $("o-real").textContent = pct(r.real_annual);
+    $("o-term").textContent = tl(r.net_interest_term);
+    $("o-term-sub").textContent = `${v.days} günde net faiz · brüt ${tl(r.gross_interest_term)}, stopaj ${tl(r.tax_term)}`;
+    const need = breakevenGrossRate({ inflation: v.inf! / 100, days: v.days!, withholding: v.tax! / 100 });
+    $("o-break").textContent = `Enflasyonu ancak telafi eden brüt faiz (bu vade ve stopajla): yaklaşık %${num(need * 100, 1)}.`;
+  }
+  const h = readHash();
+  if (h.get("p")) F.forEach((f) => h.get(f) !== null && ($(f).value = h.get(f)!));
+  else {
+    $("gross").value = ref.deposit_rate != null ? num(+(ref.deposit_rate * 100).toFixed(1)) : "45";
+    $("inf").value = ref.cpi_12m != null ? num(+(ref.cpi_12m * 100).toFixed(1)) : "30";
+  }
+  F.forEach((f) => $(f).addEventListener("input", update));
+  update();
+</script>

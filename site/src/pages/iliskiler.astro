@@ -189,7 +189,7 @@ const options = (selected: string) => groups.map((g) => (
   new ResizeObserver(() => { const w = $("c-a").clientWidth; if (Math.abs(w - lastW) > 2) { lastW = w; draw(); } }).observe($("c-a"));
 </script>
 
-<style>
+<style is:global>
   .caveat { border-left: 4px solid var(--ink); margin: 16px 0; color: var(--ink-2); }
   .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
   @media (max-width: 640px) { .presets { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; } .chip { flex: none; } }

@@ -1,0 +1,116 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+const ref = housing.reference;
+const payload = { deposit_rate: ref.deposit_rate, sample: ref.sample };
+---
+<Base title="Kredi yapılandırma karşılaştırması" description="Mevcut krediyi kapatıp yeni krediye geçmek kârlı mı? Erken kapama ücreti, masraflar ve vergilerle karşılaştırın." sample={ref.sample}>
+  <h1>Kredi yapılandırma</h1>
+  <p class="lead">
+    “Faizler düştü, kredini yapılandır” teklifi geldi. Daha düşük taksit her zaman daha ucuz demek değildir: vade uzar,
+    erken kapama ücreti ve yeni masraflar eklenir. İki planı aynı terazide karşılaştırın.
+  </p>
+  <form id="f" class="card" novalidate onsubmit="return false">
+    <h2 class="c-title">Mevcut kredi</h2>
+    <div class="form-grid three">
+      <div class="field"><label for="balance">Kalan anapara (TL)</label><input id="balance" inputmode="decimal" value="300.000" /><small>bankanızdan alacağınız erken kapama tutarı (ücret hariç)</small></div>
+      <div class="field"><label for="rold">Aylık faiz (%)</label><input id="rold" inputmode="decimal" value="3,5" /></div>
+      <div class="field"><label for="mold">Kalan vade (ay)</label><input id="mold" inputmode="numeric" value="24" /></div>
+    </div>
+    <h2 class="c-title">Yeni kredi</h2>
+    <div class="form-grid three">
+      <div class="field"><label for="rnew">Aylık faiz (%)</label><input id="rnew" inputmode="decimal" value="2,9" /></div>
+      <div class="field"><label for="mnew">Vade (ay)</label><input id="mnew" inputmode="numeric" value="36" /></div>
+      <div class="field"><label for="penalty">Erken kapama ücreti (% kalan anapara)</label><input id="penalty" inputmode="decimal" value="2" /><small>sözleşmenizdeki oran — örnek değer</small></div>
+      <div class="field"><label for="fees">Yeni kredi masrafları (TL)</label><input id="fees" inputmode="decimal" value="3.000" /><small>tahsis ücreti, sigorta, ekspertiz</small></div>
+      <div class="field"><label for="financed">Masraflar</label><select id="financed"><option value="0">Peşin ödenir</option><option value="1">Krediye eklenir</option></select></div>
+      <div class="field"><label for="disc">Paranızın getirisi (yıllık %)</label><input id="disc" inputmode="decimal" /><small id="ref-disc"></small></div>
+    </div>
+    <h2 class="c-title">Vergiler (iki kredide aynı)</h2>
+    <div class="form-grid three">
+      <div class="field"><label for="kkdf">KKDF (%)</label><input id="kkdf" inputmode="decimal" value="15" /><small>örnek — ödeme planınızdakini girin</small></div>
+      <div class="field"><label for="bsmv">BSMV (%)</label><input id="bsmv" inputmode="decimal" value="15" /><small>örnek</small></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+
+  <section class="card verdict" aria-live="polite"><p class="v-title" id="o-verdict">—</p><p class="muted" id="o-verdict-sub"></p></section>
+  <div class="scroll-x card">
+    <table class="data cmp">
+      <thead><tr><th scope="col"></th><th scope="col">Mevcut kredi</th><th scope="col">Yeni kredi</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Aylık taksit</th><td id="c-pay-old"></td><td id="c-pay-new"></td></tr>
+        <tr><th scope="row">Vade</th><td id="c-m-old"></td><td id="c-m-new"></td></tr>
+        <tr><th scope="row">Kredi tutarı</th><td id="c-p-old"></td><td id="c-p-new"></td></tr>
+        <tr><th scope="row">Peşin ödeme</th><td>—</td><td id="c-up"></td></tr>
+        <tr><th scope="row">Toplam ödeme</th><td id="c-t-old"></td><td id="c-t-new"></td></tr>
+        <tr><th scope="row">Bugünkü değer</th><td id="c-pv-old"></td><td id="c-pv-new"></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+
+  <h2>Nasıl okunur?</h2>
+  <ul>
+    <li><strong>Toplam ödeme</strong> nominal TL'dir; vadesi uzun olan plan, taksiti düşük olsa da genelde daha fazla toplam ödeme içerir.</li>
+    <li><strong>Bugünkü değer</strong> her ödemeyi paranızın getirisiyle bugüne indirger: enflasyon ve faiz yüksekken ileride ödenen TL'nin bugünkü yükü daha azdır. Karar için bu satır daha anlamlıdır.</li>
+    <li>Erken kapama ücreti yeni krediye eklenmiş sayılır. Formüller: <a href="/metodoloji#yapilandirma">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong> Bağlayıcı olan bankanızın erken kapama ve ödeme planı belgeleridir.</p>
+  <script type="application/json" id="r-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { refinanceCompare, SeriesError } from "../lib/engine.ts";
+  import { readNumber, tl, tl2, num } from "../lib/inputs.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+  const ref = JSON.parse(document.getElementById("r-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const F = ["balance", "rold", "mold", "rnew", "mnew", "penalty", "fees", "financed", "disc", "kkdf", "bsmv"];
+  const MONEY = new Set(["balance", "fees"]);
+  if (ref.deposit_rate != null) $("ref-disc").textContent = `referans: TL mevduat faizi %${num(ref.deposit_rate * 100)}${ref.sample ? " (örnek veri)" : ""}`;
+
+  function update() {
+    const err = $<HTMLElement>("err");
+    const v: Record<string, number | null> = {};
+    for (const f of F) v[f] = f === "financed" ? Number(($(f) as unknown as HTMLSelectElement).value) : readNumber($(f), MONEY.has(f));
+    if (F.some((f) => v[f] === null)) { err.textContent = "Tüm alanları doldurun."; err.hidden = false; return; }
+    for (const f of ["mold", "mnew"]) if (!Number.isInteger(v[f]!) || v[f]! < 1 || v[f]! > 480) { err.textContent = "Vadeler 1–480 ay arasında tam sayı olmalı."; err.hidden = false; return; }
+    let r;
+    try {
+      r = refinanceCompare({ balance: v.balance!, rate_old: v.rold! / 100, months_old: v.mold!, rate_new: v.rnew! / 100, months_new: v.mnew!,
+        kkdf: v.kkdf! / 100, bsmv: v.bsmv! / 100, prepay_penalty: v.penalty! / 100, new_fees: v.fees!, fees_financed: v.financed === 1, annual_discount: v.disc! / 100 });
+    } catch (e) { if (e instanceof SeriesError) { err.textContent = "Bu değerlerle hesap yapılamadı."; err.hidden = false; return; } throw e; }
+    err.hidden = true;
+    writeHash(Object.fromEntries(F.map((f) => [f, ($(f) as HTMLInputElement).value])));
+    $("o-verdict").textContent = r.better === "equal" ? "İki plan bugünkü değerle eşit."
+      : r.better === "new" ? `Yapılandırma bugünkü değerle ${tl(r.saving_pv)} daha ucuz.` : `Mevcut krediye devam etmek bugünkü değerle ${tl(-r.saving_pv)} daha ucuz.`;
+    const dt = r.total_new - r.total_old;
+    $("o-verdict-sub").textContent = `Taksit ${tl2(r.old_payment)} → ${tl2(r.new_payment)}; toplam ödeme ${dt >= 0 ? `${tl(dt)} artar` : `${tl(-dt)} azalır`}.`;
+    const set = (id: string, t: string) => ($(id).textContent = t);
+    set("c-pay-old", tl2(r.old_payment)); set("c-pay-new", tl2(r.new_payment));
+    set("c-m-old", `${v.mold} ay`); set("c-m-new", `${v.mnew} ay`);
+    set("c-p-old", tl(v.balance!)); set("c-p-new", tl(r.new_principal));
+    set("c-up", r.upfront ? tl(r.upfront) : "—");
+    set("c-t-old", tl(r.total_old)); set("c-t-new", tl(r.total_new));
+    set("c-pv-old", tl(r.pv_old)); set("c-pv-new", tl(r.pv_new));
+  }
+  const h = readHash();
+  if (h.get("balance")) F.forEach((f) => h.get(f) !== null && (($(f) as HTMLInputElement).value = h.get(f)!));
+  else $("disc").value = ref.deposit_rate != null ? num(+(ref.deposit_rate * 100).toFixed(1)) : "35";
+  F.forEach((f) => $(f).addEventListener("input", update));
+  $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  update();
+</script>
+<style is:global>
+  .c-title { font-size: 1.15rem; margin: 14px 0 8px; }
+  .c-title:first-child { margin-top: 0; }
+  .verdict { margin-top: 16px; border-left: 4px solid var(--accent); }
+  .v-title { font-family: var(--font-head); font-size: clamp(1.5rem, 6vw, 2.1rem); margin: 0; line-height: 1.2; }
+  .verdict p:last-child { margin-bottom: 0; }
+  .scroll-x { overflow-x: auto; margin-top: 12px; }
+  .cmp { min-width: 420px; }
+  .cmp tbody th { text-align: left; font-weight: 600; }
+  .actions { margin-top: 12px; }
+</style>

@@ -721,3 +721,128 @@ def derive_rate_events(rate: dict[str, float], threshold: float) -> list[dict]:
         if abs(d) >= threshold:
             out.append({"month": m, "change": d, "type": "hike" if d > 0 else "cut"})
     return out
+
+
+# ---------------------------------------------------------------------------
+# Credit card: paying only the minimum
+# ---------------------------------------------------------------------------
+
+def card_minimum_payoff(*, balance: float, monthly_rate: float, kkdf: float, bsmv: float,
+                        min_share: float, min_floor: float, max_months: int = 600) -> dict:
+    """Month-by-month card debt when only the minimum is paid and nothing new is spent.
+
+    Each month interest (+ KKDF + BSMV on it) is added, then the minimum payment
+    max(min_share x balance, min_floor), capped at the balance, is paid. Simplification:
+    banks compute card interest daily; this uses monthly steps.
+    """
+    if balance <= 0 or not 0 < min_share <= 1:
+        raise SeriesError("balance must be positive and minimum share in (0, 1]")
+    bal, balances = balance, [balance]
+    paid = interest_total = tax_total = 0.0
+    months = 0
+    while bal > 1e-9 and months < max_months:
+        months += 1
+        interest = bal * monthly_rate
+        tax = interest * (kkdf + bsmv)
+        bal += interest + tax
+        pay = min(bal, max(min_share * bal, min_floor))
+        bal -= pay
+        paid += pay
+        interest_total += interest
+        tax_total += tax
+        balances.append(max(bal, 0.0))
+    return {"months": months, "paid_off": bal <= 1e-9, "total_paid": paid, "total_interest": interest_total,
+            "total_tax": tax_total, "remaining": max(bal, 0.0), "balances": balances}
+
+
+# ---------------------------------------------------------------------------
+# Loan restructuring (refinancing)
+# ---------------------------------------------------------------------------
+
+def refinance_compare(*, balance: float, rate_old: float, months_old: int, rate_new: float, months_new: int,
+                      kkdf: float, bsmv: float, prepay_penalty: float, new_fees: float, fees_financed: bool,
+                      annual_discount: float) -> dict:
+    """Keep paying the current loan, or close it and take a new one?
+
+    New principal = remaining balance x (1 + early repayment fee) (+ fees if added to
+    the loan). Both plans are compared by total paid and by present value at your own
+    discount rate (what your money earns elsewhere).
+    """
+    if balance <= 0 or months_old <= 0 or months_new <= 0:
+        raise SeriesError("balance and terms must be positive")
+    tax = 1.0 + kkdf + bsmv
+    old_payment = mortgage_payment(balance, rate_old * tax, months_old)
+    new_principal = balance * (1.0 + prepay_penalty) + (new_fees if fees_financed else 0.0)
+    upfront = 0.0 if fees_financed else new_fees
+    new_payment = mortgage_payment(new_principal, rate_new * tax, months_new)
+    md = (1.0 + annual_discount) ** (1 / 12) - 1.0
+    pv_old = present_value([old_payment] * months_old, md, 1)
+    pv_new = upfront + present_value([new_payment] * months_new, md, 1)
+    saving = pv_old - pv_new
+    return {
+        "old_payment": old_payment, "new_payment": new_payment, "new_principal": new_principal,
+        "upfront": upfront,
+        "total_old": old_payment * months_old, "total_new": upfront + new_payment * months_new,
+        "pv_old": pv_old, "pv_new": pv_new, "saving_pv": saving,
+        "better": "equal" if abs(saving) < 1e-9 else ("new" if saving > 0 else "old"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Deposit net return, savings goal, purchasing-power half-life
+# ---------------------------------------------------------------------------
+
+def deposit_net(*, principal: float, gross_annual: float, days: int, withholding: float, inflation: float) -> dict:
+    """Net return of a time deposit after withholding tax, rolled over at the same terms for a year.
+
+    Turkish deposits pay simple interest for the term: principal x rate x days / 365.
+    """
+    if principal <= 0 or days <= 0:
+        raise SeriesError("principal and term must be positive")
+    gross_term = gross_annual * days / 365.0
+    net_term = gross_term * (1.0 - withholding)
+    net_annual = (1.0 + net_term) ** (365.0 / days) - 1.0
+    return {
+        "gross_interest_term": principal * gross_term,
+        "tax_term": principal * gross_term * withholding,
+        "net_interest_term": principal * net_term,
+        "net_term_rate": net_term,
+        "net_annual": net_annual,
+        "real_annual": real_return(net_annual, inflation),
+    }
+
+
+def required_saving(*, target_today: float, years: int, inflation: float, nominal_return: float,
+                    current: float, grow_with_inflation: bool) -> dict:
+    """Monthly saving needed to reach `target_today` (in today's TL) after `years`.
+
+    Contributions are made at month ends; if grow_with_inflation, they rise with
+    inflation every month (constant in real terms) and `monthly` is the first one.
+    """
+    if target_today <= 0 or years <= 0:
+        raise SeriesError("target and years must be positive")
+    n = 12 * years
+    mi = (1.0 + inflation) ** (1 / 12) - 1.0
+    mr = (1.0 + nominal_return) ** (1 / 12) - 1.0
+    target_nominal = target_today * (1.0 + inflation) ** years
+    fv_current = current * (1.0 + mr) ** n
+    factor = sum(((1.0 + mi) ** (t - 1) if grow_with_inflation else 1.0) * (1.0 + mr) ** (n - t) for t in range(1, n + 1))
+    monthly = max(0.0, (target_nominal - fv_current) / factor)
+    contributions = sum(monthly * ((1.0 + mi) ** (t - 1) if grow_with_inflation else 1.0) for t in range(1, n + 1))
+    return {"monthly": monthly, "target_nominal": target_nominal, "fv_current": fv_current,
+            "total_contributed": contributions + current}
+
+
+def half_life_years(annual_inflation: float) -> float:
+    """Years until money loses half its purchasing power at a constant inflation rate."""
+    if annual_inflation <= 0:
+        raise SeriesError("inflation must be positive")
+    return math.log(2.0) / math.log(1.0 + annual_inflation)
+
+
+def breakeven_gross_rate(*, inflation: float, days: int, withholding: float) -> float:
+    """Gross annual deposit rate whose net, rolled-over return exactly matches inflation."""
+    if days <= 0 or withholding >= 1:
+        raise SeriesError("term must be positive and withholding below 100 %")
+    net_term = (1.0 + inflation) ** (days / 365.0) - 1.0
+    return net_term / (1.0 - withholding) * 365.0 / days
