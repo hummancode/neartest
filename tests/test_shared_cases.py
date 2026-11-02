@@ -30,8 +30,8 @@ def expand(arg):
 
 def call(fn, args):
     args = [expand(a) for a in args]
-    if fn == "rent_vs_buy":
-        return e.rent_vs_buy(**args[0])
+    if fn in ("rent_vs_buy", "holding_returns"):
+        return getattr(e, fn)(**args[0])
     if fn == "asset_windows":
         if len(args) == 5:
             args[4] = tuple(args[4])

@@ -28,6 +28,8 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   paired_changes: e.pairedChanges,
   rolling_correlation: e.rollingCorrelation,
   same_direction_share: e.sameDirectionShare,
+  holding_returns: e.holdingReturns,
+  portfolio_summary: e.portfolioSummary,
 };
 
 function expand(arg: any): any {

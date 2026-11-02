@@ -56,3 +56,18 @@ olarak da verilebilir. Fiyat listeleri **elle** girilir; sitelerden otomatik çe
 BETAM'ın aylık raporlarındaki endeks veya TL/m² değerleri girilir. Varsa konut sayfasında TCMB
 endeksinin yanında kaynak seçeneği ve kira artışı referansı olarak, grafik aracında ayrı seri olarak görünür.
 Yayımlarken BETAM'ı kaynak olarak belirtin ve kullanım şartlarını kontrol edin.
+
+## Hisseler
+
+`stocks/<KOD>.csv` — tarih; kapanış fiyatı (TL). Günlük veri aylık ortalamaya çevrilir. İsteğe bağlı
+`stocks/<KOD>.meta.json`: `{"name": "Şirket adı", "source": "...", "verified": true}`. Dosya adı yalnızca
+büyük harf ve rakamdan oluşan hisse kodu olmalıdır (2–8 karakter). Grafik aracında görünmesi için
+verinin ortak bitiş ayına kadar uzanması gerekir. Borsa fiyat verisi lisanslıdır; kaynağın kullanım
+şartlarına uyun.
+
+## Makro göstergeler ve CDS
+
+`gdp_growth`, `gdp_usd_pc`, `unemployment`, `current_account`, `reserves`, `policy_rate`, `cds_5y`,
+`budget_balance_gdp` — değerler **gösterim biriminde** girilir (`4,5` = %4,5; CDS baz puan; cari denge
+ve rezerv milyar $). Çeyreklik seriler çeyrek sonu ayına (`2026-03`, `2026-06` …), yıllık seriler
+Aralık'a (`2025-12`) yazılır. CDS için ücretsiz resmî kaynak yoktur.

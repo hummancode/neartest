@@ -1,0 +1,244 @@
+---
+import Base from "../layouts/Base.astro";
+import { prices } from "../lib/prices.ts";
+import { monthLabel } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+// Instruments one can actually hold. Units for the optional quantity field.
+const HOLDABLE: Record<string, string> = { usd: "dolar", eur: "euro", gold: "gram", deposit: "", bist100: "", sp500: "" };
+const holdable = prices.instruments
+  .filter((i) => i.id in HOLDABLE || i.group === "Hisse")
+  .map((i) => ({ id: i.id, label: i.id === "bist100" ? "BIST 100 (endeks fonu gibi)" : i.id === "deposit" ? "TL mevduat (faiz getirisiyle)" : i.label,
+                 unit: i.group === "Hisse" ? "adet" : HOLDABLE[i.id] }));
+const need = ["cpi", "usd", "gold", ...holdable.map((h) => h.id)];
+const payload = {
+  end: prices.end_month,
+  sample: prices.sample,
+  holdable,
+  series: Object.fromEntries(need.map((id) => [id, prices.series[id]])),
+};
+---
+<Base title="Portföyüm" description="Kendi alımlarınızın enflasyona, dolara ve altına göre gerçek getirisi. Veriler yalnızca tarayıcınızda kalır." sample={prices.sample}>
+  <h1>Portföyüm</h1>
+  <p class="lead">Ne zaman, neye, kaç TL yatırdığınızı girin; bugün enflasyona, dolara ve altına göre gerçekte ne kazandığınızı görün.</p>
+  <p class="privacy card">
+    🔒 Girdiğiniz pozisyonlar <strong>yalnızca bu tarayıcıda</strong> saklanır (yerel depolama). Hiçbir sunucuya gönderilmez;
+    başka bir cihazda görmek için dışa aktarıp içe aktarabilirsiniz. Tarayıcı verisini silerseniz liste de silinir.
+  </p>
+
+  <form id="add" class="card add" novalidate onsubmit="return false">
+    <h2>Pozisyon ekle</h2>
+    <div class="grid">
+      <div class="field"><label for="inst">Varlık</label>
+        <select id="inst">{holdable.map((h) => <option value={h.id}>{h.label}</option>)}</select></div>
+      <div class="field"><label for="month">Alış ayı</label>
+        <div class="two"><select id="month" aria-label="Ay"></select><select id="year" aria-label="Yıl"></select></div></div>
+      <div class="field"><label for="amount">Yatırılan tutar (TL)</label><input id="amount" inputmode="decimal" placeholder="ör. 50.000" /></div>
+      <div class="field" id="qty-field"><label for="qty">Miktar (<span id="qty-unit"></span>, isteğe bağlı)</label><input id="qty" inputmode="decimal" placeholder="boş bırakılırsa o ayın ortalama fiyatı" /></div>
+      <div class="field"><label for="note">Not (isteğe bağlı)</label><input id="note" maxlength="40" placeholder="ör. düğün altını" /></div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="add-btn">Ekle</button>
+      <span class="error" id="add-err" role="alert" hidden></span>
+    </div>
+  </form>
+
+  <section class="summary" aria-live="polite" id="summary" hidden>
+    <div class="card stat"><p class="s-label">Bugünkü değer</p><p class="s-value" id="t-value"></p><p class="muted small" id="t-cost"></p></div>
+    <div class="card stat"><p class="s-label">Reel getiri</p><p class="s-value" id="t-real"></p><p class="muted small" id="t-nominal"></p></div>
+    <div class="card stat"><p class="s-label">Enflasyona karşı</p><p class="s-value" id="t-gap"></p><p class="muted small">bugünkü değer − alım tutarlarının TÜFE ile bugüne taşınmış hâli</p></div>
+  </section>
+
+  <section class="card list">
+    <div class="list-head">
+      <h2>Pozisyonlar</h2>
+      <div class="tools">
+        <button class="btn btn-ghost" type="button" id="export">Dışa aktar</button>
+        <label class="btn btn-ghost file">İçe aktar<input type="file" id="import" accept="application/json" hidden /></label>
+        <button class="btn btn-ghost" type="button" id="clear">Tümünü sil</button>
+      </div>
+    </div>
+    <p class="muted" id="empty">Henüz pozisyon yok. Yukarıdan ekleyin.</p>
+    <div class="scroll-x">
+      <table class="data holdings" id="holdings" hidden>
+        <thead><tr><th scope="col">Varlık</th><th scope="col">Alış</th><th scope="col">Tutar</th><th scope="col">Bugün</th><th scope="col">Nominal</th><th scope="col">Reel</th><th scope="col">Dolar bazında</th><th scope="col">Altın bazında</th><th scope="col"><span class="sr-only">Sil</span></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="muted small">Fiyatlar aylık ortalamadır; miktar girilmezse alım o ayın ortalama fiyatından yapılmış sayılır. Bugün = {monthLabel(prices.end_month)}. Temettü, komisyon, vergi dahil değildir.</p>
+  </section>
+
+  <p>Yöntem: reel getiri = bugünkü değer / (alım tutarı × TÜFE<sub>bugün</sub> / TÜFE<sub>alış</sub>) − 1. Ayrıntılar: <a href="/metodoloji#portfoy">Metodoloji</a>.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="pf-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { holdingReturns, portfolioSummary, shiftMonth, SeriesError } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+
+  type Lot = { id: string; inst: string; month: string; amount: number; qty: number | null; note: string };
+  const data = JSON.parse(document.getElementById("pf-data")!.textContent!);
+  const END: string = data.end;
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+  const KEY = "portfoy.v1";
+  const instById: Record<string, { id: string; label: string; unit: string }> = Object.fromEntries(data.holdable.map((h: any) => [h.id, h]));
+  const lv: Record<string, Record<string, number>> = {};
+  for (const [id, s] of Object.entries(data.series as Record<string, { start: string; values: number[] }>)) {
+    if (!s) continue;
+    lv[id] = {};
+    s.values.forEach((v, k) => (lv[id][shiftMonth(s.start, k)] = v));
+  }
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const tl = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(x)) + " TL";
+  const pct = (x: number) => new Intl.NumberFormat("tr-TR", { style: "percent", maximumFractionDigits: 1, minimumFractionDigits: 1, signDisplay: "exceptZero" }).format(x);
+
+  const load = (): Lot[] => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
+      return Array.isArray(raw) ? raw.filter(valid) : [];
+    } catch { return []; }
+  };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(lots)); } catch { /* storage unavailable: list lives for this visit only */ } };
+  function valid(l: any): l is Lot {
+    return l && typeof l.inst === "string" && /^\d{4}-\d{2}$/.test(l.month) && typeof l.amount === "number" && l.amount > 0 &&
+      (l.qty === null || (typeof l.qty === "number" && l.qty > 0));
+  }
+  let lots: Lot[] = load();
+
+  // Month/year selectors limited to months where the instrument has a price.
+  const instSel = $<HTMLSelectElement>("inst"), mSel = $<HTMLSelectElement>("month"), ySel = $<HTMLSelectElement>("year");
+  function fillDates() {
+    const months = Object.keys(lv[instSel.value] || {}).filter((m) => m in lv.cpi && m in lv.usd && m in lv.gold).sort();
+    const years = [...new Set(months.map((m) => m.slice(0, 4)))];
+    const keepY = ySel.value;
+    ySel.replaceChildren(...years.map((y) => new Option(y, y)));
+    ySel.value = years.includes(keepY) ? keepY : years[Math.max(0, years.length - 3)] ?? "";
+    mSel.replaceChildren(...MONTHS.map((n, i) => new Option(n, String(i + 1).padStart(2, "0"))));
+    const unit = instById[instSel.value]?.unit;
+    $("qty-field").hidden = !unit;
+    $("qty-unit").textContent = unit || "";
+  }
+
+  function add() {
+    const err = $("add-err");
+    const amount = parseAmount($<HTMLInputElement>("amount").value);
+    const qtyRaw = $<HTMLInputElement>("qty").value.trim();
+    const qty = qtyRaw && !$("qty-field").hidden ? parseAmount(qtyRaw) : null;
+    const month = `${ySel.value}-${mSel.value}`;
+    const inst = instSel.value;
+    if (amount === null) { err.textContent = "Geçerli bir tutar girin."; err.hidden = false; return; }
+    if (qtyRaw && !$("qty-field").hidden && qty === null) { err.textContent = "Miktar geçersiz."; err.hidden = false; return; }
+    if (!(month in (lv[inst] || {}))) { err.textContent = `${label(month)} için ${instById[inst].label} fiyatı yok.`; err.hidden = false; return; }
+    err.hidden = true;
+    lots.push({ id: String(Date.now()) + Math.random().toString(36).slice(2, 6), inst, month, amount, qty, note: $<HTMLInputElement>("note").value.trim().slice(0, 40) });
+    save();
+    $<HTMLInputElement>("amount").value = ""; $<HTMLInputElement>("qty").value = ""; $<HTMLInputElement>("note").value = "";
+    render();
+  }
+
+  function compute(l: Lot) {
+    const L = lv[l.inst];
+    if (!L || !(l.month in L) || !(END in L)) return null;
+    try {
+      return holdingReturns({
+        amount: l.amount, quantity: l.qty, level_then: L[l.month], level_now: L[END],
+        cpi_then: lv.cpi[l.month], cpi_now: lv.cpi[END], usd_then: lv.usd[l.month], usd_now: lv.usd[END],
+        gold_then: lv.gold[l.month], gold_now: lv.gold[END],
+      });
+    } catch (e) { if (e instanceof SeriesError) return null; throw e; }
+  }
+
+  function cell(text: string, cls = "") { const td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; }
+  function render() {
+    const tbody = document.querySelector("#holdings tbody")!;
+    const results = [];
+    tbody.replaceChildren();
+    for (const l of lots) {
+      const r = compute(l);
+      const tr = document.createElement("tr");
+      const name = document.createElement("th");
+      name.scope = "row";
+      name.textContent = instById[l.inst]?.label ?? l.inst;
+      if (l.note) { const s = document.createElement("span"); s.className = "muted small note"; s.textContent = l.note; name.appendChild(s); }
+      tr.appendChild(name);
+      tr.appendChild(cell(label(l.month)));
+      tr.appendChild(cell(tl(l.amount) + (l.qty ? ` · ${new Intl.NumberFormat("tr-TR").format(l.qty)} ${instById[l.inst]?.unit ?? ""}` : "")));
+      if (r) {
+        results.push(r);
+        tr.append(cell(tl(r.value)), cell(pct(r.nominal)), cell(pct(r.real), "strong"), cell(pct(r.usd)), cell(pct(r.gold)));
+      } else {
+        tr.append(cell("veri yok"), cell("—"), cell("—"), cell("—"), cell("—"));
+      }
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "del"; del.textContent = "Sil"; del.setAttribute("aria-label", `${name.textContent} pozisyonunu sil`);
+      del.addEventListener("click", () => { lots = lots.filter((x) => x.id !== l.id); save(); render(); });
+      const td = document.createElement("td"); td.appendChild(del); tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+    $("holdings").hidden = lots.length === 0;
+    $("empty").hidden = lots.length > 0;
+    $("summary").hidden = results.length === 0;
+    if (results.length) {
+      const s = portfolioSummary(results);
+      $("t-value").textContent = tl(s.value);
+      $("t-cost").textContent = `toplam yatırılan ${tl(s.cost)}`;
+      $("t-real").textContent = pct(s.real);
+      $("t-nominal").textContent = `nominal ${pct(s.nominal)}${data.sample ? " · ÖRNEK VERİ" : ""}`;
+      $("t-gap").textContent = (s.inflation_gap_tl >= 0 ? "+" : "−") + tl(Math.abs(s.inflation_gap_tl));
+    }
+  }
+
+  $("add-btn").addEventListener("click", add);
+  instSel.addEventListener("change", fillDates);
+  $("export").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ version: 1, lots }, null, 1)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "portfoyum.json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $<HTMLInputElement>("import").addEventListener("change", async (ev) => {
+    const f = (ev.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    try {
+      const parsed = JSON.parse(await f.text());
+      const incoming = (Array.isArray(parsed) ? parsed : parsed.lots || []).filter(valid);
+      lots = [...lots, ...incoming.map((l: Lot) => ({ ...l, id: String(Date.now()) + Math.random().toString(36).slice(2, 6), note: String(l.note || "").slice(0, 40) }))];
+      save(); render();
+    } catch { alert("Dosya okunamadı."); }
+  });
+  $("clear").addEventListener("click", () => { if (confirm("Tüm pozisyonlar bu tarayıcıdan silinsin mi?")) { lots = []; save(); render(); } });
+  fillDates();
+  render();
+</script>
+
+<style>
+  .privacy { color: var(--ink-2); border-left: 4px solid var(--ink); margin: 16px 0; }
+  .add h2, .list h2 { margin: 0 0 10px; font-size: 1.4rem; }
+  .grid { display: grid; gap: 12px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .field label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 4px; }
+  .field input, .field select { width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 6px; }
+  .actions { margin-top: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .summary { display: grid; gap: 12px; margin: 16px 0; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .summary { grid-template-columns: repeat(3, 1fr); } }
+  .s-label { font-weight: 600; font-size: 0.88rem; color: var(--ink-2); margin: 0; }
+  .s-value { font-family: var(--font-head); font-size: 2.2rem; line-height: 1.15; margin: 2px 0; overflow-wrap: anywhere; }
+  .stat p:last-child { margin-bottom: 0; }
+  .list { margin-top: 16px; }
+  .list-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tools .btn { padding: 6px 12px; font-size: 0.85rem; }
+  .file { cursor: pointer; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  .holdings { min-width: 760px; font-size: 0.88rem; }
+  .holdings tbody th { text-align: left; font-weight: 600; }
+  .holdings td.strong { font-weight: 700; color: var(--ink); }
+  .note { display: block; font-weight: 400; }
+  .del { background: none; border: 1px solid var(--line); color: var(--ink-2); border-radius: 6px; font: inherit; font-size: 0.8rem; padding: 2px 8px; cursor: pointer; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

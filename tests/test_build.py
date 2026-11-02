@@ -132,7 +132,7 @@ def test_paths_end_values_match_reel_tablo():
 
 
 def test_prices_are_contiguous_and_tl_is_flat():
-    *_, prices, _, _ = build.build(allow_sample=True)
+    *_, prices, _, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in prices["instruments"]}
     assert {"tl", "cpi", "gold", "car", "house_ist"} <= ids
     assert "min_wage" not in ids or "min_wage_net" in build.ORIGIN
@@ -143,7 +143,7 @@ def test_prices_are_contiguous_and_tl_is_flat():
 
 
 def test_housing_gold_return_is_currency_return():
-    *_, housing, _ = build.build(allow_sample=True)
+    *_, housing, _, _ = build.build(allow_sample=True)
     ist = next(c for c in housing["cities"] if c["id"] == "ist")
     w = ist["sources"]["kfe"]["windows"][0]
     assert w["years"] == 1 and w["gold"] is not None
@@ -151,7 +151,7 @@ def test_housing_gold_return_is_currency_return():
 
 
 def test_housing_adds_betam_when_present():
-    *_, base_housing, _ = build.build(allow_sample=True)
+    *_, base_housing, _, _ = build.build(allow_sample=True)
     data, is_sample = build.load_series(allow_sample=True)
     data = dict(data)
     data["betam_sale_ist"] = dict(data["house_ist"])        # stand-in values, test only
@@ -176,7 +176,7 @@ def test_car_new_from_basket(tmp_path, monkeypatch):
 
 
 def test_macro_indicators_and_end_month_not_held_back():
-    tablo, *_, macro = build.build(allow_sample=True)
+    tablo, *_, macro, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in macro["indicators"]}
     assert {"gdp_growth", "cds_5y", "policy_rate", "inflation", "bist100_usd"} <= ids
     gdp = next(i for i in macro["indicators"] if i["id"] == "gdp_growth")
@@ -195,3 +195,19 @@ def test_latest_and_change():
     lv = build.latest_and_change([["2024-01", 100.0], ["2025-01", 125.0]], "level")
     assert abs(lv["change_12m"] - 0.25) < 1e-12
     assert build.latest_and_change([["2025-01", 1.0]], "level")["change_12m"] is None
+
+
+def test_stocks_flow_into_prices_and_borsa(tmp_path, monkeypatch):
+    data, is_sample = build.load_series(allow_sample=True)
+    end = "2026-09"
+    months = [build.e.shift_month("2024-01", k) for k in range(33)]           # 2024-01 .. 2026-09
+    stocks = {"TEST": ({m: 10.0 * 1.02 ** k for k, m in enumerate(months)}, {"name": "Test A.Ş."}),
+              "OLD": ({"2024-01": 5.0}, {})}                                    # stale -> left out of chart tool
+    prices = build.build_prices(data, is_sample, end, stocks)
+    ids = {i["id"] for i in prices["instruments"]}
+    assert "stk_TEST" in ids and "stk_OLD" not in ids
+    borsa = build.build_stocks(data, is_sample, end, {"TEST": stocks["TEST"]})
+    row = next(r for r in borsa["rows"] if r["ticker"] == "TEST")
+    w1 = next(w for w in row["windows"] if w["years"] == 1)
+    assert abs(w1["nominal_tl"] - (1.02 ** 12 - 1)) < 1e-9
+    assert borsa["rows"][0]["ticker"] == "XU100"

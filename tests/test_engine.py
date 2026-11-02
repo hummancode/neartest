@@ -378,3 +378,40 @@ def test_same_direction_share():
     # signs: (+,+) (-,+) (+,+) (0,-) -> same in 2 of 4 (zero counts as not same)
     p = {"months": ["a", "b", "c", "d"], "a": [1, -1, 2, 0], "b": [3, 2, 1, -1]}
     assert e.same_direction_share(p) == 0.5
+
+
+# --- portfolio (Portföyüm) ---------------------------------------------------
+
+def _lot(**kw):
+    p = dict(amount=1000.0, quantity=None, level_then=10.0, level_now=20.0,
+             cpi_then=100.0, cpi_now=150.0, usd_then=10.0, usd_now=16.0, gold_then=100.0, gold_now=250.0)
+    p.update(kw)
+    return e.holding_returns(**p)
+
+
+def test_holding_returns_from_amount():
+    # 1000 TL bought at level 10 -> now 20: value 2000 (+100 %).
+    # Real: 2000 / (1000*1.5) - 1 = 1/3. USD: (2000/16)/(1000/10) - 1 = 0.25. Gold: (2000/250)/(1000/100) - 1 = -0.2
+    r = _lot()
+    assert close(r["value"], 2000.0)
+    assert close(r["nominal"], 1.0)
+    assert close(r["real"], 2000 / 1500 - 1)
+    assert close(r["usd"], 0.25)
+    assert close(r["gold"], -0.2)
+    assert close(r["inflation_gap_tl"], 500.0)        # 2000 - 1000*1.5
+
+
+def test_holding_returns_from_quantity():
+    # 40 units at today's level 20 -> 800 TL, paid 1000 -> -20 %
+    r = _lot(quantity=40.0)
+    assert close(r["value"], 800.0) and close(r["nominal"], -0.2)
+
+
+def test_portfolio_summary_weights_by_money():
+    a = _lot()                                   # cost 1000 -> 2000, cpi-adjusted cost 1500
+    b = _lot(amount=3000.0, level_now=10.0)      # cost 3000 -> 3000, cpi-adjusted cost 4500
+    s = e.portfolio_summary([a, b])
+    assert close(s["cost"], 4000.0) and close(s["value"], 5000.0)
+    assert close(s["nominal"], 0.25)
+    assert close(s["real"], 5000 / 6000 - 1)     # value / sum of inflated costs
+    assert close(s["inflation_gap_tl"], -1000.0)

@@ -1,0 +1,129 @@
+---
+import Base from "../layouts/Base.astro";
+import { stocks } from "../lib/stocks.ts";
+import { YEARS } from "../lib/data.ts";
+import { monthLabel, pct } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const MEASURES = [
+  { key: "real_tl", label: "Reel (TÜFE'ye göre)" },
+  { key: "usd", label: "Dolar bazında" },
+  { key: "gold", label: "Gram altın bazında" },
+  { key: "nominal_tl", label: "Nominal TL" },
+] as const;
+---
+<Base title="Borsa" description="BIST 100 ve hisselerin enflasyondan, dolardan ve altından arındırılmış getirisi; tarayıcınızda saklanan izleme listesi." sample={stocks.sample}>
+  <h1>Borsa</h1>
+  <p class="lead">
+    Hisse ve endeks getirileri TL'de parlak görünebilir. Burada aynı getiriyi enflasyona, dolara ve altına göre görüyorsunuz.
+    Yıldızla işaretlediğiniz hisseler yalnızca bu tarayıcıda saklanır.
+  </p>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Ölçü">
+      {MEASURES.map((m, i) => <button type="button" data-measure={m.key} aria-pressed={i === 0 ? "true" : "false"}>{m.label}</button>)}
+    </div>
+    <label class="only"><input type="checkbox" id="only-watch" /> Yalnızca izlediklerim</label>
+  </div>
+
+  <div class="card scroll-x">
+    <table class="data stocks">
+      <thead>
+        <tr><th scope="col"><span class="sr-only">İzle</span></th><th scope="col">Hisse</th>{YEARS.map((y) => <th scope="col">{y} yıl</th>)}<th scope="col"><span class="sr-only">Grafik</span></th></tr>
+      </thead>
+      <tbody>
+        {stocks.rows.map((r) => (
+          <tr data-id={r.id}>
+            <td><button type="button" class="star" data-star={r.id} aria-pressed="false" aria-label={`${r.ticker} izleme listesine ekle`}>☆</button></td>
+            <th scope="row"><strong>{r.ticker}</strong> <span class="muted small">{r.label}</span>{r.sample && <span class="tag">örnek</span>}</th>
+            {YEARS.map((y) => {
+              const w = r.windows.find((x) => x.years === y);
+              return (
+                <td>
+                  {MEASURES.map((m, i) => (
+                    <span class="v" data-m={m.key} hidden={i !== 0}>
+                      <span class="cum">{w ? pct(w[m.key]) : "—"}</span>
+                      {w && w[`${m.key}_annual`] != null && <span class="ann">yıllık {pct(w[`${m.key}_annual`])}</span>}
+                    </span>
+                  ))}
+                </td>
+              );
+            })}
+            <td><a class="small" href={`/grafik#x=${r.id === "bist100" ? "bist100" : r.id}&y=cpi&w=10`}>grafik</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">Veri bitişi {monthLabel(stocks.end_month)} · aylık ortalama kapanış · temettü ve bölünme düzeltmesi yok.</p>
+  <p id="empty-watch" class="muted" hidden>İzleme listeniz boş. Bir satırdaki ☆ işaretine dokunun.</p>
+
+  {stocks.stock_count === 0 && (
+    <section class="card empty">
+      <h2>Hisse verisi henüz yok</h2>
+      <p>
+        Borsa İstanbul fiyat verisi lisanslıdır; ücretsiz kaynakların çoğu otomatik veri çekmeyi yasaklar. Bu yüzden hisseler şimdilik
+        elle eklenir: <code>data/manual/stocks/&lt;KOD&gt;.csv</code> (tarih; kapanış fiyatı, TL) ve isteğe bağlı
+        <code>&lt;KOD&gt;.meta.json</code> (<code>{`{"name": "Şirket adı", "source": "..."}`}</code>). Eklenen hisseler bu tabloda,
+        <a href="/grafik">grafik aracında</a> ve <a href="/portfoy">portföyünüzde</a> görünür.
+      </p>
+    </section>
+  )}
+
+  <p>Kendi alımlarınızın reel getirisini görmek için: <a href="/portfoy">Portföyüm</a>.</p>
+  <p><strong>{DISCLAIMER}</strong> Bu sayfa al/sat önerisi veya hedef fiyat içermez.</p>
+</Base>
+
+<script>
+  const KEY = "izleme.v1";
+  const load = (): string[] => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
+  const save = (ids: string[]) => { try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* storage unavailable */ } };
+  let watch = new Set(load());
+  const only = document.getElementById("only-watch") as HTMLInputElement;
+
+  function render() {
+    document.querySelectorAll<HTMLButtonElement>("[data-star]").forEach((b) => {
+      const on = watch.has(b.dataset.star!);
+      b.textContent = on ? "★" : "☆";
+      b.setAttribute("aria-pressed", String(on));
+    });
+    let shown = 0;
+    document.querySelectorAll<HTMLTableRowElement>("tbody tr[data-id]").forEach((tr) => {
+      const vis = !only.checked || watch.has(tr.dataset.id!);
+      tr.hidden = !vis;
+      if (vis) shown++;
+    });
+    document.getElementById("empty-watch")!.hidden = !(only.checked && shown === 0);
+  }
+  document.querySelectorAll<HTMLButtonElement>("[data-star]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.star!;
+    watch.has(id) ? watch.delete(id) : watch.add(id);
+    save([...watch]);
+    render();
+  }));
+  only.addEventListener("change", render);
+  document.querySelectorAll<HTMLButtonElement>("[data-measure]").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("[data-measure]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    document.querySelectorAll<HTMLElement>(".v").forEach((v) => (v.hidden = v.dataset.m !== b.dataset.measure));
+  }));
+  render();
+</script>
+
+<style>
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 16px 0 10px; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 18px; padding: 2px; }
+  .seg button { background: none; border: 0; color: var(--ink-2); font: inherit; font-size: 0.82rem; font-weight: 600; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .only { font-size: 0.9rem; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+  .scroll-x { overflow-x: auto; padding: 4px 8px; }
+  .stocks { min-width: 600px; font-size: 0.9rem; }
+  .stocks tbody th { text-align: left; font-weight: 400; }
+  .stocks td { vertical-align: top; }
+  .cum { display: block; font-weight: 600; white-space: nowrap; }
+  .ann { display: block; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+  .star { background: none; border: 0; font-size: 1.2rem; line-height: 1; cursor: pointer; color: var(--ink); padding: 2px 4px; }
+  .tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+  .empty { margin-top: 16px; }
+  .empty h2 { margin-top: 0; font-size: 1.4rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

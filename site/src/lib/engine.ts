@@ -311,3 +311,36 @@ export function sameDirectionShare(pairs: { months: string[]; a: number[]; b: nu
   for (let k = 0; k < n; k++) if (pairs.a[k] * pairs.b[k] > 0) same++;
   return same / n;
 }
+
+// --- portfolio (Portföyüm) -------------------------------------------------
+
+export interface HoldingInput {
+  amount: number; quantity: number | null; level_then: number; level_now: number;
+  cpi_then: number; cpi_now: number; usd_then: number; usd_now: number; gold_then: number; gold_now: number;
+}
+export interface HoldingResult {
+  amount: number; value: number; inflated_cost: number; nominal: number; real: number; usd: number; gold: number; inflation_gap_tl: number;
+}
+
+/** Same as reel/engine.py holding_returns. */
+export function holdingReturns(p: HoldingInput): HoldingResult {
+  if (!(p.amount > 0) || !(p.level_then > 0)) throw new SeriesError("amount and purchase level must be positive");
+  const value = p.quantity !== null && p.quantity !== undefined ? p.quantity * p.level_now : valueToday(p.amount, p.level_then, p.level_now);
+  const nominal = value / p.amount - 1.0;
+  const inflated = valueToday(p.amount, p.cpi_then, p.cpi_now);
+  return {
+    amount: p.amount, value, inflated_cost: inflated, nominal,
+    real: value / inflated - 1.0,
+    usd: currencyReturn(nominal, p.usd_now / p.usd_then - 1.0),
+    gold: currencyReturn(nominal, p.gold_now / p.gold_then - 1.0),
+    inflation_gap_tl: value - inflated,
+  };
+}
+
+export function portfolioSummary(holdings: { amount: number; value: number; inflated_cost: number }[]) {
+  if (holdings.length === 0) throw new SeriesError("empty portfolio");
+  const cost = holdings.reduce((a, h) => a + h.amount, 0);
+  const value = holdings.reduce((a, h) => a + h.value, 0);
+  const inflated = holdings.reduce((a, h) => a + h.inflated_cost, 0);
+  return { cost, value, nominal: value / cost - 1.0, real: value / inflated - 1.0, inflation_gap_tl: value - inflated };
+}

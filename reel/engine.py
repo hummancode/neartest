@@ -477,3 +477,43 @@ def same_direction_share(pairs: dict[str, list]) -> float:
         raise SeriesError("no paired observations")
     same = sum(1 for x, y in zip(pairs["a"], pairs["b"]) if x * y > 0)
     return same / n
+
+
+# ---------------------------------------------------------------------------
+# Portfolio (computed in the browser with the TS port; nothing is uploaded)
+# ---------------------------------------------------------------------------
+
+def holding_returns(*, amount: float, quantity: float | None, level_then: float, level_now: float,
+                    cpi_then: float, cpi_now: float, usd_then: float, usd_now: float,
+                    gold_then: float, gold_now: float) -> dict:
+    """One purchase: TL `amount` spent in a month when the instrument's TL level was `level_then`.
+
+    If `quantity` (shares, grams, dollars...) is given, value = quantity x today's level;
+    otherwise the amount is assumed to have bought amount/level_then units.
+    """
+    if amount <= 0 or level_then <= 0:
+        raise SeriesError("amount and purchase level must be positive")
+    value = quantity * level_now if quantity is not None else value_today(amount, level_then, level_now)
+    nominal = value / amount - 1.0
+    inflated_cost = value_today(amount, cpi_then, cpi_now)
+    return {
+        "amount": amount,
+        "value": value,
+        "inflated_cost": inflated_cost,
+        "nominal": nominal,
+        "real": value / inflated_cost - 1.0,
+        "usd": currency_return(nominal, usd_now / usd_then - 1.0),
+        "gold": currency_return(nominal, gold_now / gold_then - 1.0),
+        "inflation_gap_tl": value - inflated_cost,
+    }
+
+
+def portfolio_summary(holdings: list[dict]) -> dict:
+    """Money-weighted totals: value vs. cost, and vs. cost carried forward with CPI."""
+    if not holdings:
+        raise SeriesError("empty portfolio")
+    cost = sum(h["amount"] for h in holdings)
+    value = sum(h["value"] for h in holdings)
+    inflated = sum(h["inflated_cost"] for h in holdings)
+    return {"cost": cost, "value": value, "nominal": value / cost - 1.0,
+            "real": value / inflated - 1.0, "inflation_gap_tl": value - inflated}

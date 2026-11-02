@@ -63,3 +63,10 @@
   `rolling_correlation`, `same_direction_share` (önce test, TS'ye taşındı; 46 ortak vaka). Çeyreklik /
   yıllık seriler desteklendi; makro seriler piyasa bitiş ayını geri çekmiyor. Grafik modülü: referans
   çizgisi, biçimlendirici, düzensiz aralık. Menü 1024 px altında açılır.
+- 2026-11-02 — Borsa ve Portföyüm: `/borsa` (BIST 100 + elle yüklenen hisseler; reel / USD / altın / nominal,
+  1-3-5-10 yıl; tarayıcıda saklanan izleme listesi; hisse verisi yokken lisans açıklaması). `/portfoy`:
+  pozisyon ekle/sil (tutar, isteğe bağlı miktar, not), pozisyon ve toplam bazında nominal/reel/USD/altın
+  getiri ve "enflasyona karşı" TL farkı; yerel depolama, dışa/içe aktarma; sunucuya veri gitmez.
+  Motor: `holding_returns`, `portfolio_summary` (önce test; TS; 50 ortak vaka). `data/manual/stocks/`
+  (kod doğrulamalı) → grafik aracı, borsa, portföy. Menü gruplandı (Piyasalar / Makro / Hesapla),
+  ana sayfada araç ızgarası. Kaydırma kutularının dışına taşan erişilebilirlik etiketi hatası düzeltildi.

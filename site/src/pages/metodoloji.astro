@@ -28,6 +28,7 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#grafik">Grafik: X'in Y cinsinden fiyatı</a></li>
         <li><a href="#kiravsal">Kirala mı, satın al mı?</a></li>
         <li><a href="#iliskiler">İlişkiler (korelasyon)</a></li>
+        <li><a href="#portfoy">Portföyüm</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
@@ -168,6 +169,16 @@ import { DISCLAIMER } from "../config.ts";
       <li>Kayan korelasyon, her dönemde son 24 aylık (çeyreklikte 8) değişim üzerinden hesaplanır.</li>
       <li>Çeyreklik ve yıllık göstergeler çeyrek/yıl sonu ayına yerleştirilir. Aylık değişim, çeyreklik bir göstergeyle eşleşemez; otomatik seçim bu durumda çeyreklik değişim kullanır.</li>
       <li>Korelasyon nedensellik göstermez; geçmiş ilişki gelecekte sürmeyebilir. Bu araç tahmin üretmez.</li>
+    </ul>
+
+    <h2 id="portfoy">Portföyüm</h2>
+    <p>Her pozisyon için: alış ayında yatırılan tutar <em>T</em>, varlığın o ayki TL fiyatı P<sub>0</sub> ve bugünkü fiyatı P<sub>1</sub>.</p>
+    <p class="formula card">Değer = miktar × P<sub>1</sub> (miktar girilmemişse T × P<sub>1</sub> / P<sub>0</sub>)</p>
+    <p class="formula card">Reel getiri = Değer / (T × TÜFE<sub>1</sub> / TÜFE<sub>0</sub>) − 1 &nbsp;&nbsp; Dolar bazında = (1 + nominal) / (1 + kur değişimi) − 1</p>
+    <ul>
+      <li>Toplam reel getiri para ağırlıklıdır: toplam değer / alım tutarlarının TÜFE ile bugüne taşınmış toplamı − 1.</li>
+      <li>Fiyatlar aylık ortalamadır. Temettü, bölünme, komisyon, vergi ve mevduat stopajı dahil değildir.</li>
+      <li>Pozisyonlar yalnızca tarayıcının yerel depolamasında tutulur; sunucuya gönderilmez.</li>
     </ul>
 
     <h2 id="kisisel">9. Kişisel enflasyon</h2>

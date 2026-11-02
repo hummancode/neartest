@@ -31,6 +31,7 @@ OUT_PATHS = ROOT / "site" / "data" / "seriler.json"
 OUT_PRICES = ROOT / "site" / "data" / "fiyatlar.json"
 OUT_HOUSING = ROOT / "site" / "data" / "konut.json"
 OUT_MACRO = ROOT / "site" / "data" / "makro.json"
+OUT_STOCKS = ROOT / "site" / "data" / "borsa.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -178,11 +179,14 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     status["generated_at"] = tablo["generated_at"]
     paths = build_paths(data, is_sample, end)
     paths["generated_at"] = tablo["generated_at"]
-    prices = build_prices(data, is_sample, end)
+    stocks = manual.load_stocks()
+    prices = build_prices(data, is_sample, end, stocks)
+    stocks_out = build_stocks(data, is_sample, end, stocks)
     housing = build_housing(data, is_sample, end)
     macro = build_macro(data, is_sample, end)
-    prices["generated_at"] = housing["generated_at"] = macro["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing, macro
+    for d in (prices, housing, macro, stocks_out):
+        d["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -321,7 +325,7 @@ def _instrument_tl(source: str | None, data: dict, end: str) -> dict[str, float]
     return {m: v for m, v in out.items() if e._month_index(m) <= end_idx}
 
 
-def build_prices(data: dict, is_sample: dict, end: str) -> dict:
+def build_prices(data: dict, is_sample: dict, end: str, stocks: dict | None = None) -> dict:
     """Monthly TL levels of every chart instrument (contiguous runs: start month + values)."""
     instruments, series = [], {}
     for iid, label, group, source in INSTRUMENTS:
@@ -342,12 +346,50 @@ def build_prices(data: dict, is_sample: dict, end: str) -> dict:
             "sources": [src(u, is_sample) for u in used],
         })
         series[iid] = {"start": run[0], "values": [round(tl[m], 8) for m in run]}
+    for ticker, (prices_tl, meta) in (stocks or {}).items():
+        tl = {m: v for m, v in prices_tl.items() if e._month_index(m) <= e._month_index(end)}
+        if not tl or max(tl, key=e._month_index) != end:
+            continue  # stale file: must reach the common end month to sit on the same footing
+        months = sorted(tl, key=e._month_index)
+        run = [months[-1]]
+        for m in reversed(months[:-1]):
+            if e.shift_month(m, 1) != run[0]:
+                break
+            run.insert(0, m)
+        instruments.append({
+            "id": f"stk_{ticker}", "label": f"{ticker}" + (f" — {meta['name']}" if meta.get("name") else ""),
+            "group": "Hisse", "sample": False,
+            "sources": [{"label": ticker, "source": meta.get("source", "Elle yüklendi (data/manual/stocks)"),
+                         "code": ticker, "verified": bool(meta.get("verified", False)), "sample": False}],
+        })
+        series[f"stk_{ticker}"] = {"start": run[0], "values": [round(tl[m], 8) for m in run]}
     return {
         "end_month": end,
         "sample": any(i["sample"] for i in instruments),
         "instruments": instruments,
         "series": series,
     }
+
+
+def build_stocks(data: dict, is_sample: dict, end: str, stocks: dict) -> dict:
+    """BIST 100 and manually loaded stocks: nominal / real / USD / gold returns."""
+    rows = [{
+        "id": "bist100", "ticker": "XU100", "label": "BIST 100 endeksi",
+        "sample": any(is_sample.get(s, False) for s in ("bist100", "cpi_tr", "usdtry", "gold_gram_tl")),
+        "last_month": e.last_month(data["bist100"]),
+        "windows": _house_windows(data["bist100"], data, end),
+        "source": src("bist100", is_sample),
+    }]
+    for ticker, (prices_tl, meta) in stocks.items():
+        rows.append({
+            "id": f"stk_{ticker}", "ticker": ticker, "label": meta.get("name", ticker),
+            "sample": any(is_sample.get(s, False) for s in ("cpi_tr", "usdtry", "gold_gram_tl")),
+            "last_month": e.last_month(prices_tl),
+            "windows": _house_windows(prices_tl, data, end),
+            "source": {"label": ticker, "source": meta.get("source", "Elle yüklendi (data/manual/stocks)"),
+                       "code": ticker, "verified": bool(meta.get("verified", False)), "sample": False},
+        })
+    return {"end_month": end, "sample": any(r["sample"] for r in rows), "stock_count": len(stocks), "rows": rows}
 
 
 def _house_windows(house: dict, data: dict, end: str) -> list[dict]:
@@ -588,7 +630,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing, macro = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -599,8 +641,9 @@ def main() -> int:
     write_if_changed(OUT_PRICES, prices)
     write_if_changed(OUT_HOUSING, housing)
     write_if_changed(OUT_MACRO, macro)
+    write_if_changed(OUT_STOCKS, stocks_out)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (9 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (10 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

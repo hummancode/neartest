@@ -1,0 +1,68 @@
+{
+ "end_month": "2026-09",
+ "sample": true,
+ "stock_count": 0,
+ "rows": [
+  {
+   "id": "bist100",
+   "ticker": "XU100",
+   "label": "BIST 100 endeksi",
+   "sample": true,
+   "last_month": "2026-09",
+   "windows": [
+    {
+     "years": 1,
+     "nominal_tl": 0.1228869668593997,
+     "usd": -0.12625155900225626,
+     "real_tl": -0.15572408506812052,
+     "nominal_tl_annual": 0.1228869668593997,
+     "usd_annual": -0.12625155900225626,
+     "real_tl_annual": -0.15572408506812052,
+     "gold": -0.12651354606007037,
+     "gold_annual": -0.12651354606007037
+    },
+    {
+     "years": 3,
+     "nominal_tl": 1.0320572508250945,
+     "usd": -0.10534733753473913,
+     "real_tl": -0.1362640089290892,
+     "nominal_tl_annual": 0.2666170015328184,
+     "usd_annual": -0.03642656221193652,
+     "real_tl_annual": -0.047656389824948575,
+     "gold": -0.2455216305733574,
+     "gold_annual": -0.08963490500970228
+    },
+    {
+     "years": 5,
+     "nominal_tl": 2.039724291654946,
+     "usd": -0.1811154273471679,
+     "real_tl": -0.2695743944269383,
+     "nominal_tl_annual": 0.24901265544507,
+     "usd_annual": -0.03917446177177819,
+     "real_tl_annual": -0.06089274026686475,
+     "gold": -0.3455616650830696,
+     "gold_annual": -0.08129993690988147
+    },
+    {
+     "years": 10,
+     "nominal_tl": 10.78222527925047,
+     "usd": -0.1814231441205798,
+     "real_tl": -0.3196836434592101,
+     "nominal_tl_annual": 0.27974291020337283,
+     "usd_annual": -0.019819753091752212,
+     "real_tl_annual": -0.037787285561373896,
+     "gold": -0.5336293104924895,
+     "gold_annual": -0.0734409020041612
+    }
+   ],
+   "source": {
+    "label": "BIST 100",
+    "source": "Belirlenecek",
+    "code": null,
+    "verified": false,
+    "sample": true
+   }
+  }
+ ],
+ "generated_at": "2026-11-02T06:41:34+00:00"
+}

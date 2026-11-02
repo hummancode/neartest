@@ -61,3 +61,15 @@ def test_basket_csv():
 def test_basket_csv_rejects_duplicate_model_month():
     with pytest.raises(manual.ManualDataError):
         manual.parse_basket_csv("2024-01,A,100\n2024-01,A,110\n")
+
+
+def test_load_stocks(tmp_path):
+    d = tmp_path / "stocks"
+    d.mkdir()
+    (d / "ABCD.csv").write_text("Tarih;Kapanis\n02.01.2024;10,0\n03.01.2024;12,0\n01.02.2024;13,0\n", encoding="utf-8")
+    (d / "ABCD.meta.json").write_text('{"name": "Örnek A.Ş.", "source": "test"}', encoding="utf-8")
+    (d / "bad name.csv").write_text("2024-01;1\n", encoding="utf-8")
+    out = manual.load_stocks(d)
+    assert list(out) == ["ABCD"]
+    series, meta = out["ABCD"]
+    assert series == {"2024-01": 11.0, "2024-02": 13.0} and meta["name"] == "Örnek A.Ş."

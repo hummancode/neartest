@@ -12,8 +12,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 |---|---|---|
 | ✅ | Reel Tablo, varlık detayları, "100 TL ne oldu?" | EVDS (kodlar doğrulanacak) |
 | ✅ | Grafik: X'in Y cinsinden fiyatı (TradingView tarzı) | mevcut seriler |
-| 🟡 | **Hisse takibi**: hisse sayfaları, grafik aracında hisseler | Fiyat verisi lisanslı: Borsa İstanbul veri dağıtımı (ücretli), lisanslı veri sağlayıcılar; ücretsiz kaynakların çoğu otomatik çekmeyi yasaklıyor. Şimdilik `data/manual/stocks/<KOD>.csv` |
-| 🟡 | **Portföyüm** (tarayıcıda): alış tarihine göre reel / USD / altın getiri | Altın, döviz hazır; hisseler veriyle |
+| 🟡 | **Hisse takibi**: borsa sayfası (reel/USD/altın), izleme listesi, grafik aracı ve portföyde hisseler — altyapı hazır | Fiyat verisi lisanslı: Borsa İstanbul veri dağıtımı (ücretli), lisanslı veri sağlayıcılar; ücretsiz kaynakların çoğu otomatik çekmeyi yasaklıyor. Şimdilik `data/manual/stocks/<KOD>.csv` |
+| ✅ | **Portföyüm** (tarayıcıda): alış tarihine göre reel / USD / altın getiri, dışa/içe aktarma | Altın, döviz, mevduat, endeks; hisseler veri girilince |
 | ⬜ | Temettü ve bölünme düzeltmeli toplam getiri | KAP duyuruları + fiyat verisi |
 | ⬜ | Yatırım fonları (TEFAS) reel getiri karşılaştırması | TEFAS kullanım şartları kontrol edilmeli |
 | ⬜ | Eurobond / DİBS getiri eğrisi, reel getiri (TÜFE'ye endeksli tahviller) | Hazine, EVDS |
@@ -21,8 +21,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 ## 2. Makro
 | | Fikir | Veri / not |
 |---|---|---|
-| 🟡 | **Makro Pano**: GSYH büyümesi, kişi başı GSYH ($), TÜFE, işsizlik, cari denge, rezervler, politika faizi, CDS, bütçe | TÜİK/TCMB/HMB via EVDS; **CDS**: resmi ücretsiz kaynak yok (lisanslı veri) → elle |
-| 🟡 | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
+| ✅ | **Makro Pano** (örnek veriyle; seri kodları doğrulanacak): GSYH büyümesi, kişi başı GSYH ($), TÜFE, işsizlik, cari denge, rezervler, politika faizi, CDS, bütçe | TÜİK/TCMB/HMB via EVDS; **CDS**: resmi ücretsiz kaynak yok (lisanslı veri) → elle |
+| ✅ | **İlişkiler**: iki göstergenin birlikte hareketi, kayan korelasyon | mevcut seriler; korelasyon ≠ nedensellik |
 | ⬜ | Olay penceresi analizi: PPK kararları gibi tarihli resmi olaylar etrafında piyasaların ortalama hareketi | olay listesi elle, yalnızca resmi olay adı ve tarih (yorum yok) |
 | ⬜ | Ülke karşılaştırması: Türkiye ve benzer ekonomiler (enflasyon, büyüme, borç/GSYH) | Dünya Bankası / IMF açık verileri (lisansları uygun) |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |

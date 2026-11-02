@@ -132,3 +132,29 @@ def parse_basket_csv(text: str) -> dict[str, dict[str, float]]:
             raise ManualDataError(f"satır {i + 1}: {item!r} {month} için iki kez girilmiş")
         out[month][item] = price
     return out
+
+
+TICKER = re.compile(r"^[A-Z0-9]{2,8}$")
+
+
+def load_stocks(directory: Path | None = None) -> dict[str, tuple[dict[str, float], dict]]:
+    """data/manual/stocks/<TICKER>.csv (+ optional <TICKER>.meta.json with name/source).
+
+    Closing prices in TL; daily rows are averaged per month. Files whose name is not a
+    plain ticker (A–Z, 0–9, 2–8 characters) are ignored.
+    """
+    directory = directory or (MANUAL / "stocks")
+    out = {}
+    if not directory.exists():
+        return out
+    for path in sorted(directory.glob("*.csv")):
+        ticker = path.stem
+        if not TICKER.match(ticker):
+            continue
+        series = parse_csv(path.read_text(encoding="utf-8-sig"))
+        if not series:
+            continue
+        meta_path = directory / f"{ticker}.meta.json"
+        meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+        out[ticker] = (series, meta)
+    return out

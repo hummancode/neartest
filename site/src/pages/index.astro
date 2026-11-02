@@ -73,41 +73,25 @@ function sparkLabel(row: Row) {
     ))}
   </div>
 
-  <aside class="card cta">
-    <div>
-      <h3>Grafik: neyin fiyatı, neyle ölçülürse</h3>
-      <p class="muted">Otomobil gram altın cinsinden, konut dolar cinsinden, altın borsa cinsinden — karşılaştırın.</p>
-    </div>
-    <a class="btn" href="/grafik">Aç →</a>
-  </aside>
-  <aside class="card cta">
-    <div>
-      <h3>Konut: kirala mı, satın al mı?</h3>
-      <p class="muted">Büyükşehirlerde konutun reel getirisi ve kendi varsayımlarınızla kira–satın alma karşılaştırması.</p>
-    </div>
-    <a class="btn" href="/konut">Hesapla →</a>
-  </aside>
-  <aside class="card cta">
-    <div>
-      <h3>Nominal illüzyon makinesi</h3>
-      <p class="muted">Geçmişteki bir TL tutarının bugün TÜFE, dolar ve gram altın cinsinden karşılığını hesaplayın.</p>
-    </div>
-    <a class="btn" href="/nominal-illuzyon">Hesapla →</a>
-  </aside>
-  <aside class="card cta">
-    <div>
-      <h3>Kişisel enflasyon</h3>
-      <p class="muted">Kendi harcama dağılımınızla son 12 ayın enflasyonunu hesaplayın, resmi TÜFE ile karşılaştırın.</p>
-    </div>
-    <a class="btn" href="/kisisel-enflasyon">Hesapla →</a>
-  </aside>
-  <aside class="card cta">
-    <div>
-      <h3>Reel faiz</h3>
-      <p class="muted">Mevduat ve kredi faizi enflasyonun üstünde mi? Son enflasyona göre ve gerçekleşen reel faiz.</p>
-    </div>
-    <a class="btn" href="/reel-faiz">İncele →</a>
-  </aside>
+  <h2>Platform</h2>
+  <div class="tools">
+    {[
+      ["/makro", "Makro Pano", "Büyüme, enflasyon, işsizlik, cari denge, rezerv, faiz, CDS — tek sayfada."],
+      ["/iliskiler", "İlişkiler", "CDS ile borsa, faiz ile kur: göstergeler birlikte nasıl hareket etti?"],
+      ["/grafik", "Grafik", "Otomobili gram altınla, konutu dolarla, altını borsayla ölçün."],
+      ["/borsa", "Borsa", "Endeks ve hisselerin reel, dolar ve altın bazında getirisi; izleme listesi."],
+      ["/portfoy", "Portföyüm", "Kendi alımlarınızın gerçek getirisi. Veriler tarayıcınızda kalır."],
+      ["/konut", "Konut", "Şehirlerde konutun reel getirisi; kirala mı, satın al mı?"],
+      ["/reel-faiz", "Reel Faiz", "Mevduat ve kredi faizi enflasyonun üstünde mi?"],
+      ["/nominal-illuzyon", "Nominal İllüzyon", "Geçmişteki bir tutar bugün neye denk geliyor?"],
+      ["/kisisel-enflasyon", "Kişisel Enflasyon", "Kendi sepetinizle son 12 ayın enflasyonu."],
+    ].map(([href, title, text]) => (
+      <a class="card tool" href={href}>
+        <span class="tool-title">{title} →</span>
+        <span class="muted small">{text}</span>
+      </a>
+    ))}
+  </div>
 
   <h2>Kaynaklar</h2>
   <div class="card scroll-x">
@@ -182,7 +166,12 @@ function sparkLabel(row: Row) {
     tr.real .cum { font-size: 0.76rem; }
     .ann { font-size: 0.62rem; }
   }
-  .cta + .cta { margin-top: 12px; }
+    .tools { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .tools { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 980px) { .tools { grid-template-columns: repeat(3, 1fr); } }
+  .tool { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
+  .tool:hover { border-color: var(--ink-2); }
+  .tool-title { font-family: var(--font-head); font-size: 1.35rem; }
   .cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
   .cta h3 { margin: 0 0 4px; }
   .cta p { margin: 0; }

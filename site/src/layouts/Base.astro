@@ -12,17 +12,25 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const canonical = SITE_URL ? `${SITE_URL}${path === "/" ? "/" : `${path}/`}` : null;
 const ogImage = SITE_URL ? `${SITE_URL}/og.png` : "/og.png";
 const fullTitle = `${title} · ${SITE_NAME}`;
-const nav = [
-  { href: "/", label: "Reel Tablo" },
-  { href: "/makro", label: "Makro" },
-  { href: "/iliskiler", label: "İlişkiler" },
-  { href: "/grafik", label: "Grafik" },
-  { href: "/konut", label: "Konut" },
-  { href: "/nominal-illuzyon", label: "Nominal İllüzyon" },
-  { href: "/kisisel-enflasyon", label: "Kişisel Enflasyon" },
-  { href: "/reel-faiz", label: "Reel Faiz" },
-  { href: "/metodoloji", label: "Metodoloji" },
+const groups = [
+  { label: "Piyasalar", items: [
+    { href: "/", label: "Reel Tablo" },
+    { href: "/grafik", label: "Grafik: X'in Y cinsinden fiyatı" },
+    { href: "/borsa", label: "Borsa" },
+  ] },
+  { label: "Makro", items: [
+    { href: "/makro", label: "Makro Pano" },
+    { href: "/iliskiler", label: "İlişkiler" },
+    { href: "/reel-faiz", label: "Reel Faiz" },
+  ] },
+  { label: "Hesapla", items: [
+    { href: "/portfoy", label: "Portföyüm" },
+    { href: "/konut", label: "Konut: kirala mı, satın al mı?" },
+    { href: "/nominal-illuzyon", label: "Nominal İllüzyon" },
+    { href: "/kisisel-enflasyon", label: "Kişisel Enflasyon" },
+  ] },
 ];
+const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === path);
 ---
 <!doctype html>
 <html lang="tr">
@@ -59,9 +67,15 @@ const nav = [
         <a class="brand" href="/">{SITE_NAME}</a>
         <button class="menu-toggle" type="button" id="menu-toggle" aria-expanded="false" aria-controls="site-nav">Menü</button>
         <nav class="site-nav" id="site-nav" aria-label="Ana menü">
-          {nav.map((n) => (
-            <a href={n.href} aria-current={path === n.href ? "page" : undefined}>{n.label}</a>
+          {groups.map((g) => (
+            <details class="dd">
+              <summary class={inGroup(g) ? "current" : undefined}>{g.label}</summary>
+              <ul class="dd-menu">
+                {g.items.map((i) => <li><a href={i.href} aria-current={path === i.href ? "page" : undefined}>{i.label}</a></li>)}
+              </ul>
+            </details>
           ))}
+          <a class="top-link" href="/metodoloji" aria-current={path === "/metodoloji" ? "page" : undefined}>Metodoloji</a>
           <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Temayı değiştir">Tema</button>
         </nav>
       </div>
@@ -89,10 +103,25 @@ const nav = [
       (function () {
         const menu = document.getElementById("menu-toggle");
         const nav = document.getElementById("site-nav");
+        const dds = [...nav.querySelectorAll("details.dd")];
+        const mobile = matchMedia("(max-width: 1023px)");
+        const sync = () => dds.forEach((d) => (d.open = mobile.matches));   // mobile panel: all groups open
+        sync();
+        mobile.addEventListener("change", sync);
         menu.addEventListener("click", () => {
           const open = menu.getAttribute("aria-expanded") !== "true";
           menu.setAttribute("aria-expanded", String(open));
           nav.classList.toggle("open", open);
+        });
+        // Desktop: one dropdown at a time; close on outside click or Escape.
+        dds.forEach((d) => d.addEventListener("toggle", () => {
+          if (d.open && !mobile.matches) dds.forEach((o) => o !== d && (o.open = false));
+        }));
+        document.addEventListener("click", (ev) => {
+          if (!mobile.matches && !nav.contains(ev.target)) dds.forEach((d) => (d.open = false));
+        });
+        document.addEventListener("keydown", (ev) => {
+          if (ev.key === "Escape" && !mobile.matches) dds.forEach((d) => (d.open = false));
         });
       })();
       (function () {
