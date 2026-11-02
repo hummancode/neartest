@@ -64,6 +64,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ⬜ | Açık JSON uç noktaları (site/data zaten statik) | lisanslar uygun serilerle |
 
 ## Veri kaynağı kararları (sahibin onayı gerekli)
+Ayrıntılı araştırma (erişim, lisans, öncelik, kayıt/izin listesi): **`docs/VERI-KAYNAKLARI.md`**.
+
 1. EVDS seri kodları (anahtar + ağ izni) — TÜFE, kurlar, faizler, KFE, GSYH, işsizlik, cari denge, rezerv, politika faizi.
 2. BIST 100, S&P 500, gram altın kaynağı.
 3. Hisse fiyatları: lisanslı kaynak mı, elle mi?

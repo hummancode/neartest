@@ -3,9 +3,20 @@
 Kural (CLAUDE.md): seri kodu **tahmin edilmez**. Her kod EVDS'de sorgulanır, adı/birimi/sıklığı
 kontrol edilir, sahibin onayından sonra `pipeline/series.py`'ye yazılır ve `verified=True` yapılır.
 
+> **EVDS 3 uyarısı (Kasım 2026 araştırması, `docs/VERI-KAYNAKLARI.md` §2.1):** TCMB Ocak 2026'da EVDS 3'ü
+> (evds3.tcmb.gov.tr) açtı. Bir üçüncü taraf kaynağa göre eski `evds2` REST API'si 2025 sonunda kapandı ve
+> PyPI'daki `evds` paketi (bizim `fetch.py`/`discover.py` kullanıyor) artık çalışmıyor — **resmî olarak
+> doğrulanamadı**. Anahtar gelince ilk adım: `python -m pipeline.discover "Tüketici Fiyat"` çalıştır.
+> Hata verirse EVDS 3 web servis kılavuzu (EVDS 3'te, giriş yaptıktan sonra) okunup küçük bir istemci
+> yazılacak; uç nokta ve anahtarın nasıl gönderileceği kılavuzdan alınacak, tahmin edilmeyecek.
+
 ## 1. Ortam
+- API anahtarı: evds3.tcmb.gov.tr → üye ol → Profilim → "API KEY KOPYALA".
 - `EVDS_API_KEY`: cloud ortamının gizli değişkenleri **ve** GitHub → Settings → Secrets → Actions.
-- Ağ: cloud ortamında `evds2.tcmb.gov.tr` izinli alan olmalı (GitHub Actions'ta gerekmez).
+- Ağ: cloud ortamında `evds3.tcmb.gov.tr` (ve geçiş sürerken `evds2.tcmb.gov.tr`) izinli alan olmalı
+  (GitHub Actions'ta gerekmez).
+- Kullanım şartı: veriler kaynak gösterilerek yayımlanabilir; site reklam/ücretli bülten alacaksa TCMB'ye
+  yazılı soru sorulmalı (genel site koşullarında ticari kullanım izne tabi).
 
 ## 2. Keşif
     python -m pipeline.discover "Tüketici Fiyat" "Döviz" "Mevduat" "Kredi" "Konut Fiyat" "Altın" \

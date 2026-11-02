@@ -141,4 +141,7 @@
   ana sayfada kategorili dizin, alt bilgide site haritası. Yeni `/karsilastir`: 2–3 il yan yana (tüm göstergeler,
   81 il içindeki sıra, nüfus seyri endeks/kişi, GSYH sektör yapısı), il künyesinden bağlantı. Düzeltmeler:
   `.scroll-x` artık her sayfada yatay kayar, "örnek/tahmin" etiketlerine ortak stil.
+- 2026-11-02 — `docs/VERI-KAYNAKLARI.md`: Türkiye ve dünya veri kaynakları araştırması (TCMB EVDS 3, TÜİK, BDDK,
+  SGK, TOBB, SEGE, BETAM, BIS, OECD, IMF, FRED, Dünya Bankası…; erişim, lisans, öncelik, doğrulanamayanlar).
+  `docs/EVDS.md`'ye EVDS 3 geçişi uyarısı eklendi.
 
