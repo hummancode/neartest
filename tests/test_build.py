@@ -132,7 +132,7 @@ def test_paths_end_values_match_reel_tablo():
 
 
 def test_prices_are_contiguous_and_tl_is_flat():
-    *_, prices, _ = build.build(allow_sample=True)
+    *_, prices, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in prices["instruments"]}
     assert {"tl", "cpi", "gold", "car", "house_ist"} <= ids
     assert "min_wage" not in ids or "min_wage_net" in build.ORIGIN
@@ -143,7 +143,7 @@ def test_prices_are_contiguous_and_tl_is_flat():
 
 
 def test_housing_gold_return_is_currency_return():
-    *_, housing = build.build(allow_sample=True)
+    *_, housing, _ = build.build(allow_sample=True)
     ist = next(c for c in housing["cities"] if c["id"] == "ist")
     w = ist["sources"]["kfe"]["windows"][0]
     assert w["years"] == 1 and w["gold"] is not None
@@ -151,7 +151,7 @@ def test_housing_gold_return_is_currency_return():
 
 
 def test_housing_adds_betam_when_present():
-    *_, base_housing = build.build(allow_sample=True)
+    *_, base_housing, _ = build.build(allow_sample=True)
     data, is_sample = build.load_series(allow_sample=True)
     data = dict(data)
     data["betam_sale_ist"] = dict(data["house_ist"])        # stand-in values, test only
@@ -173,3 +173,25 @@ def test_car_new_from_basket(tmp_path, monkeypatch):
     data, _ = build.load_series(allow_sample=True)
     assert abs(data["car_new"]["2024-02"] - 100 * 0.99 ** 0.5) < 1e-9
     assert build.ORIGIN["car_new"] == "manual"
+
+
+def test_macro_indicators_and_end_month_not_held_back():
+    tablo, *_, macro = build.build(allow_sample=True)
+    ids = {i["id"] for i in macro["indicators"]}
+    assert {"gdp_growth", "cds_5y", "policy_rate", "inflation", "bist100_usd"} <= ids
+    gdp = next(i for i in macro["indicators"] if i["id"] == "gdp_growth")
+    assert gdp["freq"] == "Q" and all(p[0][5:] in ("03", "06", "09", "12") for p in gdp["points"])
+    # annual GDP per capita ends in an earlier year, but must not cut the market end month
+    assert tablo["end_month"] == macro["end_month"] == "2026-09" or build.RAW.exists()
+    infl = next(i for i in macro["indicators"] if i["id"] == "inflation")
+    m, v = infl["points"][-1]
+    assert abs(v - 100 * build.e.window_return(build.load_series(True)[0]["cpi_tr"], m, 12)) < 1e-6
+
+
+def test_latest_and_change():
+    pts = [["2024-03", 4.0], ["2024-06", 5.0], ["2025-03", 3.5]]
+    r = build.latest_and_change(pts, "rate")
+    assert r["latest"] == ["2025-03", 3.5] and r["prev_year"] == ["2024-03", 4.0] and r["change_12m"] == -0.5
+    lv = build.latest_and_change([["2024-01", 100.0], ["2025-01", 125.0]], "level")
+    assert abs(lv["change_12m"] - 0.25) < 1e-12
+    assert build.latest_and_change([["2025-01", 1.0]], "level")["change_12m"] is None

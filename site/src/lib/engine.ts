@@ -252,3 +252,62 @@ export function rentVsBuy(p: RentVsBuyParams): RentVsBuyResult {
     yearly,
   };
 }
+
+// --- co-movement (İlişkiler) -----------------------------------------------
+
+export function pearson(xs: number[], ys: number[]): number {
+  const n = xs.length;
+  if (n !== ys.length || n < 3) throw new SeriesError("need at least 3 paired observations");
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let k = 0; k < n; k++) {
+    sxy += (xs[k] - mx) * (ys[k] - my);
+    sxx += (xs[k] - mx) ** 2;
+    syy += (ys[k] - my) ** 2;
+  }
+  if (sxx === 0 || syy === 0) throw new SeriesError("a series does not vary");
+  return sxy / Math.sqrt(sxx * syy);
+}
+
+function change(series: Series, m: string, step: number, kind: string): number {
+  const prev = series[shiftMonth(m, -step)];
+  if (kind === "rate") return series[m] - prev;
+  if (prev <= 0) throw new SeriesError("level must be positive");
+  return series[m] / prev - 1.0;
+}
+
+export function pairedChanges(a: Series, b: Series, kindA: string, kindB: string, step: number) {
+  const months: string[] = [], da: number[] = [], db: number[] = [];
+  const common = Object.keys(a).filter((m) => m in b).sort((x, y) => monthIndex(x) - monthIndex(y));
+  for (const m of common) {
+    const s = shiftMonth(m, -step);
+    if (s in a && s in b) {
+      months.push(m);
+      da.push(change(a, m, step, kindA));
+      db.push(change(b, m, step, kindB));
+    }
+  }
+  return { months, a: da, b: db };
+}
+
+export function rollingCorrelation(pairs: { months: string[]; a: number[]; b: number[] }, window: number): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (let k = window - 1; k < pairs.months.length; k++) {
+    try {
+      out[pairs.months[k]] = pearson(pairs.a.slice(k - window + 1, k + 1), pairs.b.slice(k - window + 1, k + 1));
+    } catch (e) {
+      if (!(e instanceof SeriesError)) throw e;
+    }
+  }
+  return out;
+}
+
+/** Share of periods in which both series changed in the same direction. */
+export function sameDirectionShare(pairs: { months: string[]; a: number[]; b: number[] }): number {
+  const n = pairs.months.length;
+  if (n === 0) throw new SeriesError("no paired observations");
+  let same = 0;
+  for (let k = 0; k < n; k++) if (pairs.a[k] * pairs.b[k] > 0) same++;
+  return same / n;
+}

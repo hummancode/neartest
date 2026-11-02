@@ -702,6 +702,158 @@
    "tol": 1e-09,
    "subset": true,
    "note": ""
+  },
+  {
+   "name": "pearson +1",
+   "fn": "pearson",
+   "args": [
+    [
+     1,
+     2,
+     3
+    ],
+    [
+     2,
+     4,
+     6
+    ]
+   ],
+   "expect": 1.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "pearson 0.8",
+   "fn": "pearson",
+   "args": [
+    [
+     1,
+     2,
+     3,
+     4
+    ],
+    [
+     1,
+     3,
+     2,
+     4
+    ]
+   ],
+   "expect": 0.8,
+   "tol": 1e-12,
+   "note": "4/sqrt(5*5)"
+  },
+  {
+   "name": "pearson rejects flat",
+   "fn": "pearson",
+   "args": [
+    [
+     1,
+     1,
+     1
+    ],
+    [
+     1,
+     2,
+     3
+    ]
+   ],
+   "raises": true
+  },
+  {
+   "name": "paired_changes level vs rate",
+   "fn": "paired_changes",
+   "args": [
+    {
+     "2024-01": 100.0,
+     "2024-02": 110.0,
+     "2024-03": 121.0
+    },
+    {
+     "2024-01": 10.0,
+     "2024-02": 12.0,
+     "2024-03": 11.0
+    },
+    "level",
+    "rate",
+    1
+   ],
+   "expect": {
+    "months": [
+     "2024-02",
+     "2024-03"
+    ],
+    "a": [
+     0.1,
+     0.1
+    ],
+    "b": [
+     2.0,
+     -1.0
+    ]
+   },
+   "tol": 1e-12
+  },
+  {
+   "name": "rolling_correlation",
+   "fn": "rolling_correlation",
+   "args": [
+    {
+     "months": [
+      "m1",
+      "m2",
+      "m3",
+      "m4"
+     ],
+     "a": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "b": [
+      2,
+      4,
+      6,
+      1
+     ]
+    },
+    3
+   ],
+   "expect": {
+    "m3": 1.0,
+    "m4": -0.5960395606792698
+   },
+   "tol": 1e-12,
+   "note": "m4: dx=(-1,0,1), dy=(1/3,7/3,-8/3): -3/sqrt(2*114/9)"
+  },
+  {
+   "name": "same_direction_share",
+   "fn": "same_direction_share",
+   "args": [
+    {
+     "months": [
+      "a",
+      "b",
+      "c",
+      "d"
+     ],
+     "a": [
+      1,
+      -1,
+      2,
+      0
+     ],
+     "b": [
+      3,
+      2,
+      1,
+      -1
+     ]
+    }
+   ],
+   "expect": 0.5,
+   "tol": 1e-12,
+   "note": "2 of 4 same sign"
   }
  ]
 }

@@ -16,7 +16,8 @@ from pathlib import Path
 import csv
 
 from pipeline import manual, sample
-from pipeline.series import ALL_SERIES, ASSETS, CITIES, CPI_GROUPS, CPI_WEIGHTS_SOURCE, OPTIONAL_SERIES, SERIES
+from pipeline.series import (ALL_SERIES, ASSETS, CITIES, CPI_GROUPS, CPI_WEIGHTS_SOURCE, MACRO_SERIES,
+                             OPTIONAL_SERIES, SERIES)
 from reel import engine as e
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +30,7 @@ OUT_STATUS = ROOT / "site" / "data" / "durum.json"
 OUT_PATHS = ROOT / "site" / "data" / "seriler.json"
 OUT_PRICES = ROOT / "site" / "data" / "fiyatlar.json"
 OUT_HOUSING = ROOT / "site" / "data" / "konut.json"
+OUT_MACRO = ROOT / "site" / "data" / "makro.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -130,7 +132,8 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
-    end = min(e.last_month(s) for n, s in data.items() if n not in OPTIONAL_SERIES)
+    # Macro series (quarterly/annual, published with lags) don't hold back the market end month.
+    end = min(e.last_month(s) for n, s in data.items() if n not in OPTIONAL_SERIES and n not in MACRO_SERIES)
     weights, weights_sample = load_weights(allow_sample)
 
     rows = []
@@ -177,8 +180,9 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     paths["generated_at"] = tablo["generated_at"]
     prices = build_prices(data, is_sample, end)
     housing = build_housing(data, is_sample, end)
-    prices["generated_at"] = housing["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing
+    macro = build_macro(data, is_sample, end)
+    prices["generated_at"] = housing["generated_at"] = macro["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -411,12 +415,81 @@ def build_housing(data: dict, is_sample: dict, end: str) -> dict:
     }
 
 
+def latest_and_change(points: list[list], kind: str) -> dict:
+    """Latest point and its change vs. the same month a year earlier.
+
+    rate -> difference in points; level -> % change (as a fraction). None if no
+    point exists exactly 12 months earlier.
+    """
+    if not points:
+        return {"latest": None, "prev_year": None, "change_12m": None}
+    m, v = points[-1]
+    prev = dict((pm, pv) for pm, pv in points).get(e.shift_month(m, -12))
+    if prev is None:
+        change = None
+    elif kind == "rate":
+        change = v - prev
+    else:
+        change = v / prev - 1.0 if prev > 0 else None
+    return {"latest": [m, v], "prev_year": None if prev is None else [e.shift_month(m, -12), prev], "change_12m": change}
+
+
+def build_macro(data: dict, is_sample: dict, end: str) -> dict:
+    """Indicators for the macro dashboard and co-movement tool (raw points, display units).
+
+    Includes the macro series plus a few market-derived indicators on the same footing.
+    """
+    def pts(series: dict, cut: str | None = end) -> list[list]:
+        months = sorted(series, key=e._month_index)
+        if cut:
+            months = [m for m in months if e._month_index(m) <= e._month_index(cut)]
+        return [[m, round(series[m], 6)] for m in months]
+
+    indicators = []
+    for name, m in MACRO_SERIES.items():
+        if name not in data:
+            continue
+        indicators.append({
+            "id": name, "label": m["label"], "unit": m["unit"], "kind": m["kind"], "freq": m["freq"],
+            "group": m["group"], "sample": is_sample.get(name, False), "sources": [src(name, is_sample)],
+            "points": pts(data[name], cut=None),
+        })
+        indicators[-1] |= latest_and_change(indicators[-1]["points"], m["kind"])
+
+    cpi, fx = data["cpi_tr"], data["usdtry"]
+    inflation = {}
+    for mth in cpi:
+        try:
+            inflation[mth] = 100 * e.window_return(cpi, mth, 12)
+        except e.SeriesError:
+            pass
+    real_dep = {k: 100 * v for k, v in e.trailing_real_rates(data["deposit_rate"], cpi).items()}
+    bist_usd = {k: data["bist100"][k] / fx[k] for k in data["bist100"] if k in fx}
+    gold_usd = {k: data["gold_gram_tl"][k] / fx[k] for k in data["gold_gram_tl"] if k in fx}
+    derived = [
+        ("inflation", "Yıllık TÜFE enflasyonu", "%", "rate", "Fiyatlar", inflation, ["cpi_tr"]),
+        ("real_deposit", "Reel mevduat faizi (son 12 ay TÜFE'ye göre)", "%", "rate", "Para politikası", real_dep, ["deposit_rate", "cpi_tr"]),
+        ("usdtry", "USD/TRY", "TL", "level", "Piyasalar", fx, ["usdtry"]),
+        ("bist100_usd", "BIST 100 (dolar bazında)", "$", "level", "Piyasalar", bist_usd, ["bist100", "usdtry"]),
+        ("gold_usd", "Gram altın (dolar)", "$", "level", "Piyasalar", gold_usd, ["gold_gram_tl", "usdtry"]),
+    ]
+    for iid, label, unit, kind, group, series, used in derived:
+        indicators.append({
+            "id": iid, "label": label, "unit": unit, "kind": kind, "freq": "M", "group": group,
+            "sample": any(is_sample.get(u, False) for u in used), "sources": [src(u, is_sample) for u in used],
+            "points": pts(series),
+        })
+        indicators[-1] |= latest_and_change(indicators[-1]["points"], kind)
+    return {"end_month": end, "sample": any(i["sample"] for i in indicators), "indicators": indicators}
+
+
 USED_BY = {
     "cpi_tr": "Tüm reel hesaplar", "usdtry": "USD getirisi, nominal illüzyon", "eurtry": "Reel Tablo",
     "deposit_rate": "Reel Tablo, reel faiz", "credit_rate": "Reel Tablo, reel faiz",
     "gold_gram_tl": "Reel Tablo, nominal illüzyon", "bist100": "Reel Tablo", "sp500_usd": "Reel Tablo",
     "min_wage_net": "Nominal illüzyon, grafik",
     "car_cpi": "Grafik", "rent_cpi": "Konut, grafik", "car_new": "Grafik",
+    **{k: "Makro pano, ilişkiler" for k in MACRO_SERIES},
     "house_tr": "Konut, grafik", "house_ist": "Konut, grafik", "house_ank": "Konut, grafik", "house_izm": "Konut, grafik",
 }
 
@@ -515,7 +588,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -525,8 +598,9 @@ def main() -> int:
     write_if_changed(OUT_PATHS, paths)
     write_if_changed(OUT_PRICES, prices)
     write_if_changed(OUT_HOUSING, housing)
+    write_if_changed(OUT_MACRO, macro)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (8 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (9 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

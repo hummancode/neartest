@@ -34,8 +34,8 @@ function niceStep(raw: number): number {
 }
 
 /** Y ticks; log scale when the data spans more than 2.5x. */
-export function yScale(min: number, max: number) {
-  const log = max / min > 2.5;
+export function yScale(min: number, max: number, allowLog = true) {
+  const log = allowLog && min > 0 && max / min > 2.5;
   let ticks: number[] = [];
   if (log) {
     for (const mult of [[1, 2, 5], [1, 1.5, 2, 3, 5, 7]]) {
@@ -65,43 +65,58 @@ export function yScale(min: number, max: number) {
   };
 }
 
-export function renderChart(root: HTMLElement, data: ChartData, opts: { onScale?: (log: boolean) => void } = {}) {
+export interface ChartOptions {
+  onScale?: (log: boolean) => void;
+  baseline?: number | null;          // dashed reference line; 100 for index charts (default), 0 for changes, null for none
+  format?: (v: number) => string;    // value formatter for end labels and tooltip
+  allowLog?: boolean;
+}
+
+export function renderChart(root: HTMLElement, data: ChartData, opts: ChartOptions = {}) {
+  const baseline = opts.baseline === undefined ? 100 : opts.baseline;
+  const isIndex = baseline === 100;
+  const fmtVal = opts.format ?? ((v: number) => fmt1.format(v));
   root.replaceChildren();
   root.classList.add("chart");
   const W = Math.max(240, root.clientWidth);
   const H = W < 520 ? 280 : 380;
   const M = { left: 44, right: W < 520 ? 92 : 104, top: 14, bottom: 30 };
   const n = data.months.length;
-  const all = data.series.flatMap((s) => s.values).concat(100);
-  const ys = yScale(Math.min(...all), Math.max(...all));
+  const all = data.series.flatMap((s) => s.values).concat(baseline === null ? [] : [baseline]);
+  const ys = yScale(Math.min(...all), Math.max(...all), opts.allowLog ?? isIndex);
   opts.onScale?.(ys.log);
   const x = (i: number) => M.left + (n === 1 ? 0 : (i / (n - 1)) * (W - M.left - M.right));
   const y = (v: number) => ys.map(v, M.top, H - M.bottom);
 
   const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", tabindex: 0 }, root);
-  svg.setAttribute("aria-label", `${data.series.map((s) => s.label).join(", ")}: ${data.months.length} aylık seyir, 100 = başlangıç. Ok tuşlarıyla aylar arasında gezinin.`);
+  svg.setAttribute("aria-label", `${data.series.map((s) => s.label).join(", ")}: ${data.months.length} noktalık seyir${isIndex ? ", 100 = başlangıç" : ""}. Ok tuşlarıyla noktalar arasında gezinin.`);
+  const tickFmt = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
 
   // Grid + y ticks
   const grid = el("g", { class: "grid" }, svg);
   for (const t of ys.ticks) {
     const yy = y(t);
-    el("line", { x1: M.left, x2: W - M.right, y1: yy, y2: yy, class: t === 100 ? "base" : "" }, grid);
+    el("line", { x1: M.left, x2: W - M.right, y1: yy, y2: yy, class: t === baseline ? "base" : "" }, grid);
     const label = el("text", { x: M.left - 6, y: yy + 4, "text-anchor": "end", class: "tick" }, grid);
-    label.textContent = fmt0.format(t);
+    label.textContent = tickFmt.format(t);
   }
-  if (!ys.ticks.includes(100)) {
-    el("line", { x1: M.left, x2: W - M.right, y1: y(100), y2: y(100), class: "base" }, grid);
+  if (baseline !== null && !ys.ticks.includes(baseline)) {
+    el("line", { x1: M.left, x2: W - M.right, y1: y(baseline), y2: y(baseline), class: "base" }, grid);
   }
-  // X ticks: January of each year, thinned to fit; for short windows, quarters.
-  const yearsSpan = n / 12;
-  const every = yearsSpan <= 1.5 ? 3 : 12 * Math.max(1, Math.ceil((yearsSpan * 60) / (W - M.left - M.right)));
+  // X ticks: first point of each year (thinned to fit); for windows up to 1.5 years, quarters.
+  const idx = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5)) - 1;
+  const yearsSpan = (idx(data.months[n - 1]) - idx(data.months[0])) / 12;
+  const everyYears = Math.max(1, Math.ceil((yearsSpan * 60) / (W - M.left - M.right)));
   data.months.forEach((m, i) => {
     const mo = Number(m.slice(5));
-    const show = yearsSpan <= 1.5 ? (mo - 1) % 3 === 0 : mo === 1 && (Number(m.slice(0, 4)) * 12) % every === 0;
+    const yr = Number(m.slice(0, 4));
+    const show = yearsSpan <= 1.5
+      ? (mo - 1) % 3 === 0
+      : i > 0 && yr !== Number(data.months[i - 1].slice(0, 4)) && yr % everyYears === 0;
     if (!show) return;
     el("line", { x1: x(i), x2: x(i), y1: H - M.bottom, y2: H - M.bottom + 4, class: "xtick" }, grid);
     const t = el("text", { x: x(i), y: H - M.bottom + 18, "text-anchor": "middle", class: "tick" }, grid);
-    t.textContent = yearsSpan <= 1.5 ? `${MONTHS_SHORT[mo - 1]} ${m.slice(2, 4)}` : m.slice(0, 4);
+    t.textContent = yearsSpan <= 1.5 ? `${MONTHS_SHORT[mo - 1]} ${m.slice(2, 4)}` : String(yr);
   });
 
   // Lines
@@ -122,7 +137,7 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: { onScale?
     el("circle", { cx: x(n - 1), cy: y(e.s.values[n - 1]), r: 3.5, fill: e.s.color }, svg);
     const g = el("g", {}, svg);
     const t1 = el("text", { x: W - M.right + 8, y: e.y - 2, class: "end-value" }, g);
-    t1.textContent = fmt0.format(e.s.values[n - 1]);
+    t1.textContent = isIndex ? fmt0.format(e.s.values[n - 1]) : fmtVal(e.s.values[n - 1]);
     const t2 = el("text", { x: W - M.right + 8, y: e.y + 12, class: "end-label" }, g);
     t2.textContent = e.s.label;
     el("rect", { x: W - M.right + 1, y: e.y - 6, width: 4, height: 2, fill: e.s.color }, g);
@@ -162,10 +177,10 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: { onScale?
       key.className = "tip-key";
       key.style.background = s.color;
       const val = document.createElement("strong");
-      val.textContent = fmt1.format(s.values[current]);
+      val.textContent = fmtVal(s.values[current]);
       const lab = document.createElement("span");
       lab.className = "tip-label";
-      lab.textContent = `${s.label} (${pctFmt.format(s.values[current] / 100 - 1)})`;
+      lab.textContent = isIndex ? `${s.label} (${pctFmt.format(s.values[current] / 100 - 1)})` : s.label;
       row.append(key, val, lab);
       tip.appendChild(row);
     }

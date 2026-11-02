@@ -24,6 +24,10 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   ratio_index: e.ratioIndex,
   mortgage_payment: e.mortgagePayment,
   rent_vs_buy: e.rentVsBuy,
+  pearson: e.pearson,
+  paired_changes: e.pairedChanges,
+  rolling_correlation: e.rollingCorrelation,
+  same_direction_share: e.sameDirectionShare,
 };
 
 function expand(arg: any): any {

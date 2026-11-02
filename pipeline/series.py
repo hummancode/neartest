@@ -148,6 +148,31 @@ MARKET_SERIES = {
     },
 }
 
+# Macro indicators for the dashboard (Makro Pano) and co-movement tool. Codes NOT verified.
+# kind: "rate" (%, bps, signed balances -> changes in points) or "level" (-> % changes).
+# freq: "M" monthly, "Q" quarterly (keyed by quarter-end month), "A" annual (keyed YYYY-12).
+# Values are stored in display units (4.5 = %4,5; 350 = 350 bps).
+MACRO_SERIES = {
+    "gdp_growth": {"label": "GSYH büyümesi (reel, yıllık)", "unit": "%", "kind": "rate", "freq": "Q",
+                   "group": "Büyüme", "source": "TÜİK, TCMB EVDS üzerinden", "code": None, "verified": False},
+    "gdp_usd_pc": {"label": "Kişi başı GSYH", "unit": "$", "kind": "level", "freq": "A",
+                   "group": "Büyüme", "source": "TÜİK", "code": None, "verified": False},
+    "unemployment": {"label": "İşsizlik oranı", "unit": "%", "kind": "rate", "freq": "M",
+                     "group": "İstihdam", "source": "TÜİK, TCMB EVDS üzerinden", "code": None, "verified": False},
+    "current_account": {"label": "Cari denge (12 aylık toplam)", "unit": "milyar $", "kind": "rate", "freq": "M",
+                        "group": "Dış denge", "source": "TCMB ödemeler dengesi, EVDS", "code": None, "verified": False},
+    "reserves": {"label": "TCMB brüt rezervleri", "unit": "milyar $", "kind": "level", "freq": "M",
+                 "group": "Dış denge", "source": "TCMB, EVDS", "code": None, "verified": False},
+    "policy_rate": {"label": "Politika faizi", "unit": "%", "kind": "rate", "freq": "M",
+                    "group": "Para politikası", "source": "TCMB, EVDS", "code": None, "verified": False},
+    "cds_5y": {"label": "Türkiye 5 yıllık CDS primi", "unit": "bp", "kind": "rate", "freq": "M",
+               "group": "Risk", "source": "Lisanslı veri — elle girilir (data/manual/cds_5y.csv)", "code": None,
+               "verified": False},
+    "budget_balance_gdp": {"label": "Bütçe dengesi / GSYH (12 aylık)", "unit": "%", "kind": "rate", "freq": "Q",
+                           "group": "Kamu maliyesi", "source": "Hazine ve Maliye Bakanlığı, TÜİK", "code": None,
+                           "verified": False},
+}
+
 CITIES = [
     {"id": "ist", "label": "İstanbul", "series": "house_ist", "betam_sale": "betam_sale_ist", "betam_rent": "betam_rent_ist"},
     {"id": "ank", "label": "Ankara", "series": "house_ank", "betam_sale": "betam_sale_ank", "betam_rent": "betam_rent_ank"},
@@ -155,7 +180,7 @@ CITIES = [
     {"id": "tr", "label": "Türkiye", "series": "house_tr", "betam_sale": "betam_sale_tr", "betam_rent": "betam_rent_tr"},
 ]
 
-ALL_SERIES = SERIES | CPI_GROUP_SERIES | MARKET_SERIES
+ALL_SERIES = SERIES | CPI_GROUP_SERIES | MARKET_SERIES | MACRO_SERIES
 
 # Series used only when real data exists (data/raw or data/manual). Never sampled:
 # the site shows them as missing instead of inventing numbers.

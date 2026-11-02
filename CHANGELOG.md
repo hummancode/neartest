@@ -55,3 +55,11 @@
   taşındı, 40 ortak vaka). Yeni seriler: TÜFE otomobil ve kira alt endeksleri, KFE (TR/İst/Ank/İzm);
   isteğe bağlı: 0 km bayi liste fiyatı sepeti, BETAM satılık/kiralık. Mobil menü. Sayfadaki
   hesap Python ile birebir doğrulandı (tutar ayrıştırma hatası bu sırada bulunup düzeltildi).
+- 2026-11-02 — Makro ve İlişkiler: `docs/ROADMAP.md` (fikir havuzu, veri kararları). `/makro`: GSYH büyümesi,
+  kişi başı GSYH, TÜFE, işsizlik, politika faizi, reel mevduat, cari denge, rezerv, CDS, bütçe/GSYH,
+  USD/TRY, BIST 100 ($), altın ($) kartları (son değer, dönem, 1 yıllık değişim — Python'da), tıklanınca
+  grafik. `/iliskiler`: iki göstergenin değişim korelasyonu, aynı yönde hareket oranı, kayan korelasyon,
+  hizalı iki grafik; "korelasyon nedensellik değildir" uyarısı. Motor: `pearson`, `paired_changes`,
+  `rolling_correlation`, `same_direction_share` (önce test, TS'ye taşındı; 46 ortak vaka). Çeyreklik /
+  yıllık seriler desteklendi; makro seriler piyasa bitiş ayını geri çekmiyor. Grafik modülü: referans
+  çizgisi, biçimlendirici, düzensiz aralık. Menü 1024 px altında açılır.

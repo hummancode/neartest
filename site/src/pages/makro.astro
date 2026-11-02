@@ -1,0 +1,139 @@
+---
+import Base from "../layouts/Base.astro";
+import Sparkline from "../components/Sparkline.astro";
+import { macro, periodLabel, formatValue, formatChange } from "../lib/macro.ts";
+import { monthLabel } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const groups = [...new Set(macro.indicators.map((i) => i.group))];
+const ORDER = ["Büyüme", "Fiyatlar", "İstihdam", "Para politikası", "Dış denge", "Risk", "Kamu maliyesi", "Piyasalar"];
+groups.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+const last5y = (pts: [string, number][]) => {
+  if (!pts.length) return [];
+  const end = pts[pts.length - 1][0];
+  const cut = `${Number(end.slice(0, 4)) - 5}${end.slice(4)}`;
+  return pts.filter(([m]) => m >= cut).map(([, v]) => v);
+};
+const payload = { indicators: macro.indicators };
+---
+<Base title="Makro Pano" description="Türkiye ekonomisi tek sayfada: büyüme, enflasyon, işsizlik, cari denge, rezervler, faiz, CDS, bütçe ve piyasalar." sample={macro.sample}>
+  <h1>Makro Pano</h1>
+  <p class="lead">
+    Büyümeden CDS'e, rezervlerden borsaya: ekonominin ana göstergeleri aynı sayfada, kaynağıyla.
+    Bir kutuya dokunun, grafiği açılsın; iki göstergenin birlikte nasıl hareket ettiğini{" "}
+    <a href="/iliskiler">İlişkiler</a> sayfasında inceleyin.
+  </p>
+  <p class="muted small">Piyasa verisi bitişi: {monthLabel(macro.end_month)}. Makro veriler yayın takvimine göre daha geriden gelir; her kutuda dönemi yazar.</p>
+
+  {groups.map((g) => (
+    <section class="group" aria-labelledby={`g-${g}`}>
+      <h2 id={`g-${g}`}>{g}</h2>
+      <div class="tiles">
+        {macro.indicators.filter((i) => i.group === g).map((i) => (
+          <button type="button" class="card tile" data-id={i.id} aria-expanded="false" aria-controls="detail">
+            <span class="t-label">{i.label}{i.sample && <span class="tag">örnek</span>}</span>
+            <span class="t-value">{i.latest ? formatValue(i.unit, i.latest[1]) : "—"}</span>
+            <span class="t-meta muted">
+              {i.latest ? periodLabel(i.freq, i.latest[0]) : ""}
+              {i.change_12m !== null && <> · 1 yılda <strong>{formatChange(i.kind, i.unit, i.change_12m)}</strong></>}
+            </span>
+            <Sparkline values={last5y(i.points)} label={`${i.label}, son 5 yıl`} width={200} height={34} />
+          </button>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <section id="detail" class="card detail" hidden aria-live="polite">
+    <div class="d-head">
+      <h2 id="d-title"></h2>
+      <button type="button" class="btn btn-ghost" id="d-close">Kapat</button>
+    </div>
+    <p class="muted small" id="d-sub"></p>
+    <div id="d-chart" class="chart-box"></div>
+    <p class="small" id="d-sources"></p>
+    <p class="small"><a id="d-rel" href="/iliskiler">Bu göstergeyi başka biriyle karşılaştır →</a></p>
+  </section>
+
+  <h2>Notlar</h2>
+  <ul class="small">
+    <li>Oran göstergelerinde (faiz, işsizlik, CDS, cari denge, bütçe) değişim <strong>puan</strong> olarak; seviye göstergelerinde (rezerv, kur, endeks) <strong>yüzde</strong> olarak verilir.</li>
+    <li>CDS primi için resmî ve ücretsiz bir kaynak yoktur; lisanslı veriden elle girilir.</li>
+    <li>Her göstergenin kaynağı ve doğrulama durumu: <a href="/veri">Veri durumu</a>. Yöntem: <a href="/metodoloji">Metodoloji</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong> Bu sayfa tahmin veya yorum içermez.</p>
+
+  <script type="application/json" id="macro-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { formatValue, periodLabel } from "../lib/macro.ts";
+
+  const { indicators } = JSON.parse(document.getElementById("macro-data")!.textContent!);
+  const byId = Object.fromEntries(indicators.map((i: any) => [i.id, i]));
+  const detail = document.getElementById("detail")!;
+  const chart = document.getElementById("d-chart")!;
+  let current: string | null = null;
+
+  function draw() {
+    if (!current) return;
+    const i = byId[current];
+    const vals = i.points.map((p: [string, number]) => p[1]);
+    const min = Math.min(...vals), max = Math.max(...vals);
+    renderChart(chart, {
+      months: i.points.map((p: [string, number]) => p[0]),
+      series: [{ key: i.id, label: i.label.length > 18 ? i.label.slice(0, 16) + "…" : i.label, color: "var(--series-1)", values: vals }],
+    }, { baseline: min < 0 && max > 0 ? 0 : null, format: (v) => formatValue(i.unit, v), allowLog: false });
+  }
+
+  function open(id: string, tile: HTMLElement) {
+    current = id;
+    const i = byId[id];
+    document.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-expanded", t === tile ? "true" : "false"));
+    document.getElementById("d-title")!.textContent = i.label;
+    const first = i.points[0][0], last = i.points[i.points.length - 1][0];
+    document.getElementById("d-sub")!.textContent = `${periodLabel(i.freq, first)} – ${periodLabel(i.freq, last)}` + (i.sample ? " · ÖRNEK VERİ" : "");
+    document.getElementById("d-sources")!.textContent = "Kaynak: " + i.sources.map((s: any) =>
+      `${s.label} — ${s.source}${s.code ? ` (${s.code})` : ""}${s.verified ? "" : ", doğrulanmadı"}`).join(" · ");
+    (document.getElementById("d-rel") as HTMLAnchorElement).href = `/iliskiler#a=${id}&b=${id === "cds_5y" ? "bist100_usd" : "cds_5y"}`;
+    detail.hidden = false;
+    // Move the detail panel right after the clicked tile's group so it opens in context.
+    tile.closest(".group")!.after(detail);
+    draw();
+    detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  document.querySelectorAll<HTMLElement>(".tile").forEach((t) => t.addEventListener("click", () => open(t.dataset.id!, t)));
+  document.getElementById("d-close")!.addEventListener("click", () => {
+    detail.hidden = true;
+    current = null;
+    document.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-expanded", "false"));
+  });
+  let lastW = 0;
+  new ResizeObserver(() => { if (Math.abs(chart.clientWidth - lastW) > 2) { lastW = chart.clientWidth; draw(); } }).observe(chart);
+</script>
+
+<style>
+  .group h2 { font-size: 1.4rem; margin: 1.4em 0 0.5em; }
+  .tiles { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 560px) { .tiles { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 980px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
+  .tile {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; font: inherit;
+    color: var(--ink); cursor: pointer; min-width: 0;
+  }
+  .tile:hover { border-color: var(--ink-2); }
+  .tile[aria-expanded="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .t-label { font-weight: 600; font-size: 0.88rem; color: var(--ink-2); }
+  .t-value { font-family: var(--font-head); font-size: 2.1rem; line-height: 1.15; }
+  .t-meta { font-size: 0.8rem; margin-bottom: 4px; }
+  .t-meta strong { color: var(--ink); }
+  .tile :global(svg) { max-width: 100%; height: auto; }
+  .tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+  .detail { margin-top: 16px; }
+  @media (max-width: 400px) { .detail { padding: 12px 8px; } }
+  .d-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .d-head h2 { margin: 0; font-size: 1.4rem; }
+  .chart-box { min-height: 280px; }
+</style>

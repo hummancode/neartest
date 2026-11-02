@@ -62,7 +62,19 @@ def build_sample() -> dict[str, dict[str, float]]:
         "house_ank": _path(100.0, 0.40, 0.05, 1.9),
         "house_izm": _path(100.0, 0.43, 0.05, 2.4),
     }
-    return groups | market | {
+    months = _months()
+    wave = lambda k, a, b, c, d: a + b * math.sin(k / c + d)
+    macro = {
+        "gdp_growth": {m: wave(k, 4.0, 3.0, 9.0, 0.3) for k, m in enumerate(months) if m[5:] in ("03", "06", "09", "12")},
+        "gdp_usd_pc": {m: 9000 + 900 * math.sin(k / 30) + 25 * k for k, m in enumerate(months) if m[5:] == "12"},
+        "unemployment": {m: wave(k, 10.5, 1.8, 14.0, 1.0) for k, m in enumerate(months)},
+        "current_account": {m: wave(k, -25.0, 20.0, 16.0, 2.0) for k, m in enumerate(months)},
+        "reserves": {m: 100 + 25 * math.sin(k / 20 + 0.5) + 0.3 * k for k, m in enumerate(months)},
+        "policy_rate": {m: max(5.0, wave(k, 20.0, 15.0, 18.0, 4.0)) for k, m in enumerate(months)},
+        "cds_5y": {m: wave(k, 380.0, 170.0, 15.0, 2.5) for k, m in enumerate(months)},
+        "budget_balance_gdp": {m: wave(k, -2.5, 1.8, 12.0, 0.8) for k, m in enumerate(months) if m[5:] in ("03", "06", "09", "12")},
+    }
+    return groups | market | macro | {
         "credit_rate": rates_credit,
         "usdtry": _path(2.2, 0.30, 0.03, 0.0),
         "eurtry": _path(3.0, 0.29, 0.03, 0.5),

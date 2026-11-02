@@ -1,0 +1,214 @@
+---
+import Base from "../layouts/Base.astro";
+import { macro } from "../lib/macro.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const ids = new Set(macro.indicators.map((i) => i.id));
+const ORDER = ["Büyüme", "Fiyatlar", "İstihdam", "Para politikası", "Dış denge", "Risk", "Kamu maliyesi", "Piyasalar"];
+const groups = [...new Set(macro.indicators.map((i) => i.group))].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+const PRESETS: [string, string, string][] = [
+  ["CDS ve BIST 100 ($)", "cds_5y", "bist100_usd"],
+  ["CDS ve USD/TRY", "cds_5y", "usdtry"],
+  ["Politika faizi ve USD/TRY", "policy_rate", "usdtry"],
+  ["Enflasyon ve reel mevduat faizi", "inflation", "real_deposit"],
+  ["Rezervler ve CDS", "reserves", "cds_5y"],
+  ["Büyüme ve işsizlik", "gdp_growth", "unemployment"],
+  ["Cari denge ve USD/TRY", "current_account", "usdtry"],
+  ["Altın ($) ve CDS", "gold_usd", "cds_5y"],
+];
+const presets = PRESETS.filter(([, a, b]) => ids.has(a) && ids.has(b));
+const payload = { indicators: macro.indicators };
+const options = (selected: string) => groups.map((g) => (
+  { g, items: macro.indicators.filter((i) => i.group === g).map((i) => ({ id: i.id, label: i.label, selected: i.id === selected })) }
+));
+---
+<Base title="İlişkiler: göstergeler birlikte nasıl hareket ediyor?" description="İki ekonomik göstergenin geçmişte birlikte nasıl hareket ettiğini korelasyon ve grafiklerle inceleyin." sample={macro.sample}>
+  <h1>İlişkiler</h1>
+  <p class="lead">
+    CDS düşerken borsa dolar bazında ne yaptı? Faiz artışları kuru nasıl etkiledi gibi görünüyor?
+    İki gösterge seçin; geçmişte <em>birlikte</em> nasıl hareket ettiklerini görün.
+  </p>
+  <p class="caveat card"><strong>Korelasyon nedensellik değildir.</strong> Birlikte hareket, birinin diğerine yol açtığını göstermez; ikisi de üçüncü bir etkene tepki veriyor olabilir. Bu sayfa tahmin yapmaz.</p>
+
+  <div class="presets" aria-label="Hazır karşılaştırmalar">
+    {presets.map(([t, a, b]) => <button type="button" class="chip" data-a={a} data-b={b}>{t}</button>)}
+  </div>
+
+  <section class="card controls" aria-label="Seçenekler">
+    {[["a", "Gösterge A", "cds_5y"], ["b", "Gösterge B", "bist100_usd"]].map(([id, lab, def]) => (
+      <div class="ctl">
+        <label for={id}>{lab}</label>
+        <select id={id}>
+          {options(def).map(({ g, items }) => (
+            <optgroup label={g}>{items.map((i) => <option value={i.id} selected={i.selected}>{i.label}</option>)}</optgroup>
+          ))}
+        </select>
+      </div>
+    ))}
+    <div class="ctl">
+      <label for="step">Değişim aralığı</label>
+      <select id="step">
+        <option value="auto">Otomatik</option>
+        <option value="1">Aylık</option>
+        <option value="3">Çeyreklik</option>
+        <option value="12">Yıllık</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <label for="win">Dönem</label>
+      <select id="win">
+        <option value="5">Son 5 yıl</option>
+        <option value="10" selected>Son 10 yıl</option>
+        <option value="all">Tümü</option>
+      </select>
+    </div>
+  </section>
+
+  <p id="err" class="error" role="alert" hidden></p>
+  <section class="stats" aria-live="polite">
+    <div class="card stat"><p class="s-label">Değişimlerin korelasyonu</p><p class="s-value" id="s-r">—</p><p class="muted small" id="s-r-text"></p></div>
+    <div class="card stat"><p class="s-label">Aynı yönde hareket</p><p class="s-value" id="s-same">—</p><p class="muted small" id="s-same-text"></p></div>
+    <div class="card stat"><p class="s-label">Gözlem</p><p class="s-value" id="s-n">—</p><p class="muted small" id="s-n-text"></p></div>
+  </section>
+
+  <section class="card charts">
+    <h2 class="c-title" id="c-a-title"></h2>
+    <div id="c-a" class="chart-box"></div>
+    <h2 class="c-title" id="c-b-title"></h2>
+    <div id="c-b" class="chart-box"></div>
+    <h2 class="c-title">Kayan korelasyon <span class="muted small" id="c-r-sub"></span></h2>
+    <div id="c-r" class="chart-box"></div>
+    <p class="muted small">+1: hep aynı yönde, −1: hep ters yönde, 0: belirgin ortak hareket yok. Çizgi zamanla ilişkinin değişip değişmediğini gösterir.</p>
+    <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+  </section>
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <ul>
+    <li>İki gösterge ortak dönemlerde hizalanır. Seviye göstergelerinde (kur, endeks, rezerv) yüzde değişim, oran göstergelerinde (faiz, CDS, işsizlik, cari denge) puan farkı alınır.</li>
+    <li>Korelasyon bu değişimler arasındaki Pearson katsayısıdır. Seviyeler yerine değişimlerin kullanılması, ikisi de zamanla arttığı için ortaya çıkan sahte ilişkiyi azaltır.</li>
+    <li>Yıllık değişimler örtüşen dönemler içerdiği için ilişkiyi olduğundan güçlü gösterebilir.</li>
+    <li>Ayrıntılar: <a href="/metodoloji#iliskiler">Metodoloji</a>. Kaynaklar: <a href="/veri">Veri durumu</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="macro-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { pairedChanges, pearson, rollingCorrelation, sameDirectionShare, shiftMonth, SeriesError } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
+  import { formatValue, periodLabel } from "../lib/macro.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  const { indicators } = JSON.parse(document.getElementById("macro-data")!.textContent!);
+  const byId: Record<string, any> = Object.fromEntries(indicators.map((i: any) => [i.id, i]));
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const aSel = $<HTMLSelectElement>("a"), bSel = $<HTMLSelectElement>("b"), stepSel = $<HTMLSelectElement>("step"), winSel = $<HTMLSelectElement>("win");
+  const n2 = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "exceptZero" });
+  const pct0 = new Intl.NumberFormat("tr-TR", { style: "percent", maximumFractionDigits: 0 });
+  const short = (s: string) => (s.length > 18 ? s.slice(0, 16) + "…" : s);
+
+  function toMap(points: [string, number][]) { return Object.fromEntries(points); }
+  function stepFor(a: any, b: any): number {
+    if (stepSel.value !== "auto") return Number(stepSel.value);
+    if (a.freq === "A" || b.freq === "A") return 12;
+    if (a.freq === "Q" || b.freq === "Q") return 3;
+    return 1;
+  }
+  function describe(r: number) {
+    const s = Math.abs(r) < 0.2 ? "zayıf — belirgin ortak hareket yok" : Math.abs(r) < 0.5 ? "orta" : "güçlü";
+    const dir = Math.abs(r) < 0.2 ? "" : r > 0 ? ", aynı yönde" : ", ters yönde";
+    return s + dir;
+  }
+
+  function draw() {
+    const a = byId[aSel.value], b = byId[bSel.value];
+    writeHash({ a: a.id, b: b.id, s: stepSel.value, w: winSel.value });
+    const step = stepFor(a, b);
+    const err = $("err");
+    const lastCommon = [a.points[a.points.length - 1][0], b.points[b.points.length - 1][0]].sort()[0];
+    const from = winSel.value === "all" ? "0000-01" : shiftMonth(lastCommon, -12 * Number(winSel.value));
+    const cut = (pts: [string, number][]) => pts.filter(([m]) => m >= from && m <= lastCommon);
+    const pa = cut(a.points), pb = cut(b.points);
+    let pairs;
+    try {
+      pairs = pairedChanges(toMap(pa), toMap(pb), a.kind, b.kind, step);
+      const r = pearson(pairs.a, pairs.b);
+      const same = sameDirectionShare(pairs);
+      err.hidden = true;
+      $("s-r").textContent = n2.format(r);
+      $("s-r-text").textContent = describe(r);
+      $("s-same").textContent = pct0.format(same);
+      $("s-same-text").textContent = `dönemlerin ${pct0.format(same)}'ında ikisi aynı yöne gitti`;
+      $("s-n").textContent = String(pairs.months.length);
+      const stepName = { 1: "aylık", 3: "çeyreklik", 12: "yıllık" }[step as 1 | 3 | 12];
+      $("s-n-text").textContent = `${stepName} değişim · ${periodLabel("M", pairs.months[0])} – ${periodLabel("M", pairs.months[pairs.months.length - 1])}`;
+    } catch (e) {
+      if (!(e instanceof SeriesError)) throw e;
+      const coarse = [a, b].find((x) => (x.freq === "Q" && step < 3) || (x.freq === "A" && step < 12));
+      err.textContent = coarse
+        ? `“${coarse.label}” ${coarse.freq === "Q" ? "çeyreklik" : "yıllık"} yayımlanıyor; ${coarse.freq === "Q" ? "çeyreklik veya yıllık" : "yıllık"} değişim aralığını seçin (ya da Otomatik).`
+        : "Bu iki gösterge için seçilen dönemde yeterli ortak veri yok. Dönemi uzatın veya değişim aralığını değiştirin.";
+      err.hidden = false;
+      ["s-r", "s-same", "s-n"].forEach((id) => ($(id).textContent = "—"));
+      ["s-r-text", "s-same-text", "s-n-text"].forEach((id) => ($(id).textContent = ""));
+    }
+    const line = (box: string, ind: any, pts: [string, number][], color: string) => {
+      $(`${box}-title`).textContent = ind.label + (ind.sample ? " (örnek veri)" : "");
+      const vals = pts.map((p) => p[1]);
+      renderChart($(box), { months: pts.map((p) => p[0]), series: [{ key: ind.id, label: short(ind.label), color, values: vals }] },
+        { baseline: Math.min(...vals) < 0 && Math.max(...vals) > 0 ? 0 : null, format: (v) => formatValue(ind.unit, v), allowLog: false });
+    };
+    if (pa.length > 1) line("c-a", a, pa, "var(--series-1)");
+    if (pb.length > 1) line("c-b", b, pb, "var(--series-2)");
+    const box = $("c-r");
+    box.replaceChildren();
+    if (pairs && pairs.months.length) {
+      const window = step === 1 ? 24 : step === 3 ? 8 : 24;
+      const roll = rollingCorrelation(pairs, window);
+      const months = Object.keys(roll);
+      $("c-r-sub").textContent = `(son ${window} değişim üzerinden)`;
+      if (months.length > 1) {
+        renderChart(box, { months, series: [{ key: "r", label: "korelasyon", color: "var(--series-3)", values: months.map((m) => roll[m]) }] },
+          { baseline: 0, format: (v) => n2.format(v), allowLog: false });
+      }
+    }
+  }
+
+  const h = readHash();
+  if (h.get("a") && byId[h.get("a")!]) aSel.value = h.get("a")!;
+  if (h.get("b") && byId[h.get("b")!]) bSel.value = h.get("b")!;
+  if (h.get("s") && ["auto", "1", "3", "12"].includes(h.get("s")!)) stepSel.value = h.get("s")!;
+  if (h.get("w") && ["5", "10", "all"].includes(h.get("w")!)) winSel.value = h.get("w")!;
+  for (const s of [aSel, bSel, stepSel, winSel]) s.addEventListener("change", draw);
+  document.querySelectorAll<HTMLButtonElement>(".chip").forEach((c) => c.addEventListener("click", () => {
+    aSel.value = c.dataset.a!; bSel.value = c.dataset.b!; draw();
+  }));
+  $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("c-a").clientWidth; if (Math.abs(w - lastW) > 2) { lastW = w; draw(); } }).observe($("c-a"));
+</script>
+
+<style>
+  .caveat { border-left: 4px solid var(--ink); margin: 16px 0; color: var(--ink-2); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+  @media (max-width: 640px) { .presets { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; } .chip { flex: none; } }
+  .chip { background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .controls { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .controls { grid-template-columns: 1.4fr 1.4fr 1fr 1fr; } }
+  .ctl label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 6px; }
+  select { width: 100%; font: inherit; font-size: 0.95rem; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .stats { display: grid; gap: 12px; margin-top: 16px; grid-template-columns: 1fr 1fr; }
+  .stats .stat:first-child { grid-column: 1 / -1; }
+  @media (min-width: 720px) { .stats { grid-template-columns: 1.4fr 1fr 1fr; } .stats .stat:first-child { grid-column: auto; } }
+  .s-label { font-weight: 600; font-size: 0.88rem; color: var(--ink-2); margin: 0; }
+  .s-value { font-family: var(--font-head); font-size: 2.4rem; line-height: 1.15; margin: 2px 0; }
+  .stat p:last-child { margin-bottom: 0; }
+  .charts { margin-top: 16px; }
+  @media (max-width: 400px) { .charts, .controls { padding: 12px 8px; } }
+  .c-title { font-size: 1.15rem; margin: 12px 0 4px; }
+  .c-title:first-child { margin-top: 0; }
+  .chart-box { min-height: 240px; }
+  .actions { margin-top: 8px; }
+</style>

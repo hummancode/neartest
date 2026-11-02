@@ -416,3 +416,64 @@ def jevons_chain_index(prices: dict[str, dict[str, float]], base: float = 100.0)
         level *= math.exp(log_mean)
         out[cur] = level
     return out
+
+
+# ---------------------------------------------------------------------------
+# Co-movement between two indicators
+# ---------------------------------------------------------------------------
+# Correlation describes how two series moved together; it does not show cause.
+
+def pearson(xs: list[float], ys: list[float]) -> float:
+    """Pearson correlation coefficient."""
+    n = len(xs)
+    if n != len(ys) or n < 3:
+        raise SeriesError("need at least 3 paired observations")
+    mx, my = sum(xs) / n, sum(ys) / n
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sxx = sum((x - mx) ** 2 for x in xs)
+    syy = sum((y - my) ** 2 for y in ys)
+    if sxx == 0 or syy == 0:
+        raise SeriesError("a series does not vary")
+    return sxy / math.sqrt(sxx * syy)
+
+
+def _change(series: dict[str, float], m: str, step: int, kind: str) -> float:
+    prev = series[shift_month(m, -step)]
+    if kind == "rate":                      # %, bps: change in points
+        return series[m] - prev
+    if prev <= 0:
+        raise SeriesError("level must be positive")
+    return series[m] / prev - 1.0           # prices, indices: % change
+
+
+def paired_changes(a: dict[str, float], b: dict[str, float], kind_a: str, kind_b: str, step: int) -> dict[str, list]:
+    """Changes of a and b over `step` months, at months where both have both ends."""
+    months, da, db = [], [], []
+    for m in sorted(set(a) & set(b), key=_month_index):
+        s = shift_month(m, -step)
+        if s in a and s in b:
+            months.append(m)
+            da.append(_change(a, m, step, kind_a))
+            db.append(_change(b, m, step, kind_b))
+    return {"months": months, "a": da, "b": db}
+
+
+def rolling_correlation(pairs: dict[str, list], window: int) -> dict[str, float]:
+    """Correlation over the last `window` paired changes, ending at each month."""
+    out = {}
+    for k in range(window - 1, len(pairs["months"])):
+        xs, ys = pairs["a"][k - window + 1:k + 1], pairs["b"][k - window + 1:k + 1]
+        try:
+            out[pairs["months"][k]] = pearson(xs, ys)
+        except SeriesError:
+            continue
+    return out
+
+
+def same_direction_share(pairs: dict[str, list]) -> float:
+    """Share of periods in which both series changed in the same direction."""
+    n = len(pairs["months"])
+    if n == 0:
+        raise SeriesError("no paired observations")
+    same = sum(1 for x, y in zip(pairs["a"], pairs["b"]) if x * y > 0)
+    return same / n

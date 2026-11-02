@@ -2,7 +2,7 @@
 import { SITE_URL } from "../config.ts";
 import { paths } from "../lib/paths.ts";
 
-const ROUTES = ["/", "/grafik/", "/konut/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
+const ROUTES = ["/", "/makro/", "/iliskiler/", "/grafik/", "/konut/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
 
 export function GET() {
   const urls = SITE_URL

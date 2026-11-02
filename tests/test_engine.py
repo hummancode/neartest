@@ -331,3 +331,50 @@ def test_jevons_rejects_gaps_and_no_overlap():
         e.jevons_chain_index({"2024-01": {"A": 100}, "2024-03": {"A": 120}})
     with pytest.raises(e.SeriesError):
         e.jevons_chain_index({"2024-01": {"A": 100}, "2024-02": {"B": 120}})
+
+
+# --- co-movement (İlişkiler) -------------------------------------------------
+
+def test_pearson_known_values():
+    assert close(e.pearson([1, 2, 3], [2, 4, 6]), 1.0)
+    assert close(e.pearson([1, 2, 3], [3, 2, 1]), -1.0)
+    # dx = dy pattern (-1.5,-.5,.5,1.5) vs (-1.5,.5,-.5,1.5): sum 4 / sqrt(5*5) = 0.8
+    assert close(e.pearson([1, 2, 3, 4], [1, 3, 2, 4]), 0.8)
+
+
+def test_pearson_rejects_flat_or_short():
+    with pytest.raises(e.SeriesError):
+        e.pearson([1, 1, 1], [1, 2, 3])
+    with pytest.raises(e.SeriesError):
+        e.pearson([1, 2], [1, 2])
+
+
+def test_paired_changes_level_vs_rate():
+    a = {"2024-01": 100.0, "2024-02": 110.0, "2024-03": 121.0}   # level: % change
+    b = {"2024-01": 10.0, "2024-02": 12.0, "2024-03": 11.0}      # rate: point change
+    p = e.paired_changes(a, b, "level", "rate", 1)
+    assert p["months"] == ["2024-02", "2024-03"]
+    assert all(close(x, 0.1) for x in p["a"])
+    assert p["b"] == [2.0, -1.0]
+
+
+def test_paired_changes_quarterly_alignment():
+    a = {e.shift_month("2024-01", k): 100.0 + k for k in range(6)}   # monthly 2024-01..06
+    b = {"2024-03": 5.0, "2024-06": 4.0}                             # quarterly
+    p = e.paired_changes(a, b, "level", "rate", 3)
+    assert p["months"] == ["2024-06"]
+    assert close(p["a"][0], 105.0 / 102.0 - 1) and p["b"] == [-1.0]
+
+
+def test_rolling_correlation():
+    p = {"months": ["m1", "m2", "m3", "m4"], "a": [1, 2, 3, 4], "b": [2, 4, 6, 1]}
+    out = e.rolling_correlation(p, 3)
+    assert list(out) == ["m3", "m4"]
+    assert close(out["m3"], 1.0)
+    assert close(out["m4"], e.pearson([2, 3, 4], [4, 6, 1]))
+
+
+def test_same_direction_share():
+    # signs: (+,+) (-,+) (+,+) (0,-) -> same in 2 of 4 (zero counts as not same)
+    p = {"months": ["a", "b", "c", "d"], "a": [1, -1, 2, 0], "b": [3, 2, 1, -1]}
+    assert e.same_direction_share(p) == 0.5

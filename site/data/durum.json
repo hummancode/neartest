@@ -4,7 +4,7 @@
  "counts": {
   "evds": 0,
   "manual": 0,
-  "sample": 26,
+  "sample": 34,
   "missing": 10
  },
  "weights": {
@@ -354,6 +354,110 @@
    "used_by": "Konut, grafik"
   },
   {
+   "name": "gdp_growth",
+   "label": "GSYH büyümesi (reel, yıllık)",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-03",
+   "last_month": "2026-09",
+   "months": 51,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "gdp_usd_pc",
+   "label": "Kişi başı GSYH",
+   "source": "TÜİK",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-12",
+   "last_month": "2025-12",
+   "months": 12,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "unemployment",
+   "label": "İşsizlik oranı",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "current_account",
+   "label": "Cari denge (12 aylık toplam)",
+   "source": "TCMB ödemeler dengesi, EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "reserves",
+   "label": "TCMB brüt rezervleri",
+   "source": "TCMB, EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "policy_rate",
+   "label": "Politika faizi",
+   "source": "TCMB, EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "cds_5y",
+   "label": "Türkiye 5 yıllık CDS primi",
+   "source": "Lisanslı veri — elle girilir (data/manual/cds_5y.csv)",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
+   "name": "budget_balance_gdp",
+   "label": "Bütçe dengesi / GSYH (12 aylık)",
+   "source": "Hazine ve Maliye Bakanlığı, TÜİK",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-03",
+   "last_month": "2026-09",
+   "months": 51,
+   "used_by": "Makro pano, ilişkiler"
+  },
+  {
    "name": "car_new",
    "label": "0 km otomobil liste fiyatı endeksi (resmi bayi fiyat listeleri)",
    "source": "Markaların resmi fiyat listeleri, elle derlenen sepet (data/manual/car_new_basket.csv)",
@@ -484,5 +588,5 @@
    "used_by": "Nominal illüzyon, grafik"
   }
  ],
- "generated_at": "2026-11-02T06:26:19+00:00"
+ "generated_at": "2026-11-02T06:36:08+00:00"
 }
