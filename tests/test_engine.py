@@ -693,3 +693,26 @@ def test_lorenz_lognormal():
     # L(0.5) for sigma = 1 is Phi(0 - 1) = Phi(-1) = 0.158655...
     assert close(e.lorenz_lognormal(0.5, 1.0), 0.15865525393145707, tol=1e-9)
     assert e.lorenz_lognormal(0.0, 1.0) == 0.0 and e.lorenz_lognormal(1.0, 1.0) == 1.0
+
+
+# --- population growth windows ------------------------------------------------
+
+def test_growth_windows_hand_computed():
+    pts = {"2014": 100.0, "2019": 110.0, "2023": 121.0, "2024": 133.1}
+    g = e.growth_windows(pts, (1, 5, 10))
+    # 1 y: 121 -> 133.1 = +12.1 = +10 %
+    assert g[1]["from"] == "2023" and g[1]["to"] == "2024"
+    assert close(g[1]["change"], 12.1, 1e-9) and close(g[1]["change_pct"], 10.0, 1e-9) and close(g[1]["annual_pct"], 10.0, 1e-9)
+    # 5 y: 110 -> 133.1 = 1.21 = 1.1² -> annual 1.1^(2/5) - 1
+    assert close(g[5]["change_pct"], 21.0, 1e-9) and close(g[5]["annual_pct"], 100 * (1.1 ** 0.4 - 1), 1e-9)
+    # 10 y: 100 -> 133.1 = 1.1³ -> annual 1.1^(3/10) - 1
+    assert close(g[10]["change_pct"], 33.1, 1e-9) and close(g[10]["annual_pct"], 100 * (1.1 ** 0.3 - 1), 1e-9)
+
+
+def test_growth_windows_shrinking_and_missing_base():
+    g = e.growth_windows({"2019": 1000.0, "2024": 900.0}, (1, 5))
+    assert 1 not in g                                  # no 2023 value
+    assert close(g[5]["change"], -100.0) and close(g[5]["change_pct"], -10.0, 1e-9)
+    assert close(g[5]["annual_pct"], 100 * (0.9 ** 0.2 - 1), 1e-9)
+    assert e.growth_windows({}, (1,)) == {}
+    assert e.growth_windows({"2023": 0.0, "2024": 5.0}, (1,)) == {}   # zero base: undefined

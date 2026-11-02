@@ -100,7 +100,9 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: ChartOptio
     const yy = y(t);
     el("line", { x1: M.left, x2: W - M.right, y1: yy, y2: yy, class: t === baseline ? "base" : "" }, grid);
     const label = el("text", { x: M.left - 6, y: yy + 4, "text-anchor": "end", class: "tick" }, grid);
-    label.textContent = tickFmt.format(t);
+    // compact large ticks so they fit the left margin: 15.000.000 -> "15 mn", 250.000 -> "250 bin"
+    const a = Math.abs(t);
+    label.textContent = a >= 1e6 ? `${tickFmt.format(t / 1e6)} mn` : a >= 1e4 ? `${tickFmt.format(t / 1e3)} bin` : tickFmt.format(t);
   }
   if (baseline !== null && !ys.ticks.includes(baseline)) {
     el("line", { x1: M.left, x2: W - M.right, y1: y(baseline), y2: y(baseline), class: "base" }, grid);

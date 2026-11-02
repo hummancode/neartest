@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import { status } from "../lib/status.ts";
 import { monthLabel } from "../lib/format.ts";
+import { districts } from "../lib/districts.ts";
 
 const s = status;
 const main = s.rows.filter((r) => !r.name.startsWith("cpi_") || r.name === "cpi_tr");
@@ -64,6 +65,12 @@ const ml = (m: string | null) => (m ? monthLabel(m) : "—");
       </tbody>
     </table>
   </div>
+  <h2 id="nufus-veri">İlçe nüfusu</h2>
+  <p>{districts.has_data ? (districts.sample ? "İlçe nüfusları örnek (sentetik) veridir; ilçe adları ve sınırları gerçektir." : `Kaynak: ${districts.source}.`) : "İlçe nüfus dosyası henüz girilmedi."} Dosya: <code>data/manual/ilceler/nufus.csv</code> (plaka;ilce;yil;nufus).</p>
+  {districts.unmatched.length > 0 && (
+    <p class="card"><strong>Sınır dosyasıyla eşleşmeyen {districts.unmatched.length} ilçe satırı:</strong> {districts.unmatched.slice(0, 50).join(", ")}{districts.unmatched.length > 50 ? " …" : ""}. Adı kontrol edin (ör. "Merkez", yeni kurulan ilçeler).</p>
+  )}
+
   <h2 id="indir">Veriyi indir</h2>
   <p>Tüm veri setleri açık biçimde indirilebilir. Örnek (sentetik) veri içeren satırlar işaretlidir; kaynakları yukarıdaki tablolarda.</p>
   <ul class="downloads">
@@ -72,6 +79,8 @@ const ml = (m: string | null) => (m ? monthLabel(m) : "—");
     <li><strong>Makro göstergeler</strong>: <a href="/indir/makro.csv" download>CSV</a> · <a href="/indir/makro.json" download>JSON</a></li>
     <li><strong>Reel faiz</strong>: <a href="/indir/reel_faiz.csv" download>CSV</a> · <a href="/indir/reel_faiz.json" download>JSON</a></li>
     <li><strong>Ülke karşılaştırması</strong> (Dünya Bankası, CC BY 4.0): <a href="/indir/ulkeler.csv" download>CSV</a> · <a href="/indir/ulkeler.json" download>JSON</a></li>
+    <li><strong>İller</strong> (81 il, tüm göstergeler): <a href="/indir/iller.csv" download>CSV</a> · <a href="/indir/iller.json" download>JSON</a></li>
+    <li><strong>Nüfus</strong> (yıllara göre): <a href="/indir/nufus_iller.csv" download>iller CSV</a> · <a href="/indir/ilceler.csv" download>ilçeler CSV</a> · <a href="/indir/ilceler.json" download>ilçeler JSON</a></li>
     <li>Diğer: <a href="/indir/seviyeler.json" download>seviyeler</a> · <a href="/indir/konut.json" download>konut</a> · <a href="/indir/durum.json" download>veri durumu</a></li>
   </ul>
   <p class="muted small">CSV'ler virgülle ayrılmıştır ve UTF-8 (BOM'lu) kodludur; Excel'de doğrudan açılır. Oranlar ondalık kesirdir (0,25 = %25). Kaynak göstererek kullanabilirsiniz; Dünya Bankası verisi CC BY 4.0 lisanslıdır, diğer verilerin lisansı kaynak kurumun şartlarına tabidir.</p>

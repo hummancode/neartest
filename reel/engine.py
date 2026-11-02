@@ -1002,3 +1002,25 @@ def lorenz_lognormal(p: float, sigma: float) -> float:
     if p >= 1:
         return 1.0
     return normal_cdf(normal_ppf(p) - sigma)
+
+
+def growth_windows(points: dict[str, float], windows=(1, 5, 10)) -> dict[int, dict]:
+    """Change over the last n years of a yearly series {year: value}.
+
+    For each n whose base year (last year − n) exists with a positive value:
+    change (absolute), change_pct (cumulative, %) and annual_pct (geometric average, %).
+    """
+    if not points:
+        return {}
+    last = max(points, key=int)
+    end = points[last]
+    out = {}
+    for n in windows:
+        base_year = str(int(last) - n)
+        start = points.get(base_year)
+        if start is None or start <= 0:
+            continue
+        tot = total_return(start, end)
+        out[n] = {"from": base_year, "to": last, "start": start, "end": end, "change": end - start,
+                  "change_pct": 100 * tot, "annual_pct": 100 * annualize(tot, n)}
+    return out

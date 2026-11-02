@@ -40,6 +40,11 @@ REGION_OF = {p: r for r, ps in REGIONS.items() for p in ps}
 # id: (label, unit, group, source, kind) — kind: observed | derived | estimate
 INDICATORS = {
     "population": ("Nüfus", "kişi", "Nüfus ve gelir", "TÜİK, Adrese Dayalı Nüfus Kayıt Sistemi", "observed"),
+    "population_growth_1y": ("Nüfus artış hızı (son yıl)", "%", "Nüfus", "TÜİK ADNKS — son yıl / önceki yıl − 1", "derived"),
+    "population_cagr_5y": ("Yıllık ortalama nüfus artışı (5 yıl)", "%", "Nüfus", "TÜİK ADNKS — (son / 5 yıl önce)^(1/5) − 1", "derived"),
+    "population_cagr_10y": ("Yıllık ortalama nüfus artışı (10 yıl)", "%", "Nüfus", "TÜİK ADNKS — (son / 10 yıl önce)^(1/10) − 1", "derived"),
+    "population_change_10y": ("Nüfus değişimi (10 yıl)", "kişi", "Nüfus", "TÜİK ADNKS — son yıl − 10 yıl önce", "derived"),
+    "population_density": ("Nüfus yoğunluğu", "kişi/km²", "Nüfus", "nüfus / yüzölçümü (yüzölçümü sınır verisinden hesaplanır)", "derived"),
     "household_size": ("Ortalama hane büyüklüğü", "kişi/hane", "Nüfus ve gelir", "TÜİK", "observed"),
     "gdp_mn_tl": ("GSYH (cari)", "milyon TL", "Nüfus ve gelir", "TÜİK, il bazında GSYH", "observed"),
     "gdp_per_capita_tl": ("Kişi başı GSYH", "TL", "Nüfus ve gelir", "GSYH / nüfus", "derived"),
@@ -262,6 +267,30 @@ def sample_export_history(base) -> dict[int, dict[str, float]]:
     return out
 
 
+POP_YEARS = range(2007, 2025)   # ADNKS starts in 2007
+
+
+def sample_population_history(base) -> dict[int, dict[str, float]]:
+    """SYNTHETIC yearly population ending at the sample's latest value. NOT real."""
+    out = {}
+    for p in range(1, 82):
+        last = base["population"][p][1]
+        r = -0.012 + 0.035 * _noise(p, 95) + (0.008 if p in BIG else 0.0)
+        vals, v = {}, last
+        for y in reversed(POP_YEARS):
+            vals[str(y)] = round(v)
+            v /= 1 + r + 0.006 * math.sin(0.7 * p + 0.45 * y)
+        out[p] = dict(sorted(vals.items()))
+    return out
+
+
+def province_areas(geo_districts: dict | None) -> dict[int, float]:
+    """Province area (km²) = sum of its district areas from the boundary file."""
+    if not geo_districts:
+        return {}
+    return {int(k): sum(d["area_km2"] for d in v["districts"]) for k, v in geo_districts["provinces"].items()}
+
+
 def _avg_fx(usdtry: dict[str, float], year: str) -> float | None:
     vals = [v for m, v in usdtry.items() if m.startswith(year + "-")]
     return sum(vals) / len(vals) if len(vals) == 12 else None
@@ -289,7 +318,7 @@ def parse_bist_list(text: str) -> dict[int, list[dict]]:
 
 
 def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Path | None = None,
-                    gold_gram_tl: float | None = None, gold_sample: bool = True) -> dict:
+                    gold_gram_tl: float | None = None, gold_sample: bool = True, geo_districts: dict | None = None) -> dict:
     directory = directory or (MANUAL / "iller")
     synthetic = sample_provinces() if allow_sample else {}
     data, sample_flag = {}, {}
@@ -319,6 +348,14 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
         exp_hist, exp_hist_sample = sample_export_history(synthetic), True
     else:
         exp_hist, exp_hist_sample = {}, False
+    pop_path = directory / "population.csv"
+    if pop_path.exists():
+        pop_hist, pop_hist_sample = parse_province_history(pop_path.read_text(encoding="utf-8-sig")), False
+    elif allow_sample and sample_flag.get("population"):
+        pop_hist, pop_hist_sample = sample_population_history(synthetic), True
+    else:
+        pop_hist, pop_hist_sample = {}, False
+    areas = province_areas(geo_districts)
     # National shares for location quotients.
     national = {}
     for key in ("gva", "jobs"):
@@ -415,6 +452,16 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
             base5 = exp_hist[p].get(str(last_y - 5))
             if base5:
                 out["exports_growth_5y"] = {"value": 100 * (hist[-1][1] / base5 - 1), "year": hist[-1][0], "sample": exp_hist_sample}
+        if p in pop_hist and len(pop_hist[p]) > 1:
+            history["population"] = {"points": sorted(pop_hist[p].items()), "sample": pop_hist_sample}
+            g = e.growth_windows(pop_hist[p], (1, 5, 10))
+            for n, key in ((1, "population_growth_1y"), (5, "population_cagr_5y"), (10, "population_cagr_10y")):
+                if n in g:
+                    out[key] = {"value": g[n]["annual_pct"], "year": g[n]["to"], "sample": pop_hist_sample}
+            if 10 in g:
+                out["population_change_10y"] = {"value": g[10]["change"], "year": g[10]["to"], "sample": pop_hist_sample}
+        if pop and areas.get(p):
+            out["population_density"] = {"value": pop[1] / areas[p], "year": pop[0], "sample": sample_flag["population"]}
         provinces.append({"plaka": p, "name": NAMES[p - 1], "region": REGION_OF[p], "values": out,
                           "companies": bist.get(p, []), "structure": structure, "summary": summary, "history": history})
 
@@ -439,6 +486,7 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
         "wealth_defaults": WEALTH_DEFAULTS,
         "gold_gram_tl": gold_gram_tl,
         "has_company_list": bool(bist),
+        "population_history_sample": pop_hist_sample,
         "sample": any(sample_flag.values()),
         "provinces": provinces,
     }

@@ -13,7 +13,7 @@ function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, 
   parent?.appendChild(n);
   return n;
 }
-function tipBox(root: HTMLElement) {
+export function tipBox(root: HTMLElement) {
   root.style.position = "relative";
   const tip = document.createElement("div");
   tip.className = "chart-tip";
@@ -30,7 +30,7 @@ function tipBox(root: HTMLElement) {
     hide() { tip.hidden = true; },
   };
 }
-const localXY = (root: HTMLElement, ev: PointerEvent) => { const r = root.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
+export const localXY = (root: HTMLElement, ev: PointerEvent) => { const r = root.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
 
 export interface Part { name: string; value: number }
 

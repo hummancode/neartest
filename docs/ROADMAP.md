@@ -32,7 +32,9 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | 🟡 | **İller ekonomik haritası**: 81 il, 43 gösterge + sektörel GSYH/istihdam/ihracat ve ihracat pazarı dağılımları, uzmanlaşma (LQ), ihracat yoğunlaşması (HHI), ihracat geçmişi; (gelir, ihracat, çalışan, ücret, şirketler + BIST listesi, mevduat/kredi, konut fiyatı/kira/getiri/erişilebilirlik, otomobil, Gini, SEGE), il kartı, 81 il künye sayfası (`/il/…`), tablo, CSV | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
 | 🟡 | **Tahmin/simülasyon**: il bazında hane serveti, medyan servet, servet Gini'si ve en zengin %10 payı (log-normal), yastık altı altın dağılımı — varsayımlar canlı değiştirilebilir | sonraki: senaryo motoru (faiz/kur/enflasyon şoklarının hane bütçesine etkisi), il bazında projeksiyon |
 
-| ⬜ | İl karşılaştırma (iki il yan yana), il bazında zaman serileri (yıllar içinde değişim) | il verisinin yıllık geçmişi |
+| 🟡 | **Nüfus: il ve ilçeler** — yıllara göre nüfus, artış hızları, büyüyen/küçülen il ve ilçeler, ilçe haritası, endeksli il karşılaştırması | TÜİK ADNKS il/ilçe tabloları elle (şu an örnek); ilçe sınırları gerçek (OSM/geoBoundaries) |
+| ⬜ | Nüfus ayrıntısı: yaş yapısı, medyan yaş, iç göç (iller arası göç matrisi), doğurganlık | TÜİK ADNKS ve göç istatistikleri |
+| ⬜ | İl karşılaştırma (iki il yan yana), diğer göstergeler için il bazında zaman serileri | il verisinin yıllık geçmişi |
 | ⬜ | Senaryo motoru: faiz/kur/enflasyon şoklarının hane bütçesine, kredi taksitlerine, il servetine etkisi | varsayım tabanlı |
 
 ## 3. Hane ve kişisel karar araçları

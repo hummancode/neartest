@@ -262,6 +262,17 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="nufus">Nüfus: il ve ilçeler</h2>
+    <ul>
+      <li>Kaynak: TÜİK Adrese Dayalı Nüfus Kayıt Sistemi (ADNKS) — her yılın 31 Aralık itibarıyla yerleşik nüfus; il ve ilçe düzeyinde, 2007'den itibaren.</li>
+      <li>Son yıl artış = N<sub>t</sub> / N<sub>t−1</sub> − 1. n yıllık yıllık ortalama artış = (N<sub>t</sub> / N<sub>t−n</sub>)<sup>1/n</sup> − 1 (bileşik). 10 yıllık değişim = N<sub>t</sub> − N<sub>t−10</sub> (kişi). Başlangıç yılı verisi yoksa o dönem hesaplanmaz.</li>
+      <li>Türkiye toplamı 81 ilin toplamıdır ve yalnızca bütün illerin verisi olan yıllar için çizilir.</li>
+      <li>Haritalarda renk eşikleri sabittir: yıllık ±%0,1 içi "yaklaşık sabit", sonra ±%0,5 ve ±%1,5 sınırları. 10 yıllık kişi değişimi haritası için eşikler mutlak değerlerin dağılımından seçilir.</li>
+      <li>Nüfus yoğunluğu = nüfus / yüzölçümü; yüzölçümü ilçe sınırlarından küresel alan formülüyle hesaplanır (geoBoundaries, OpenStreetMap tabanlı, ODbL 1.0). Resmî yüzölçümünden (göller, kıyı çizgisi) biraz sapabilir.</li>
+      <li>İlçe adları sınır dosyasıyla TÜİK tablosu arasında Türkçe karakterlere duyarlı biçimde normalleştirilerek eşleştirilir; eşleşmeyen satırlar <a href="/veri">Veri durumu</a> sayfasında listelenir, sessizce atılmaz.</li>
+      <li>Sınırlar: Nüfus değişimi doğal artış ile göçün toplamıdır; site bu ikisini ayırmaz. Yeni kurulan ilçeler, sınır değişiklikleri ve kayıt güncellemeleri tek yıllık sıçramalar yaratabilir. Bu bir resmî projeksiyon değildir; geleceğe dönük tahmin yapılmaz.</li>
+    </ul>
+
     <h2 id="iller">İller ve servet tahmini</h2>
     <ul>
       <li>Gözlenen göstergeler resmî kaynaklardan il bazında alınır (TÜİK nüfus ve GSYH, SGK 4/a sigortalı, TOBB şirket, KAP borsa şirketi merkezi, BDDK mevduat ve kredi, SEGE). İhracat firmanın kayıtlı olduğu ile göre sayıldığından üretimin yapıldığı ili göstermeyebilir.</li>

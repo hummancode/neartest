@@ -103,6 +103,7 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
   import { provinceWealth, wealthInequality, goldAllocation, pearson, SeriesError } from "../lib/engine.ts";
   import { renderDonut, renderScatter } from "../lib/charts2.ts";
   import { formatP, ADDITIVE } from "../lib/provinces.ts";
+  import { SIGNED, GROWTH_EDGES, absEdges, divClass, divCss, renderLegend, fmtPct, fmtSigned } from "../lib/popviz.ts";
   import { provinceUrl } from "../lib/slug.ts";
   import { readHash, writeHash } from "../lib/share.ts";
 
@@ -196,6 +197,8 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
     writeHash({ g: id, b: region, il: selected ? String(selected) : "" });
     const inScope = (p: any) => !region || p.region === region;
     const xs = provs.filter(inScope).map((p) => values[p.plaka][id]?.value).filter((x) => x != null) as number[];
+    const signed = SIGNED.has(id);
+    const dEdges = id === "population_change_10y" ? absEdges(xs) : GROWTH_EDGES;
     const br = quantileBreaks(xs);
     $("map-title").textContent = I.label + (I.kind === "estimate" ? " — model tahmini" : "");
     const anySample = provs.some((p) => values[p.plaka][id]?.sample);
@@ -203,12 +206,13 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
     $("map-sub").textContent = `${I.source}${year ? ` · ${year}` : ""}${anySample ? " · ÖRNEK VERİ" : ""}`;
     document.querySelectorAll<SVGPathElement>(".prov").forEach((el) => {
       const pl = Number(el.dataset.plaka), p = provs[pl - 1], v = values[pl][id]?.value;
-      el.setAttribute("class", "prov" + (v == null ? " nodata" : ` c${classOf(v, br)}`) + (inScope(p) ? "" : " out") + (selected === pl ? " sel" : ""));
+      el.setAttribute("class", "prov" + (v == null ? " nodata" : signed ? ` ${divCss(divClass(v, dEdges))}` : ` c${classOf(v, br)}`) + (inScope(p) ? "" : " out") + (selected === pl ? " sel" : ""));
     });
     const lg = $("legend");
     lg.replaceChildren();
     const edges = [Math.min(...xs), ...br, Math.max(...xs)];
-    for (let k = 0; k < CLASSES; k++) {
+    if (signed) renderLegend(lg, dEdges, id === "population_change_10y" ? fmtSigned : (v: number) => fmtPct(v));
+    else for (let k = 0; k < CLASSES; k++) {
       const item = document.createElement("span"); item.className = "lg-item";
       const sw = document.createElement("span"); sw.className = `sw c${k}`;
       const t = document.createElement("span"); t.textContent = `${formatP(I.unit, edges[k])} – ${formatP(I.unit, edges[k + 1])}`;

@@ -127,3 +127,12 @@
   haritası. 6 renkli kategorik palet doğrulayıcıdan geçti. Motor: `lorenz_lognormal` (önce test). Düzeltmeler:
   `[hidden]` CSS ile ezilmesin (genel kural), grafik eksen stilleri yeni grafiklere uygulanıyor, mobilde lejant
   ve segment etiketleri taşmıyor/çakışmıyor.
+- 2026-11-02 — Nüfus: il ve ilçeler. İl nüfusunun yıllık geçmişi (ADNKS, 2007–) ve türetilen göstergeler (son yıl
+  artış, 5/10 yıllık yıllık ortalama artış, 10 yıllık değişim, nüfus yoğunluğu). 973 ilçenin sınırları
+  (geoBoundaries/OSM, ODbL; illere nokta-çokgen testiyle atanır, adlar TÜİK biçimine çevrilir) ve ilçe nüfusu
+  (`data/manual/ilceler/nufus.csv`; yoksa ilçe adları gerçek, rakamlar ÖRNEK). Yeni `/nufus` sayfası: Türkiye
+  toplamı, büyüme haritası (sabit eşikli sapma paleti, iki kol doğrulandı), en hızlı büyüyen/küçülen il ve
+  ilçeler, endeksli il karşılaştırması, ilçe arama. İl künyesinde nüfus grafiği, ilçe haritası, sıralanabilir
+  ilçe tablosu ve seçilen ilçenin grafiği. İller haritasında nüfus göstergeleri sapma renkleriyle. CSV indirme
+  (`ilceler.csv`, `nufus_iller.csv`). Motor: `growth_windows` (önce test). Grafiklerde büyük eksen
+  değerleri kısaltıldı (15 mn, 250 bin).

@@ -72,3 +72,25 @@ def test_sample_breakdowns_add_up():
     gva_total = sum(x["value"] for x in ist["structure"]["gva"]["items"])
     assert abs(gva_total - ist["values"]["gdp_mn_tl"]["value"]) / gva_total < 1e-3
     assert ist["structure"]["exports_country"]["sample"] is True and "exports_mn_usd" in ist["history"]
+
+
+def test_population_history_growth_and_density(tmp_path):
+    (tmp_path / "population.csv").write_text("plaka;yil;deger\n6;2014;1000\n6;2019;1100\n6;2023;1210\n6;2024;1331\n", encoding="utf-8")
+    geo = {"provinces": {"6": {"districts": [{"name": "A", "area_km2": 10.0}, {"name": "B", "area_km2": 1.0}]}}}
+    out = pv.build_provinces({}, allow_sample=False, directory=tmp_path, geo_districts=geo)
+    v = next(p for p in out["provinces"] if p["plaka"] == 6)["values"]
+    assert v["population"]["value"] == 1331 and v["population"]["year"] == "2024"   # latest year
+    assert abs(v["population_growth_1y"]["value"] - 10.0) < 1e-9                     # 1210 -> 1331
+    assert abs(v["population_cagr_5y"]["value"] - 100 * (1.21 ** 0.2 - 1)) < 1e-9     # 1100 -> 1331 = ×1.21
+    assert abs(v["population_cagr_10y"]["value"] - 100 * (1.331 ** 0.1 - 1)) < 1e-9
+    assert v["population_change_10y"]["value"] == 331
+    assert abs(v["population_density"]["value"] - 121.0) < 1e-9                       # 1331 / 11 km²
+    assert out["population_history_sample"] is False
+
+
+def test_sample_population_history_ends_at_sample_value():
+    out = pv.build_provinces({}, allow_sample=True, directory=pv.MANUAL / "no-such")
+    ist = out["provinces"][33]
+    pts = ist["history"]["population"]["points"]
+    assert pts[0][0] == "2007" and pts[-1][0] == "2024" and ist["history"]["population"]["sample"] is True
+    assert abs(pts[-1][1] - ist["values"]["population"]["value"]) <= 1

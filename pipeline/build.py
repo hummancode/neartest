@@ -36,6 +36,8 @@ OUT_EVENTS = ROOT / "site" / "data" / "olaylar.json"
 OUT_COUNTRIES = ROOT / "site" / "data" / "ulkeler.json"
 OUT_PROVINCES = ROOT / "site" / "data" / "iller.json"
 OUT_TRADE = ROOT / "site" / "data" / "dis_ticaret.json"
+OUT_DISTRICTS = ROOT / "site" / "data" / "ilceler.json"
+GEO_DISTRICTS = ROOT / "site" / "data" / "tr_ilceler.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -191,13 +193,18 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     events = build_events(data, is_sample)
     countries = build_countries(allow_sample) or {"sample": True, "indicators": [], "countries": [], "source": ""}
     from pipeline.provinces import build_provinces
+    geo_districts = json.loads(GEO_DISTRICTS.read_text(encoding="utf-8")) if GEO_DISTRICTS.exists() else None
     provinces = build_provinces(data["usdtry"], allow_sample, gold_gram_tl=data["gold_gram_tl"].get(end),
-                                gold_sample=is_sample.get("gold_gram_tl", True))
+                                gold_sample=is_sample.get("gold_gram_tl", True), geo_districts=geo_districts)
+    from pipeline.districts import PATH as DISTRICT_CSV, build_districts
+    prov_hist = {x["plaka"]: dict(x["history"]["population"]["points"]) for x in provinces["provinces"] if "population" in x["history"]}
+    districts = build_districts(prov_hist, provinces["population_history_sample"], allow_sample,
+                                DISTRICT_CSV.read_text(encoding="utf-8-sig") if DISTRICT_CSV.exists() else None, geo_districts)
     from pipeline.trade import build_trade
     trade = build_trade(allow_sample)
-    for d in (prices, housing, macro, stocks_out, events, countries, provinces, trade):
+    for d in (prices, housing, macro, stocks_out, events, countries, provinces, trade, districts):
         d["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade, districts
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -704,7 +711,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade, districts = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -720,8 +727,9 @@ def main() -> int:
     write_if_changed(OUT_COUNTRIES, countries)
     write_if_changed(OUT_PROVINCES, provinces)
     write_if_changed(OUT_TRADE, trade)
+    write_if_changed(OUT_DISTRICTS, districts)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (14 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

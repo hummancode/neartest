@@ -10,10 +10,11 @@ import { housing } from "../../lib/housing.ts";
 import { status } from "../../lib/status.ts";
 import { provinces } from "../../lib/provinces.ts";
 import { shiftMonth } from "../../lib/engine.ts";
+import { districts } from "../../lib/districts.ts";
 
 const JSON_FILES: Record<string, unknown> = {
   reel_tablo: tablo, fiyatlar: prices, makro: macro, ulkeler: countries, reel_faiz: realRates,
-  seviyeler: levels, konut: housing, durum: status, iller: provinces,
+  seviyeler: levels, konut: housing, durum: status, iller: provinces, ilceler: districts,
 };
 
 const esc = (v: unknown) => {
@@ -50,8 +51,15 @@ const csvProvinces = () => {
       Object.values(p.values).some((v) => v.sample)])]);
 };
 
+// Long format: one row per province/district and year.
+const csvDistricts = () => toCsv([["plaka", "il", "ilce", "yil", "nufus", "ornek_veri"],
+  ...Object.entries(districts.provinces).flatMap(([pl, ds]) => ds.flatMap((d) => d.points.map(([y, v]) =>
+    [pl, provinces.provinces[Number(pl) - 1].name, d.name, y, v, districts.sample])))]);
+const csvPopulation = () => toCsv([["plaka", "il", "yil", "nufus", "ornek_veri"],
+  ...provinces.provinces.flatMap((p) => (p.history.population?.points ?? []).map(([y, v]) => [p.plaka, p.name, y, v, p.history.population.sample]))]);
+
 const CSV_FILES: Record<string, () => string> = {
-  iller: csvProvinces,
+  iller: csvProvinces, ilceler: csvDistricts, nufus_iller: csvPopulation,
   fiyatlar: csvPrices, makro: csvMacro, ulkeler: csvCountries, reel_tablo: csvTablo, reel_faiz: csvRates,
 };
 

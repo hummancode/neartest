@@ -89,6 +89,17 @@ Borsa şirketleri listesi: `iller/bist_sirketler.csv` — `plaka;kod;unvan;sekto
 Liste varsa il bazında şirket sayısı bu listeden sayılır.
 Aynı il için birden çok yıl varsa en son yıl kullanılır.
 
+## Nüfus: il ve ilçe (TÜİK ADNKS)
+
+- **İl nüfusu, yıllara göre:** `iller/population.csv` — `plaka;yil;deger`, her il için birden çok yıl
+  (ADNKS 2007–). En son yıl gösterge olarak, tüm yıllar grafik ve büyüme hızları için kullanılır.
+- **İlçe nüfusu:** `ilceler/nufus.csv` — `plaka;ilce;yil;nufus` (başlık satırı isteğe bağlı), ör.
+  `6;Çankaya;2024;950.000`. TÜİK "il ve ilçe nüfusları" tablosundan. Merkez ilçesi büyükşehir olmayan
+  illerde `Merkez` yazılır. Adlar sınır dosyasıyla Türkçe karakterlere duyarlı biçimde eşleşir
+  (`KEÇİÖREN` = `Keçiören`); eşleşmeyenler Veri durumu sayfasında listelenir.
+- **İlçe sınırları** (`site/data/tr_ilceler.json`, depoda hazır): geoBoundaries gbOpen TUR ADM2/ADM1
+  (OpenStreetMap tabanlı, ODbL 1.0). Yenilemek için: `python -m pipeline.geo_districts ADM2.geojson ADM1.geojson`.
+
 ## Dış ticaret dağılımı
 
 `dis_ticaret_ulke.csv`: `yil;ulke;ihracat_milyon_usd;ithalat_milyon_usd` ·

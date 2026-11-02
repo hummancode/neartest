@@ -1,0 +1,276 @@
+---
+import Base from "../layouts/Base.astro";
+import { provinces, geo } from "../lib/provinces.ts";
+import { districts } from "../lib/districts.ts";
+import { provinceUrl } from "../lib/slug.ts";
+import { DISCLAIMER } from "../config.ts";
+import { fmtPct } from "../lib/popviz.ts";
+
+const P = provinces.provinces;
+const withHist = P.filter((p) => p.history.population);
+const popSample = provinces.population_history_sample as boolean | undefined;
+// Türkiye total = sum of provinces, only for years every province reports.
+const years = withHist.length ? withHist[0].history.population.points.map(([y]) => y).filter((y) => withHist.every((p) => p.history.population.points.some(([yy]) => yy === y))) : [];
+const total = years.map((y) => [y, withHist.reduce((s, p) => s + p.history.population.points.find(([yy]) => yy === y)![1], 0)] as [string, number]);
+const last = total.at(-1), prev = total.at(-2), ten = total.length > 10 ? total.at(-11) : undefined;
+const nf = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const sgnPct = (v: number) => fmtPct(v);
+const growth1 = last && prev ? 100 * (last[1] / prev[1] - 1) : null;
+const cagr10 = last && ten ? 100 * ((last[1] / ten[1]) ** (1 / 10) - 1) : null;
+// Where the 10-year change happened: provinces sorted by absolute change.
+const changes = P.filter((p) => p.values.population_change_10y).map((p) => ({ name: p.name, plaka: p.plaka, c: p.values.population_change_10y.value }));
+const totalChange = changes.reduce((s, x) => s + x.c, 0);
+const top5 = [...changes].sort((a, b) => b.c - a.c).slice(0, 5);
+const top5Share = totalChange > 0 ? (100 * top5.reduce((s, x) => s + x.c, 0)) / totalChange : null;
+const shrinking10 = changes.filter((x) => x.c < 0).length;
+
+const r3 = (v: number | null | undefined) => (v == null ? null : Math.round(v * 1000) / 1000);
+const provData = P.map((p) => ({
+  plaka: p.plaka, name: p.name, region: p.region, url: provinceUrl(p.plaka, p.name),
+  pop: p.values.population?.value ?? null, year: p.values.population?.year ?? null,
+  g1: r3(p.values.population_growth_1y?.value), g5: r3(p.values.population_cagr_5y?.value), g10: r3(p.values.population_cagr_10y?.value),
+  c10: p.values.population_change_10y?.value ?? null, hist: p.history.population?.points ?? [],
+}));
+const distData = Object.entries(districts.provinces).flatMap(([pl, ds]) => ds.map((d) => ({
+  plaka: Number(pl), il: P[Number(pl) - 1].name, name: d.name, pop: d.pop, g1: r3(d.g1), g5: r3(d.g5), g10: r3(d.g10),
+  url: `${provinceUrl(Number(pl), P[Number(pl) - 1].name)}#ilce=${encodeURIComponent(d.name)}`,
+})));
+const nDistricts = distData.length;
+---
+<Base title="Nüfus: hangi il ve ilçe büyüyor, hangisi küçülüyor?" description="81 il ve 973 ilçenin yıllara göre nüfusu; yıllık, 5 ve 10 yıllık ortalama artış hızları; en hızlı büyüyen ve küçülen il ve ilçeler." sample={popSample || districts.sample}>
+  <h1>Nüfus</h1>
+  <p class="lead">81 il ve {nDistricts || 973} ilçenin yıllara göre nüfusu. Hangi yerler hızla büyüyor, hangileri küçülüyor?</p>
+  {(popSample || districts.sample) && (
+    <p class="card warn-note"><strong>Örnek veri.</strong> Bu sayfadaki nüfus rakamları <strong>sentetiktir</strong> (sayfa düzeni için); il ve ilçe adları ile sınırlar gerçektir. Gerçek veri TÜİK Adrese Dayalı Nüfus Kayıt Sistemi tablolarından elle girildiğinde (<a href="/veri">Veri durumu</a>) rakamlar kendiliğinden güncellenir.</p>
+  )}
+
+  {last && (
+    <div class="keys">
+      <div class="card k"><span class="k-label">Türkiye nüfusu</span><span class="k-value">{nf.format(last[1])}</span><span class="muted small">{last[0]} sonu · 81 ilin toplamı</span></div>
+      {growth1 != null && <div class="card k"><span class="k-label">Son yıl artış</span><span class="k-value">{sgnPct(growth1)}</span><span class="muted small">{prev![0]} → {last[0]}</span></div>}
+      {cagr10 != null && <div class="card k"><span class="k-label">Yıllık ortalama artış, 10 yıl</span><span class="k-value">{sgnPct(cagr10)}</span><span class="muted small">{ten![0]} → {last[0]}</span></div>}
+      {top5Share != null && <div class="card k"><span class="k-label">10 yıllık artışın en büyük 5 ildeki payı</span><span class="k-value">%{nf1.format(top5Share)}</span><span class="muted small">{top5.map((x) => x.name).join(", ")}</span></div>}
+      <div class="card k"><span class="k-label">10 yılda nüfusu azalan il</span><span class="k-value">{shrinking10}</span><span class="muted small">81 il içinde</span></div>
+    </div>
+  )}
+
+  {total.length > 1 && (
+    <section>
+      <h2>Türkiye nüfusu, yıllara göre</h2>
+      <div class="card"><div id="tr-chart" class="chart-box"></div><p class="muted small">Yıl sonu nüfusu, 81 ilin toplamı.</p></div>
+    </section>
+  )}
+
+  <section>
+    <div class="s-head">
+      <h2>İllerin nüfus artış hızı</h2>
+      <label class="small">Dönem: <select id="win">
+        <option value="g10">Yıllık ortalama, son 10 yıl</option>
+        <option value="g5">Yıllık ortalama, son 5 yıl</option>
+        <option value="g1">Son yıl</option>
+      </select></label>
+    </div>
+    <div class="card">
+      <div class="pmap-wrap" id="pmap-wrap">
+        <svg class="pmap" viewBox={`0 0 ${geo.width} ${geo.height}`} role="img" aria-label="İllerin nüfus artış hızı haritası">
+          {geo.provinces.map((x) => <path d={x.d} class="prov nodata" data-plaka={x.plaka} tabindex="0"></path>)}
+        </svg>
+      </div>
+      <div class="legend" id="p-legend" aria-label="Lejant"></div>
+      <p class="muted small">Mavi: büyüyor · gri: yaklaşık sabit · kırmızı: küçülüyor. Renk eşikleri sabittir (tüm dönemlerde aynı), böylece haritalar karşılaştırılabilir. Bir ile dokunmak künye sayfasını açar.</p>
+    </div>
+    <div class="two">
+      <div class="card"><h3 class="s-title">En hızlı büyüyen 10 il</h3><div id="p-top"></div></div>
+      <div class="card"><h3 class="s-title">En hızlı küçülen (veya en yavaş büyüyen) 10 il</h3><div id="p-bot"></div></div>
+    </div>
+    <details class="card">
+      <summary>81 ilin tamamı</summary>
+      <div id="p-all"></div>
+    </details>
+  </section>
+
+  <section>
+    <h2>İlleri karşılaştır</h2>
+    <p class="muted small">Seçtiğiniz illerin nüfusu, ilk yıl = 100 olacak biçimde endekslenir; böylece farklı büyüklükteki illerin büyüme hızı aynı grafikte okunur. En fazla 5 il.</p>
+    <div class="card">
+      <div class="cmp-pick" id="cmp-pick">
+        <label for="cmp-add" class="small">İl ekle</label>
+        <select id="cmp-add"><option value="">— seçin —</option>{[...P].sort((a, b) => a.name.localeCompare(b.name, "tr")).map((p) => <option value={p.plaka}>{p.name}</option>)}</select>
+        <div id="cmp-chips" class="chips"></div>
+      </div>
+      <div id="cmp-chart" class="chart-box"></div>
+    </div>
+  </section>
+
+  {nDistricts > 0 && (
+    <section id="ilceler">
+      <div class="s-head">
+        <h2>İlçeler: en hızlı büyüyen ve küçülen</h2>
+        <label class="small">En az nüfus: <select id="dmin">
+          <option value="0">sınır yok</option><option value="10000" selected>10.000</option><option value="50000">50.000</option><option value="100000">100.000</option>
+        </select></label>
+      </div>
+      <p class="muted small">Dönem yukarıdaki seçimi izler. Çok küçük ilçelerde birkaç yüz kişilik değişim yüksek oran gibi görünebilir; nüfus eşiğiyle süzebilirsiniz.</p>
+      <div class="two">
+        <div class="card"><h3 class="s-title">En hızlı büyüyen 15 ilçe</h3><div id="d-top"></div></div>
+        <div class="card"><h3 class="s-title">En hızlı küçülen 15 ilçe</h3><div id="d-bot"></div></div>
+      </div>
+      <div class="card">
+        <label for="dsearch"><strong>İlçe ara</strong></label>
+        <input id="dsearch" type="search" list="dlist" placeholder="ör. Çankaya" autocomplete="off" />
+        <datalist id="dlist">{distData.map((d) => <option value={`${d.name} (${d.il})`}></option>)}</datalist>
+        <p class="muted small" id="dsearch-note">İlçeyi seçince il sayfasında ilçe grafiği açılır.</p>
+      </div>
+    </section>
+  )}
+
+  <section>
+    <h2>Yöntem ve kaynak</h2>
+    <ul class="muted small">
+      <li>Nüfus: TÜİK, Adrese Dayalı Nüfus Kayıt Sistemi (ADNKS), her yılın 31 Aralık itibarıyla kayıtlı nüfusu. ADNKS 2007'den beri yayımlanıyor.</li>
+      <li>Yıllık ortalama artış = (son yıl / n yıl önce)<sup>1/n</sup> − 1 (bileşik). Son yıl artış = son yıl / önceki yıl − 1.</li>
+      <li>Nüfus artışı doğal artış (doğum − ölüm) ile göçün toplamıdır; bu sayfa ikisini ayırmaz. İl sınırı değişiklikleri ve kayıt güncellemeleri tek yıllık sıçramalara yol açabilir.</li>
+      <li>İlçe sınırları: geoBoundaries (OpenStreetMap tabanlı, ODbL 1.0 — © OpenStreetMap katkıcıları). Yoğunluk için yüzölçümü bu sınırlardan hesaplanır; resmî yüzölçümünden biraz farklı olabilir.</li>
+      <li>Ayrıntı: <a href="/metodoloji#nufus">Metodoloji</a> · Veri: <a href="/indir/ilceler.csv" download>ilçeler CSV</a> · <a href="/indir/iller.csv" download>iller CSV</a></li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="n-data" set:html={JSON.stringify({ total, provs: provData, dists: distData })}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { renderDivBars, renderLegend, divClass, divCss, GROWTH_EDGES, fmtPct, fmtInt } from "../lib/popviz.ts";
+  import { tipBox, localXY } from "../lib/charts2.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+
+  type Prov = { plaka: number; name: string; region: string; url: string; pop: number | null; year: string | null; g1: number | null; g5: number | null; g10: number | null; c10: number | null; hist: [string, number][] };
+  type Dist = { plaka: number; il: string; name: string; pop: number; g1: number | null; g5: number | null; g10: number | null; url: string };
+  const N = JSON.parse(document.getElementById("n-data")!.textContent!) as { total: [string, number][]; provs: Prov[]; dists: Dist[] };
+  const $ = (id: string) => document.getElementById(id)!;
+  const nf = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const LABEL: Record<string, string> = { g1: "son yıl", g5: "yıllık ort., 5 yıl", g10: "yıllık ort., 10 yıl" };
+  const win = $("win") as HTMLSelectElement;
+  const h = readHash();
+  if (h.get("d") && LABEL[h.get("d")!]) win.value = h.get("d")!;
+  if (!N.provs.some((p) => (p as any)[win.value] != null)) win.value = ["g10", "g5", "g1"].find((k) => N.provs.some((p) => (p as any)[k] != null)) ?? "g1";
+
+  function autoChart(box: HTMLElement, draw: () => void) {
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(); } }).observe(box);
+    draw();
+  }
+  const trBox = document.getElementById("tr-chart");
+  if (trBox) autoChart(trBox, () => renderChart(trBox, { months: N.total.map(([y]) => `${y}-12`), series: [{ key: "tr", label: "Türkiye", color: "var(--series-1)", values: N.total.map(([, v]) => v) }] },
+    { baseline: null, allowLog: false, format: (v) => `${nf.format(v)} kişi` }));
+
+  // province map
+  const wrap = $("pmap-wrap");
+  const tip = tipBox(wrap);
+  const byPlaka = new Map(N.provs.map((p) => [p.plaka, p]));
+  const tipLines = (p: Prov) => { const v = (p as any)[win.value]; return [p.name, p.pop != null ? `${nf.format(p.pop)} kişi (${p.year})` : "nüfus yok", v != null ? `Artış (${LABEL[win.value]}): ${fmtPct(v)}` : "artış hesaplanamadı"]; };
+  document.querySelectorAll<SVGPathElement>(".pmap .prov").forEach((el) => {
+    const p = byPlaka.get(Number(el.dataset.plaka));
+    if (!p) return;
+    el.setAttribute("aria-label", p.name);
+    el.addEventListener("pointermove", (ev) => { const [x, y] = localXY(wrap, ev as PointerEvent); tip.show(tipLines(p), x, y); });
+    el.addEventListener("pointerleave", () => tip.hide());
+    el.addEventListener("focus", () => { const r = el.getBoundingClientRect(), o = wrap.getBoundingClientRect(); tip.show(tipLines(p), r.left - o.left + r.width / 2, r.top - o.top); });
+    el.addEventListener("blur", () => tip.hide());
+    el.addEventListener("click", () => { location.href = p.url; });
+    el.addEventListener("keydown", (e) => { if ((e as KeyboardEvent).key === "Enter") location.href = p.url; });
+  });
+
+  function drawProvinces() {
+    const k = win.value;
+    document.querySelectorAll<SVGPathElement>(".pmap .prov").forEach((el) => {
+      const v = (byPlaka.get(Number(el.dataset.plaka)) as any)?.[k];
+      el.setAttribute("class", "prov " + (v == null ? "nodata" : divCss(divClass(v))));
+    });
+    renderLegend($("p-legend"), GROWTH_EDGES, (v) => fmtPct(v));
+    const ranked = N.provs.filter((p) => (p as any)[k] != null).sort((a, b) => (b as any)[k] - (a as any)[k]);
+    const row = (p: Prov) => ({ label: p.name, sub: p.pop != null ? fmtInt(p.pop) : "", value: (p as any)[k], href: p.url });
+    renderDivBars($("p-top"), ranked.slice(0, 10).map(row), { format: (v) => fmtPct(v), label: `En hızlı büyüyen iller, ${LABEL[k]}` });
+    renderDivBars($("p-bot"), ranked.slice(-10).reverse().map(row), { format: (v) => fmtPct(v), label: `En hızlı küçülen iller, ${LABEL[k]}` });
+    renderDivBars($("p-all"), ranked.map(row), { format: (v) => fmtPct(v), label: `81 il, ${LABEL[k]}` });
+    drawDistricts();
+  }
+
+  // districts
+  function drawDistricts() {
+    if (!document.getElementById("d-top")) return;
+    const k = win.value, min = Number(($("dmin") as HTMLSelectElement).value);
+    const ranked = N.dists.filter((d) => (d as any)[k] != null && d.pop >= min).sort((a, b) => (b as any)[k] - (a as any)[k]);
+    const row = (d: Dist) => ({ label: d.name, sub: `${d.il} · ${fmtInt(d.pop)}`, value: (d as any)[k], href: d.url });
+    renderDivBars($("d-top"), ranked.slice(0, 15).map(row), { format: (v) => fmtPct(v), label: `En hızlı büyüyen ilçeler, ${LABEL[k]}` });
+    renderDivBars($("d-bot"), ranked.slice(-15).reverse().map(row), { format: (v) => fmtPct(v), label: `En hızlı küçülen ilçeler, ${LABEL[k]}` });
+  }
+  document.getElementById("dmin")?.addEventListener("change", drawDistricts);
+  const search = document.getElementById("dsearch") as HTMLInputElement | null;
+  search?.addEventListener("change", () => {
+    const d = N.dists.find((x) => `${x.name} (${x.il})` === search.value);
+    if (d) location.href = d.url;
+    else $("dsearch-note").textContent = "Listeden bir ilçe seçin.";
+  });
+
+  win.addEventListener("change", () => { writeHash({ d: win.value, il: cmp.join(",") }); drawProvinces(); });
+
+  // comparison (indexed, first common year = 100)
+  const COLORS = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)", "var(--cat-4)", "var(--cat-5)"];
+  const g = (p: Prov) => (p as any)[win.value] ?? -Infinity;
+  const withH = N.provs.filter((p) => p.hist.length > 1);
+  const fastest = [...withH].sort((a, b) => g(b) - g(a))[0], slowest = [...withH].sort((a, b) => g(a) - g(b))[0];
+  let cmp: number[] = (h.get("il") ?? "").split(",").map(Number).filter((x) => byPlaka.get(x)?.hist.length);
+  if (!cmp.length) cmp = [...new Set([34, 6, fastest?.plaka, slowest?.plaka].filter((x): x is number => !!x && !!byPlaka.get(x)?.hist.length))].slice(0, 5);
+  const cmpBox = $("cmp-chart");
+  function drawCmp() {
+    const chips = $("cmp-chips");
+    chips.replaceChildren(...cmp.map((pl, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip";
+      const sw = document.createElement("span"); sw.className = "chip-sw"; sw.style.background = COLORS[i];
+      b.append(sw, document.createTextNode(`${byPlaka.get(pl)!.name} ✕`));
+      b.setAttribute("aria-label", `${byPlaka.get(pl)!.name} karşılaştırmadan çıkar`);
+      b.addEventListener("click", () => { cmp = cmp.filter((x) => x !== pl); writeHash({ d: win.value, il: cmp.join(",") }); drawCmp(); });
+      return b;
+    }));
+    const ps = cmp.map((pl) => byPlaka.get(pl)!);
+    if (!ps.length) { cmpBox.replaceChildren(); return; }
+    const yrs = ps[0].hist.map(([y]) => y).filter((y) => ps.every((p) => p.hist.some(([yy]) => yy === y)));
+    const val = (p: Prov, y: string) => p.hist.find(([yy]) => yy === y)![1];
+    renderChart(cmpBox, { months: yrs.map((y) => `${y}-12`), series: ps.map((p, i) => ({ key: String(p.plaka), label: p.name, color: COLORS[i], values: yrs.map((y) => (100 * val(p, y)) / val(p, yrs[0])) })) },
+      { baseline: 100, allowLog: false, format: (v) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(v) });
+  }
+  ($("cmp-add") as HTMLSelectElement).addEventListener("change", (e) => {
+    const s = e.target as HTMLSelectElement, pl = Number(s.value);
+    if (pl && !cmp.includes(pl) && cmp.length < 5 && byPlaka.get(pl)?.hist.length) { cmp.push(pl); writeHash({ d: win.value, il: cmp.join(",") }); drawCmp(); }
+    s.value = "";
+  });
+  let cw = 0;
+  new ResizeObserver(() => { if (Math.abs(cmpBox.clientWidth - cw) > 2) { cw = cmpBox.clientWidth; drawCmp(); } }).observe(cmpBox);
+
+  drawProvinces();
+  drawCmp();
+</script>
+<style is:global>
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-top: 8px; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(5, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .s-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .pmap-wrap { position: relative; }
+  .pmap { width: 100%; height: auto; display: block; }
+  .pmap .prov { stroke: var(--surface); stroke-width: 0.6; cursor: pointer; }
+  .pmap .prov.nodata { fill: var(--line); }
+  .pmap .prov:hover, .pmap .prov:focus { stroke: var(--ink); stroke-width: 1.5; outline: none; }
+  .two { display: grid; gap: 12px; margin-top: 12px; }
+  @media (min-width: 860px) { .two { grid-template-columns: 1fr 1fr; } }
+  details.card { margin-top: 12px; }
+  details.card summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; }
+  .cmp-pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .chip-sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  #dsearch { width: 100%; max-width: 360px; display: block; margin: 6px 0; }
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+</style>
