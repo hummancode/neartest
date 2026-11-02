@@ -1,0 +1,201 @@
+---
+import Base from "../layouts/Base.astro";
+import Sparkline from "../components/Sparkline.astro";
+import { macro, formatValue, formatChange, periodLabel } from "../lib/macro.ts";
+import { countries } from "../lib/countries.ts";
+import { provinces, formatP } from "../lib/provinces.ts";
+import { trade } from "../lib/trade.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const ind = Object.fromEntries(macro.indicators.map((i) => [i.id, i]));
+const wb = Object.fromEntries(countries.indicators.map((i) => [i.id, i]));
+const name = Object.fromEntries(countries.countries.map((c) => [c.iso, c.name]));
+const glance = ["gdp_growth", "gdp_usd_pc", "inflation", "unemployment", "policy_rate", "cds_5y", "current_account", "reserves"]
+  .map((id) => ind[id]).filter(Boolean);
+const sections = [
+  { title: "Büyüme ve fiyatlar", ids: ["gdp_growth", "gdp_usd_pc", "inflation", "unemployment"] },
+  { title: "Para ve risk", ids: ["policy_rate", "real_deposit", "cds_5y", "usdtry"] },
+  { title: "Dış denge ve kamu", ids: ["exports_12m", "imports_12m", "current_account", "reserves", "budget_balance_gdp"] },
+];
+const wbPop = wb.population?.latest?.TUR;
+const peers = countries.indicators.filter((i) => i.latest.TUR).map((i) => {
+  const sorted = Object.entries(i.latest).sort((a, b) => b[1][1] - a[1][1]);
+  const rank = sorted.findIndex(([iso]) => iso === "TUR") + 1;
+  const med = sorted.map(([, v]) => v[1]).sort((a, b) => a - b);
+  return { i, rank, n: sorted.length, tur: i.latest.TUR, median: med[Math.floor(med.length / 2)], top: sorted[0] };
+});
+const pv = provinces.provinces;
+const top = (id: string, n = 5) => pv.filter((p) => p.values[id]).sort((a, b) => b.values[id].value - a.values[id].value).slice(0, n);
+const sum = (id: string) => pv.reduce((a, p) => a + (p.values[id]?.value ?? 0), 0);
+const exp = ind.exports_12m, imp = ind.imports_12m;
+const tradeBalance = exp?.latest && imp?.latest ? exp.latest[1] - imp.latest[1] : null;
+const share = (items: { exports: number }[]) => { const t = items.reduce((a, x) => a + x.exports, 0); return (x: number) => (100 * x) / t; };
+const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+const anySample = macro.sample || countries.sample || provinces.sample || !!trade.partners?.sample;
+const last5y = (pts: [string, number][]) => {
+  if (!pts.length) return [];
+  const end = pts[pts.length - 1][0];
+  return pts.filter(([m]) => m >= `${Number(end.slice(0, 4)) - 5}${end.slice(4)}`).map(([, v]) => v);
+};
+const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
+---
+<Base title="Türkiye profili" description="Türkiye ekonomisi tek sayfada: büyüme, enflasyon, dış ticaret, partnerler, ürünler, benzer ülkeler içindeki yeri ve öne çıkan iller." sample={anySample}>
+  <h1>Türkiye profili</h1>
+  <p class="lead">Ekonominin künyesi: ana göstergeler, dış ticaret, benzer ekonomiler içindeki yeri ve iller. Her rakam kaynağı ve dönemiyle.</p>
+
+  <section aria-labelledby="g-h">
+    <h2 id="g-h">Bir bakışta</h2>
+    <div class="glance">
+      {wbPop && (
+        <div class="card g"><span class="g-label">Nüfus</span><span class="g-value">{nf1.format(wbPop[1] / 1e6)} milyon</span><span class="muted small">{wbPop[0]} · Dünya Bankası{wb.population.sample ? " · örnek" : ""}</span></div>
+      )}
+      {glance.map((i) => (
+        <div class="card g">
+          <span class="g-label">{i.label}</span>
+          <span class="g-value">{i.latest ? formatValue(i.unit, i.latest[1]) : "—"}</span>
+          <span class="muted small">{i.latest ? periodLabel(i.freq, i.latest[0]) : ""}{i.change_12m !== null ? ` · 1 yılda ${formatChange(i.kind, i.unit, i.change_12m)}` : ""}{i.sample ? " · örnek" : ""}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <h2>Ekonomi</h2>
+  <div class="sections">
+    {sections.map((s) => (
+      <section class="card">
+        <h3>{s.title}</h3>
+        <table class="data facts"><tbody>
+          {s.ids.map((id) => ind[id]).filter(Boolean).map((i) => (
+            <tr>
+              <th scope="row">{i.label}{i.sample && <span class="tag">örnek</span>}</th>
+              <td><strong>{i.latest ? formatValue(i.unit, i.latest[1]) : "—"}</strong><br /><span class="muted small">{i.latest ? periodLabel(i.freq, i.latest[0]) : ""}</span></td>
+              <td class="spark"><Sparkline values={last5y(i.points)} label={`${i.label}, son 5 yıl`} width={110} height={28} /></td>
+            </tr>
+          ))}
+        </tbody></table>
+      </section>
+    ))}
+  </div>
+  <p class="small"><a href="/makro">Makro Pano</a> · <a href="/iliskiler">İlişkiler</a> · <a href="/olaylar">Olay penceresi</a></p>
+
+  <h2>Dış ticaret</h2>
+  <section class="card">
+    <div class="trade-head">
+      <div><span class="g-label">İhracat (12 ay)</span><span class="g-value">{exp?.latest ? formatValue(exp.unit, exp.latest[1]) : "—"}</span></div>
+      <div><span class="g-label">İthalat (12 ay)</span><span class="g-value">{imp?.latest ? formatValue(imp.unit, imp.latest[1]) : "—"}</span></div>
+      <div><span class="g-label">Dış ticaret dengesi</span><span class="g-value">{tradeBalance !== null ? formatValue("milyar $", tradeBalance) : "—"}</span></div>
+      <div><span class="g-label">İhracatın ithalatı karşılama oranı</span><span class="g-value">{exp?.latest && imp?.latest ? `%${nf1.format((100 * exp.latest[1]) / imp.latest[1])}` : "—"}</span></div>
+    </div>
+    <p class="muted small">{exp?.latest ? periodLabel("M", exp.latest[0]) : ""} itibarıyla son 12 ay · {exp?.sources[0]?.source}{exp?.sample ? " · ÖRNEK VERİ" : ""}</p>
+    <div id="trade-chart" class="chart-box"></div>
+  </section>
+  <div class="two">
+    {trade.partners && (
+      <section class="card">
+        <h3>En büyük ihracat pazarları ({trade.partners.year}){trade.partners.sample && <span class="tag">örnek</span>}</h3>
+        <ol class="bars">{(() => { const sh = share(trade.partners.items); const mx = trade.partners.items[0]?.exports || 1; return trade.partners.items.slice(0, 10).map((x) => (
+          <li><span class="b-name">{x.name}</span><span class="b-bar"><span style={`width:${(100 * x.exports) / mx}%`}></span></span><span class="b-val">{nf1.format(x.exports / 1000)} mlr $ · %{nf1.format(sh(x.exports))}</span></li>
+        )); })()}</ol>
+        <p class="muted small">Pay: listelenen ülkelerin toplamına göre. Kaynak: {trade.source}.</p>
+      </section>
+    )}
+    {trade.products && (
+      <section class="card">
+        <h3>En çok ihraç edilen ürün grupları ({trade.products.year}){trade.products.sample && <span class="tag">örnek</span>}</h3>
+        <ol class="bars">{(() => { const sh = share(trade.products.items); const mx = trade.products.items[0]?.exports || 1; return trade.products.items.slice(0, 10).map((x) => (
+          <li><span class="b-name">{x.name}</span><span class="b-bar"><span style={`width:${(100 * x.exports) / mx}%`}></span></span><span class="b-val">{nf1.format(x.exports / 1000)} mlr $ · %{nf1.format(sh(x.exports))}</span></li>
+        )); })()}</ol>
+        <p class="muted small">Pay: listelenen ürün gruplarının toplamına göre. Kaynak: {trade.source}.</p>
+      </section>
+    )}
+  </div>
+
+  <h2>Benzer ekonomiler içinde</h2>
+  <section class="card scroll-x">
+    <table class="data peers">
+      <thead><tr><th scope="col">Gösterge</th><th scope="col">Türkiye</th><th scope="col">Sıra</th><th scope="col">Grup medyanı</th><th scope="col">En yüksek</th></tr></thead>
+      <tbody>
+        {peers.map((r) => (
+          <tr>
+            <th scope="row">{r.i.label}{r.i.sample && <span class="tag">örnek</span>}</th>
+            <td><strong>{formatValue(r.i.unit === "kişi" ? "" : r.i.unit, r.i.unit === "kişi" ? r.tur[1] / 1e6 : r.tur[1])}{r.i.unit === "kişi" ? " milyon" : ""}</strong> <span class="muted small">{r.tur[0]}</span></td>
+            <td>{r.rank}/{r.n}</td>
+            <td>{formatValue(r.i.unit === "kişi" ? "" : r.i.unit, r.i.unit === "kişi" ? r.median / 1e6 : r.median)}{r.i.unit === "kişi" ? " milyon" : ""}</td>
+            <td>{name[r.top[0]]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="muted small">{countries.countries.length} ülke: {countries.countries.map((c) => c.name).join(", ")}. Sıra büyükten küçüğe; iyi/kötü yorumu içermez. Kaynak: {countries.source}. Ayrıntı: <a href="/ulkeler">Ülke karşılaştırması</a>.</p>
+  </section>
+
+  <h2>İller</h2>
+  <div class="two three">
+    {[["gdp_mn_tl", "En büyük ekonomiler (GSYH)"], ["exports_mn_usd", "En çok ihracat yapan iller"], ["gdp_per_capita_tl", "Kişi başı GSYH en yüksek iller"]].map(([id, title]) => (
+      <section class="card">
+        <h3>{title}</h3>
+        <ol class="toplist">{top(id).map((p) => (
+          <li><a href={`/iller#g=${id}&il=${p.plaka}`}>{p.name}</a> <span class="muted small">{formatP(provinces.indicators.find((i) => i.id === id)!.unit, p.values[id].value)}{["gdp_mn_tl", "exports_mn_usd"].includes(id) ? ` · %${nf1.format((100 * p.values[id].value) / sum(id))}` : ""}</span></li>
+        ))}</ol>
+      </section>
+    ))}
+  </div>
+  <p class="small"><a href="/iller">İller haritası →</a>{provinces.sample ? " (il verileri şu an örnek)" : ""}</p>
+
+  <p class="muted small">Kaynaklar: TÜİK, TCMB (EVDS), Dünya Bankası (CC BY 4.0), BDDK, SGK, TOBB, KAP. Her serinin durumu: <a href="/veri">Veri durumu</a>.</p>
+  <p><strong>{DISCLAIMER}</strong> Bu sayfa yorum veya tahmin içermez.</p>
+  <script type="application/json" id="t-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { formatValue } from "../lib/macro.ts";
+  const d = JSON.parse(document.getElementById("t-data")!.textContent!);
+  const box = document.getElementById("trade-chart")!;
+  function draw() {
+    const im = Object.fromEntries(d.imp);
+    const pts = d.exp.filter(([m]: [string, number]) => m in im);
+    if (pts.length < 2) return;
+    renderChart(box, { months: pts.map((p: [string, number]) => p[0]), series: [
+      { key: "e", label: "İhracat", color: "var(--series-1)", values: pts.map((p: [string, number]) => p[1]) },
+      { key: "i", label: "İthalat", color: "var(--series-2)", values: pts.map((p: [string, number]) => im[p[0]]) },
+    ] }, { baseline: null, allowLog: false, format: (v) => formatValue("milyar $", v) });
+  }
+  let w = 0;
+  new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(); } }).observe(box);
+</script>
+<style is:global>
+  .glance { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 720px) { .glance { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1000px) { .glance { grid-template-columns: repeat(5, 1fr); } }
+  .g { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .g-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .g-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .sections { display: grid; gap: 12px; }
+  @media (min-width: 720px) { .sections { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .sections { grid-template-columns: repeat(3, 1fr); } }
+  .facts td strong { white-space: nowrap; }
+  .sections h3, .two h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .facts th { text-align: left; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); }
+  .facts td { text-align: right; vertical-align: top; }
+  .facts td.spark { width: 112px; }
+  .facts .spark svg { max-width: 100%; height: auto; }
+  .tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: middle; }
+  .trade-head { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 900px) { .trade-head { grid-template-columns: repeat(4, 1fr); } }
+  .trade-head > div { display: flex; flex-direction: column; }
+  .chart-box { min-height: 240px; margin-top: 8px; }
+  .two { display: grid; gap: 12px; margin-top: 12px; }
+  @media (min-width: 900px) { .two { grid-template-columns: 1fr 1fr; } .two.three { grid-template-columns: repeat(3, 1fr); } }
+  .bars { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.85rem; }
+  .bars li { display: grid; grid-template-columns: minmax(90px, 1.2fr) 1.5fr auto; gap: 8px; align-items: center; }
+  .b-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .b-bar { height: 10px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .b-bar span { display: block; height: 100%; background: var(--series-1); border-radius: 3px; }
+  .b-val { color: var(--ink-2); white-space: nowrap; font-size: 0.78rem; }
+  .peers { min-width: 620px; font-size: 0.88rem; }
+  .peers th, .peers td { text-align: left; }
+  .peers tbody th { font-weight: 600; }
+  .scroll-x { overflow-x: auto; }
+  .toplist { padding-left: 1.3em; margin: 0; }
+  .toplist li { margin: 4px 0; }
+</style>

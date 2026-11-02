@@ -1,0 +1,34 @@
+"""Province factbook builder."""
+
+from pipeline import provinces as pv
+
+
+def test_names_and_regions_cover_81_provinces():
+    assert len(pv.NAMES) == 81 and pv.NAMES[33] == "İstanbul" and pv.NAMES[80] == "Düzce"
+    assert sorted(pv.REGION_OF) == list(range(1, 82))
+
+
+def test_parse_province_csv_latest_year_wins():
+    text = "plaka;yil;deger\n6;2023;100\n6;2024;120\n34;2024;1.500,5\n"
+    assert pv.parse_province_csv(text) == {6: ("2024", 120.0), 34: ("2024", 1500.5)}
+
+
+def test_build_with_manual_and_derived(tmp_path):
+    (tmp_path / "population.csv").write_text("6;2024;1000\n", encoding="utf-8")
+    (tmp_path / "gdp_mn_tl.csv").write_text("6;2024;2\n", encoding="utf-8")            # 2 M TL
+    (tmp_path / "exports_mn_usd.csv").write_text("6;2024;0.01\n", encoding="utf-8")    # 10.000 $
+    usd = {f"2024-{m:02d}": 30.0 for m in range(1, 13)}
+    out = pv.build_provinces(usd, allow_sample=False, directory=tmp_path)
+    ank = next(p for p in out["provinces"] if p["plaka"] == 6)["values"]
+    assert ank["gdp_per_capita_tl"]["value"] == 2000.0                    # 2e6 / 1000
+    assert abs(ank["exports_gdp"]["value"] - 15.0) < 1e-12                # 0.01 M$ x 30 / 2 M TL = 15 %
+    assert ank["exports_per_capita"]["value"] == 10.0
+    assert "wealth_total_bn" not in ank and out["sample"] is False
+
+
+def test_sample_build_is_flagged_and_complete():
+    usd = {f"2024-{m:02d}": 30.0 for m in range(1, 13)}
+    out = pv.build_provinces(usd, allow_sample=True, directory=pv.MANUAL / "no-such-dir")
+    assert out["sample"] is True and len(out["provinces"]) == 81
+    ist = next(p for p in out["provinces"] if p["plaka"] == 34)["values"]
+    assert ist["population"]["sample"] is True and "wealth_per_household" in ist

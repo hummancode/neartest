@@ -34,6 +34,8 @@ OUT_MACRO = ROOT / "site" / "data" / "makro.json"
 OUT_STOCKS = ROOT / "site" / "data" / "borsa.json"
 OUT_EVENTS = ROOT / "site" / "data" / "olaylar.json"
 OUT_COUNTRIES = ROOT / "site" / "data" / "ulkeler.json"
+OUT_PROVINCES = ROOT / "site" / "data" / "iller.json"
+OUT_TRADE = ROOT / "site" / "data" / "dis_ticaret.json"
 
 # Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
 INSTRUMENTS = [
@@ -188,9 +190,13 @@ def build(allow_sample: bool) -> tuple[dict, ...]:
     macro = build_macro(data, is_sample, end)
     events = build_events(data, is_sample)
     countries = build_countries(allow_sample) or {"sample": True, "indicators": [], "countries": [], "source": ""}
-    for d in (prices, housing, macro, stocks_out, events, countries):
+    from pipeline.provinces import build_provinces
+    provinces = build_provinces(data["usdtry"], allow_sample)
+    from pipeline.trade import build_trade
+    trade = build_trade(allow_sample)
+    for d in (prices, housing, macro, stocks_out, events, countries, provinces, trade):
         d["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries
+    return tablo, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -598,7 +604,7 @@ USED_BY = {
     "gold_gram_tl": "Reel Tablo, nominal illüzyon", "bist100": "Reel Tablo", "sp500_usd": "Reel Tablo",
     "min_wage_net": "Nominal illüzyon, grafik",
     "car_cpi": "Grafik", "rent_cpi": "Konut, grafik", "car_new": "Grafik",
-    **{k: "Makro pano, ilişkiler" for k in MACRO_SERIES},
+    **{k: "Makro pano, ilişkiler, Türkiye profili" for k in MACRO_SERIES},
     "house_tr": "Konut, grafik", "house_ist": "Konut, grafik", "house_ank": "Konut, grafik", "house_izm": "Konut, grafik",
 }
 
@@ -697,7 +703,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing, macro, stocks_out, events, countries, provinces, trade = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -711,8 +717,10 @@ def main() -> int:
     write_if_changed(OUT_STOCKS, stocks_out)
     write_if_changed(OUT_EVENTS, events)
     write_if_changed(OUT_COUNTRIES, countries)
+    write_if_changed(OUT_PROVINCES, provinces)
+    write_if_changed(OUT_TRADE, trade)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: site/data/*.json (12 dosya)  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (14 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

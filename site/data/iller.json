@@ -1,0 +1,8861 @@
+{
+ "indicators": [
+  {
+   "id": "population",
+   "label": "Nüfus",
+   "unit": "kişi",
+   "group": "Nüfus ve gelir",
+   "source": "TÜİK, Adrese Dayalı Nüfus Kayıt Sistemi",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "household_size",
+   "label": "Ortalama hane büyüklüğü",
+   "unit": "kişi/hane",
+   "group": "Nüfus ve gelir",
+   "source": "TÜİK",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "gdp_mn_tl",
+   "label": "GSYH (cari)",
+   "unit": "milyon TL",
+   "group": "Nüfus ve gelir",
+   "source": "TÜİK, il bazında GSYH",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "gdp_per_capita_tl",
+   "label": "Kişi başı GSYH",
+   "unit": "TL",
+   "group": "Nüfus ve gelir",
+   "source": "GSYH / nüfus",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "exports_mn_usd",
+   "label": "İhracat",
+   "unit": "milyon $",
+   "group": "Dış ticaret",
+   "source": "TÜİK / TİM — firmanın kayıtlı olduğu ile göre",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "exports_gdp",
+   "label": "İhracat / GSYH",
+   "unit": "%",
+   "group": "Dış ticaret",
+   "source": "ihracat × yıllık ort. USD/TRY / GSYH",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "exports_per_capita",
+   "label": "Kişi başı ihracat",
+   "unit": "$",
+   "group": "Dış ticaret",
+   "source": "ihracat / nüfus",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "insured_employees",
+   "label": "Sigortalı ücretli çalışan (4/a)",
+   "unit": "kişi",
+   "group": "İstihdam",
+   "source": "SGK il bazında sigortalı istatistikleri",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "insured_share",
+   "label": "Ücretli çalışan / nüfus",
+   "unit": "%",
+   "group": "İstihdam",
+   "source": "4/a sigortalı / nüfus",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "companies_active",
+   "label": "Faal şirket sayısı",
+   "unit": "adet",
+   "group": "Şirketler",
+   "source": "TOBB / Ticaret Bakanlığı",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "companies_new",
+   "label": "Yıl içinde kurulan şirket",
+   "unit": "adet",
+   "group": "Şirketler",
+   "source": "TOBB kurulan-kapanan şirket istatistikleri",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "listed_companies",
+   "label": "Borsada işlem gören şirket",
+   "unit": "adet",
+   "group": "Şirketler",
+   "source": "KAP — merkez adresi ilde olan şirketler",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "deposits_mn_tl",
+   "label": "Banka mevduatı",
+   "unit": "milyon TL",
+   "group": "Finans",
+   "source": "BDDK il bazında mevduat",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "loans_mn_tl",
+   "label": "Banka kredisi",
+   "unit": "milyon TL",
+   "group": "Finans",
+   "source": "BDDK il bazında kredi",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "deposits_per_capita",
+   "label": "Kişi başı mevduat",
+   "unit": "TL",
+   "group": "Finans",
+   "source": "mevduat / nüfus",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "loan_deposit",
+   "label": "Kredi / mevduat",
+   "unit": "%",
+   "group": "Finans",
+   "source": "kredi / mevduat",
+   "kind": "derived",
+   "sample": null
+  },
+  {
+   "id": "m2_price_tl",
+   "label": "Konut m² fiyatı",
+   "unit": "TL",
+   "group": "Konut",
+   "source": "Belirlenecek (resmî il bazında seri doğrulanacak)",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "sege_score",
+   "label": "SEGE gelişmişlik skoru",
+   "unit": "skor",
+   "group": "Gelişmişlik",
+   "source": "Sanayi ve Teknoloji Bakanlığı, SEGE",
+   "kind": "observed",
+   "sample": true
+  },
+  {
+   "id": "wealth_per_household",
+   "label": "Tahmini hane serveti (hane başına)",
+   "unit": "TL",
+   "group": "Model tahmini",
+   "source": "Model: konut + mevduat (varsayımlar değiştirilebilir)",
+   "kind": "estimate",
+   "sample": null
+  },
+  {
+   "id": "wealth_total_bn",
+   "label": "Tahmini toplam hane serveti",
+   "unit": "milyar TL",
+   "group": "Model tahmini",
+   "source": "Model: konut + mevduat",
+   "kind": "estimate",
+   "sample": null
+  }
+ ],
+ "wealth_defaults": {
+  "ownership_rate": 0.57,
+  "dwelling_m2": 110.0,
+  "household_deposit_share": 0.55,
+  "household_size": 3.2
+ },
+ "sample": true,
+ "provinces": [
+  {
+   "plaka": 1,
+   "name": "Adana",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 2147134.01,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.69,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 884155.22,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2054.91,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 510946.2,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 32287.16,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2421.54,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 6,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 529025.34,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 391746.91,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 46885.1,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.82,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 411783.90164850495,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 7.790611497135617,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 957.0478556203392,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.796660926627492,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 246386.7357771488,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 74.05068914090202,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3439737.6502597234,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 2001.5115702845899,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 2,
+   "name": "Adıyaman",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 805570.1,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.56,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 283582.5,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 516.39,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 163045.04,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9821.32,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 736.6,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 151522.31,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 216005.7,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 30147.12,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.3,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 352027.0923660151,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 6.103875317681179,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 641.0242882649195,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 20.239708499607918,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 188093.26463333235,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 142.55702675071413,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2361962.331700397,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 417.26452450528996,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 3,
+   "name": "Afyonkarahisar",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 851137.22,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.84,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 341975.24,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2256.47,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 197477.14,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 12393.62,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 929.52,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 200954.27,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 210860.64,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 34944.72,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.82,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 401786.25956458587,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.117811786257715,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2651.123634330079,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.201563197999967,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 236100.90744239808,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 104.92966384839696,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2559823.5614250256,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 767.1694048457026,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 4,
+   "name": "Ağrı",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 616186.04,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 252000.81,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 656.59,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 145599.15,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9183.19,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 688.74,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 150022.03,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 180525.43,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 32431.66,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.72,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 408968.71016422246,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 8.733726435669897,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1065.5710408499353,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.629089357493395,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 243468.7257763905,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 120.3326138167841,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2424475.855596883,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 511.6192385396765,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 5,
+   "name": "Amasya",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1224153.82,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.04,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 541965.23,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1473.51,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 313854.39,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 20211.74,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1515.88,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 342247.02,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 298916.73,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 35849.75,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.24,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 442726.4132541775,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 9.113578099029166,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1203.6967707211827,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.63847654374023,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 279578.44382660993,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 87.33946901860533,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2715234.483078092,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1093.3765344262408,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 6,
+   "name": "Ankara",
+   "region": "Batı Anadolu",
+   "values": {
+    "population": {
+     "value": 5810339.13,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.83,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 3459514.01,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 33420.25,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 2017732.11,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 138177.21,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 10363.29,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 11,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 2750585.04,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 2416282.02,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 61794.54,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 2.58,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 595406.5558992595,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 32.3818649924535,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 5751.85875596215,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 34.72658075295512,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 473394.9221308189,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 87.84611218564615,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4611356.85429662,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 9467.684513396945,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 7,
+   "name": "Antalya",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 2304334.7,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.05,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 1146724.98,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 11532.05,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 666114.86,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 44071.85,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 3305.39,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 791614.81,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 484870.12,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 56644.23,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.74,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 497638.2033391243,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 33.70966997477428,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 5004.503035084269,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.907035944040594,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 343532.9121242673,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 61.25076411847322,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4127869.6810884583,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 3118.6863420360883,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 8,
+   "name": "Artvin",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 905969.39,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.8,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 397798.18,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2558.04,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 230313.42,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 14801.2,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1110.09,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 249654.87,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 292638.6,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43653.44,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.13,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 439085.6737444518,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 21.55518708538479,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2823.539104339938,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.42176618130553,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 275566.56191220763,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 117.21726077284211,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3161443.1933447993,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1022.9181290693716,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 9,
+   "name": "Aydın",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 711143.84,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.26,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 311532.87,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2723.04,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 180356.64,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11583.96,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 868.8,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 195177.44,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 241149.66,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 35631.54,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.09,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 438072.9361306146,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 29.299310623365606,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3829.0987657293076,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.36148523764194,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 274455.6431790227,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 123.55406444515309,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2726196.526219988,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 594.6987319787555,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 10,
+   "name": "Balıkesir",
+   "region": "Batı Marmara",
+   "values": {
+    "population": {
+     "value": 344313.77,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.48,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 135966.84,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 927.99,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 78473.26,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 4900.61,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 367.55,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 78893.63,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 62388.08,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39569.81,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.86,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 394892.25191313145,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.877973322040457,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2695.1870092212694,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.79120582368808,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 229132.9504480753,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 79.07872916989622,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2919587.5541576156,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 288.8661487405425,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 11,
+   "name": "Bilecik",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 946986.69,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.26,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 465271.49,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2856.53,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 270183.12,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 17826.7,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1337.0,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 318038.59,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 356392.06,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43004.5,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.58,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 491317.87691757316,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.579726802467164,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3016.4415510422855,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.530825496607562,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 335842.7244632129,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 112.05937619079495,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3298548.1549625406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 958.1844168937373,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 12,
+   "name": "Bingöl",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 935665.58,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.51,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 376582.31,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2768.1,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 217472.81,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 13655.16,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1024.14,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 221568.39,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 165677.39,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38755.69,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.95,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 402475.3267080745,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 24.6393426628479,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2958.4288010252553,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.242578828217663,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 236802.97184812548,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 74.77483137373522,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2887129.900152806,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 769.6262314990933,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 13,
+   "name": "Bitlis",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 632919.9,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.83,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 208831.14,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 750.86,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 119783.4,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 7050.99,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 528.82,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 106641.59,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 127679.88,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 27446.12,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.26,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 329948.766028687,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.052328684290552,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1186.3428531793675,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 18.92552280312248,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 168491.44733796487,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 119.72803481268424,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 1983128.661781542,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 443.51999798653975,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 14,
+   "name": "Bolu",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 968161.75,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.1,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 459274.7,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1860.52,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 266462.35,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 17444.34,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1308.33,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 305603.71,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 350339.77,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 41133.57,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.7,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 474378.0675078312,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 13.5790403220344,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1921.7036822617708,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 27.522503342029363,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 315653.5671854419,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 114.63858537581234,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3117264.171051178,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 973.5535274378091,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 15,
+   "name": "Burdur",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 599149.19,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.11,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 267760.38,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1791.53,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 155101.54,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 10011.53,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 750.86,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 170286.33,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 167714.93,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 46185.8,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.19,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 446901.01308490464,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.42771488856834,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2990.1233781188957,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.88696481422265,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 284213.56957855524,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 98.48995512440723,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3381996.9707641187,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 651.5500789761336,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 16,
+   "name": "Bursa",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 3090944.06,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.84,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 1767648.78,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 13330.18,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 1030093.72,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 70043.72,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 5253.28,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 6,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 1360862.11,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 1198627.26,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 57162.06,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 2.36,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 571879.9000199311,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 25.278266791291014,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4312.65650275146,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 33.32618449264332,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 440273.93688904226,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 88.07852398800345,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4271769.051420683,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 4649.225061683309,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 17,
+   "name": "Çanakkale",
+   "region": "Batı Marmara",
+   "values": {
+    "population": {
+     "value": 553989.32,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.3,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 228776.48,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1025.88,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 132219.41,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8361.6,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 627.12,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 137174.85,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 167312.58,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 47408.62,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.77,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 412961.89608853834,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 15.031158236275116,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1851.8046521185647,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.866779597844957,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 247612.8059652847,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 121.9703028652847,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3421937.7168269916,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 574.4596814628296,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 18,
+   "name": "Çankırı",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1111719.84,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.98,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 561074.59,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 913.62,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 326032.11,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 21635.69,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1622.68,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 391564.32,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 386552.67,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 54725.26,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.68,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 504690.6332084529,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 5.4582353088686615,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 821.8077676836278,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 29.326823024045336,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 352214.924940082,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 98.72009533452895,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4008554.063976794,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1495.4325780656482,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 19,
+   "name": "Çorum",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 848457.74,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.65,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 368141.76,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2964.27,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 213071.59,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 13651.9,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1023.89,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 228995.44,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 292013.31,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 47611.19,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.21,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 433895.22264243825,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 26.9904379591795,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3493.715550287749,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.112811157807343,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 269896.1058449417,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 127.51926850595802,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3527038.0454837205,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 819.8747202644204,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 20,
+   "name": "Denizli",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 1005818.87,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.54,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 444618.29,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3811.53,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 257469.32,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 16574.27,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1243.07,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 280449.06,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 216462.92,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 51274.28,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.03,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 442046.0813187965,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 28.735534222693087,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3789.4795113557575,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.59798067817121,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 278826.6042374011,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 77.18439847863993,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3757772.75445022,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1067.6945609033637,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 21,
+   "name": "Diyarbakır",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1762035.9,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.32,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 683629.58,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3470.34,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 394336.4,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 24498.77,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1837.41,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 4,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 391605.31,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 458051.8,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 33667.51,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.48,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 387977.1008070835,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 17.01603762828612,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1969.5058426448634,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.379589428342523,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 222245.9315386253,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 116.96771936008733,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2639009.210335774,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1076.3955946857138,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 22,
+   "name": "Edirne",
+   "region": "Batı Marmara",
+   "values": {
+    "population": {
+     "value": 422866.92,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.14,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 150129.5,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 796.05,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 86342.32,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 5215.92,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 391.19,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 80699.07,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 70169.97,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 34855.1,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.44,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 355027.77091194555,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 17.773852250167486,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1882.5071490576752,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 20.418319787227624,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 190837.98278664125,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 86.95263774415244,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2619952.856805182,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 267.6066171744948,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 23,
+   "name": "Elazığ",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 831007.73,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.48,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 268102.57,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1043.03,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 153649.09,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8967.9,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 672.59,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 134804.88,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 115133.39,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 34346.99,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.15,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 322623.4369685105,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 13.040765336372088,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1255.1387458212935,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 18.489489863108734,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 162218.5632376729,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 85.40743480503079,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2464042.6030369056,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 588.4018534979856,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 24,
+   "name": "Erzincan",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1074160.91,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.86,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 392663.75,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2166.12,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 226055.84,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 13787.82,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1034.09,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 215496.92,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 255321.76,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 36971.35,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.46,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 365553.93735190015,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 18.49136450573641,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2016.5693797217032,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.044876786663185,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 200618.84396817235,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 118.48046830553308,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2744017.4507444296,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 763.6052543905483,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 25,
+   "name": "Erzurum",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 488296.38,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.31,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 195815.61,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1300.89,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 113069.08,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 7092.34,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 531.93,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 114905.57,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 137756.2,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43174.44,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.85,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 401017.9432417664,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.268990118767004,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2664.140168313351,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.155830071891994,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 235319.3156992071,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 119.88644240657786,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3135436.202230406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 462.54445536859674,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 26,
+   "name": "Eskişehir",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 1192872.74,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.65,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 532570.4,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2007.35,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 308485.67,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 19907.36,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1493.05,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 338444.9,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 382949.91,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 35047.31,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.21,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 446460.3659230238,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.63436253721342,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1682.7863800458715,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.86073599099934,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 283722.5536732443,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 113.14985393486502,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2767039.3634990375,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 904.3084458150555,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 27,
+   "name": "Gaziantep",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1830485.87,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.36,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 658126.24,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1435.2,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 378666.91,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 22971.41,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1722.86,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 4,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 356941.61,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 309550.0,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39206.67,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.45,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 359536.36724876764,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 7.309883845993189,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 784.0541265691387,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 20.686688501998653,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 194998.28753116788,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 86.72286764213341,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2925864.10249974,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1228.383692010552,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 28,
+   "name": "Giresun",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 1276847.46,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.28,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 570042.67,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4977.45,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 330190.77,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 21307.87,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1598.09,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 362249.13,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 300249.46,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 49785.74,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.08,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 446445.39606947254,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 29.26892674502618,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3898.2338579425927,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.859844683404862,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 283705.878226049,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 82.88479809461518,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3633371.302319792,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1414.4088166475362,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 29,
+   "name": "Gümüşhane",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 492860.12,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.26,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 225294.83,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2122.73,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 130583.64,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8475.25,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 635.64,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 145745.77,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 115256.51,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 50679.38,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.51,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 457117.1836747514,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 31.582811562770036,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4306.962389247481,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.49507125875796,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 295714.2687868517,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 79.0805180829605,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3707812.8099348247,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 560.5622903196365,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 30,
+   "name": "Hakkari",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 709341.72,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.2,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 218831.78,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 819.03,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 125190.29,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 7177.86,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 538.34,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 106719.53,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 89781.8,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 30130.84,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": -0.09,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 308499.8017598627,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.545751295076894,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1154.6339047983813,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 17.64879838168831,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 150448.6864243654,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 84.12874382036728,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2153993.356106883,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 477.4741725279464,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 31,
+   "name": "Hatay",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 1762319.42,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.09,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 834247.73,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 7835.4,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 483988.04,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 31669.77,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2375.23,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 3,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 554221.05,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 413423.67,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43846.1,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.44,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 473380.5464164947,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 31.482803289779895,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4446.0725513652915,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 27.46312810875114,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 314483.8805668952,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 74.59544706935978,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3283615.825023438,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1872.7443159411414,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 32,
+   "name": "Isparta",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 680522.06,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.17,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 241796.02,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1043.16,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 139065.33,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8403.14,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 630.24,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 130045.57,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 146256.67,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 33501.34,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.47,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 355309.59863373125,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 14.46135657942782,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1532.8819759347698,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 20.435095079797996,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 191096.77355646633,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 112.46570721324841,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2538814.468151755,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 414.3211635070592,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 33,
+   "name": "Mersin",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 1613208.29,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.8,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 718422.36,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4722.07,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 416109.44,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 26835.92,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2012.69,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 3,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 455688.35,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 408628.95,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 40167.79,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.18,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 445337.6321293266,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.03230003752011,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2927.1297632620026,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.793906625659602,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 282473.35004706675,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 89.67289815506585,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2953529.392072483,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1701.6636071607106,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 34,
+   "name": "İstanbul",
+   "region": "İstanbul",
+   "values": {
+    "population": {
+     "value": 15463133.55,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.8,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 9277880.13,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 85935.97,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 5412096.74,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 371115.21,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 27833.64,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 17,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 7422304.11,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 5575356.89,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 67087.65,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 2.88,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 600000.0,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 31.04798954243187,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 5557.474474505848,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 34.99999998383251,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 480000.00038801966,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 75.11625510585553,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4945595.655597549,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 27312.287895287398,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 35,
+   "name": "İzmir",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 4548827.85,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.88,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 2631313.4,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 10503.88,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 1533766.35,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 104506.0,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 7837.95,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 8,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 2044322.8,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 1824852.39,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 47183.62,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 2.54,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 578459.657469781,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 13.380872464153214,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2309.1399249149426,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 33.71783678294179,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 449417.49114554864,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 89.26439552501199,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3670290.279974549,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 5797.055084421016,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 36,
+   "name": "Kars",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1045526.99,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.67,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 411078.73,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2542.72,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 237221.67,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 14795.63,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1109.67,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 237770.21,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 210039.87,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38581.79,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.82,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 393178.49652068765,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.733889997569563,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2431.9984317191083,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.689196191864927,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 227416.61599764152,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 88.33733628783858,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2878118.672391239,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 819.9320851247978,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 37,
+   "name": "Kastamonu",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1082641.5,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.97,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 527371.56,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4857.15,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 306178.49,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 20163.71,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1512.28,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 3,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 358112.94,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 407679.72,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38665.23,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.57,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 487115.59643704776,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 30.87251905410236,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4486.388153419207,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.280690330086184,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 330777.03006951057,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 113.84110275378488,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2964634.1996185454,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1080.68552755095,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 38,
+   "name": "Kayseri",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 603658.21,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.41,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 250075.44,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1958.84,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 144542.59,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9148.77,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 686.16,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 150295.33,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 109432.88,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43528.09,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 414266.6095769658,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 26.256399966279066,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3244.948826257163,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.94444200469004,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 248974.21671776817,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 72.81189641754005,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3196162.3864541734,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 565.8034208434764,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 39,
+   "name": "Kırklareli",
+   "region": "Batı Marmara",
+   "values": {
+    "population": {
+     "value": 561364.25,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.04,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 230668.78,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 708.78,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 133293.1,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8417.99,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 631.35,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 137801.73,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 136269.81,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 42177.39,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.03,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 410907.49900799704,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 10.2998261149366,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1262.6026684100386,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.74449388253705,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 245476.49765726976,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 98.88831584334972,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3054959.0570829543,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 564.126578901342,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 40,
+   "name": "Kırşehir",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 1012446.55,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.61,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 430562.28,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 704.22,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 249055.31,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 15874.64,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1190.6,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 263843.56,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 236869.82,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 33673.63,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.9,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 425269.1463070322,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 5.482512517950574,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 695.5626447638149,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 24.599353911571924,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 260599.98920436835,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 89.7766161129724,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2628757.879565273,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 737.2512038645918,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 41,
+   "name": "Kocaeli",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 2100925.07,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.17,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 957649.5,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 7963.51,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 555022.86,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 35998.13,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2699.86,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 618186.12,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 575138.58,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 53382.27,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.43,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 455822.7771540658,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 27.874378997070213,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3790.4778774428164,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.418022609440328,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 294244.72525333805,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 93.03647581087714,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3860084.0074791946,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 2558.279893886154,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 42,
+   "name": "Konya",
+   "region": "Batı Anadolu",
+   "values": {
+    "population": {
+     "value": 1923535.87,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.41,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 798986.45,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3564.84,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 461847.63,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 29253.67,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2194.03,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 5,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 481138.64,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 533110.35,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 37666.91,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.06,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 415373.82403999567,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 14.955739268847168,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1853.2745115899502,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 24.010346633151165,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 250132.39810287498,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 110.80181587577334,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2830838.569641942,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1596.8385721072634,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 43,
+   "name": "Kütahya",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 365552.06,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.12,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 151609.17,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 287.15,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 87632.47,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 5548.39,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 416.13,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 91194.04,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 66540.04,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 45568.78,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 414740.29718229466,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 6.348784818470914,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 785.5242287514396,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.972637440478383,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 249469.36422680807,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 72.96533852431584,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3285251.9350132025,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 384.9136578407251,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 44,
+   "name": "Malatya",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 735276.97,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.01,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 267775.72,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 663.19,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 154138.33,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9389.96,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 704.25,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 146564.21,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 137987.31,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38783.5,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.61,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 364183.4722499196,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 8.301833719363904,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 901.9594344155781,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 20.963301760967706,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 199331.9741811035,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 94.14802563327022,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2761719.533256817,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 674.6274984727198,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 45,
+   "name": "Manisa",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 1049238.86,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.29,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 527083.4,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 5133.42,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 306245.56,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 20302.69,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1522.7,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 366519.68,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 241881.26,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 42707.34,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 502348.3403960085,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 32.64635634293047,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4892.517991565809,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 29.187401617969044,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 349319.5820063317,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 65.99407158709731,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3309844.0016404567,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1055.5674611121797,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 46,
+   "name": "Kahramanmaraş",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 954107.62,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.59,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 378071.06,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2301.86,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 218227.25,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 13641.75,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1023.13,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 219925.1,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 155514.36,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 36956.57,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.88,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 396256.20011293906,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.40857719046079,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2412.5789918751516,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.87239357757147,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 230503.4520110006,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 70.71241981929302,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2772306.004995721,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 736.7906084507453,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 47,
+   "name": "Mardin",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 412731.8,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.56,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 168706.17,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 290.53,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 97472.26,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 6146.85,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 461.01,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 100396.13,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 68480.03,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 42826.93,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.06,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 408754.9590315067,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 5.772544309137449,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 703.9195913665969,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.61636782045871,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 243247.86701678913,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 68.20983039884106,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3295314.1614781073,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 298.2633652263925,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 48,
+   "name": "Muğla",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 717360.76,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.04,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 320922.57,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1526.8,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 185901.33,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 12002.66,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 900.2,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 204255.4,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 202186.82,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 42224.48,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.25,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 447365.66020143055,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 15.947372807621257,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2128.357285670323,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.914622093352303,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 284731.77150085545,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 98.98725810921033,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3123546.41794943,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 737.075536932724,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 49,
+   "name": "Muş",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1277614.65,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.05,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 516623.57,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3589.88,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 298388.21,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 18760.6,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1407.04,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 305010.34,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 290268.98,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43533.05,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.91,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 404365.72169863584,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 23.29233204191402,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2809.830021908406,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.35510241683594,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 238734.2224042281,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 95.16693106207481,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3129998.8930830928,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1311.1253902579485,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 50,
+   "name": "Nevşehir",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 1099892.97,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 505532.38,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4125.26,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 293055.75,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 19044.89,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1428.37,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 328390.01,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 363908.21,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 51299.83,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.19,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 459619.6118973285,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 27.353292209178516,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3750.6012971425757,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.644024281744432,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 298565.4231429445,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 110.81585886245443,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3695995.410567569,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1392.1915648066893,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 51,
+   "name": "Niğde",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 787177.69,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.61,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 324038.51,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1203.02,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 187257.37,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11831.88,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 887.39,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 193837.28,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 231856.1,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 45756.63,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.82,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 411645.9525167692,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.444672675712853,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1528.269938646254,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.788449847962536,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 246243.36088590114,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 119.61378120865089,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3357856.894038956,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 732.1966850969973,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 52,
+   "name": "Ordu",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 686545.3,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.84,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 283451.97,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1818.84,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 163817.52,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 10359.22,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 776.94,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 169929.59,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 202837.68,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 44308.38,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.05,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 412867.10432654625,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 21.509101755634003,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2649.2643675515656,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.8611377865379,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 247514.02420204462,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 119.36572082590207,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3164752.331803594,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 765.0513517830275,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 53,
+   "name": "Rize",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 813626.44,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.19,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 303087.13,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1101.69,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 174597.39,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 10713.29,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 803.5,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 168596.71,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 127662.95,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39462.27,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.72,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 372513.86520821525,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.184260320268768,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1354.048917092714,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.45915882477959,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 207216.36086457566,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 75.7209022643443,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2837845.4341368973,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 723.8075479144383,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 54,
+   "name": "Sakarya",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 464347.12,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.13,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 184267.21,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 701.81,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 106366.1,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 6651.9,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 498.89,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 107302.23,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 132532.62,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38069.23,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.6,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 396830.737315653,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.766702819538754,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1511.3908749988586,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.906591947851428,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 231081.93284368815,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 123.51338830516384,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2784748.268390409,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 413.1277438824516,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 55,
+   "name": "Samsun",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1244327.03,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.25,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 574412.11,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2909.52,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 333023.92,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 21664.61,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1624.85,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 374367.79,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 445156.28,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 44743.43,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.31,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 461624.714525409,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 16.978722752318998,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2338.227756733694,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.76337586269423,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 300859.646197672,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 118.90880890153504,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3343199.6785783386,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1280.0103774591812,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 56,
+   "name": "Siirt",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 543230.56,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.82,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 220273.96,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 718.51,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 127235.23,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8005.9,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 600.44,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 130313.03,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 90043.43,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39723.45,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.84,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 405488.89591189416,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 10.933945746503298,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1322.661228779176,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.4219573361263,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 239885.3076307047,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 69.09779474853742,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2994659.34633211,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 425.86138055424766,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 57,
+   "name": "Sinop",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 680409.83,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.42,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 301191.24,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1842.84,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 174420.43,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11232.0,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 842.4,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 190179.09,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 210540.57,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 42063.4,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.39,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 442661.5059338576,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.509380907215714,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2708.4264787885268,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.634613479937528,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 279506.6761454637,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 110.70647672149447,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3163127.237829617,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 629.3049316257367,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 58,
+   "name": "Sivas",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 913154.22,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.8,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 354305.93,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1917.31,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 204373.86,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 12697.29,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 952.3,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 202967.56,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 235110.22,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 30798.98,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.7,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 388002.29166109534,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 18.139327144531098,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2099.6562880692813,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.38108914395643,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 222270.84489627613,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 115.8363533561718,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2395642.111833217,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 575.6817642184774,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 59,
+   "name": "Tekirdağ",
+   "region": "Batı Marmara",
+   "values": {
+    "population": {
+     "value": 1017476.05,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.4,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 497796.04,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 791.47,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 289039.48,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 19053.25,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1428.99,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 339165.84,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 333637.37,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 55045.59,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.47,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 489245.9532585558,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 5.329546769000081,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 777.8758035631404,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.40749715926974,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 333340.36707792775,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 98.36998030226157,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 4074704.9794357247,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1219.386684526939,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 60,
+   "name": "Tokat",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 778483.31,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.08,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 378376.0,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1324.74,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 219663.22,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 14459.12,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1084.43,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 256502.12,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 217154.87,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43158.15,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.72,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 486042.5331404985,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 11.735843927581541,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1701.6935147909592,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.21681816145808,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 329489.5557876507,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 84.66006830664791,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3264171.3125042804,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 825.0334051186288,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 61,
+   "name": "Trabzon",
+   "region": "Doğu Karadeniz",
+   "values": {
+    "population": {
+     "value": 523828.39,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.41,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 249763.03,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 751.23,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 144926.84,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9498.83,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 712.41,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 166842.54,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 130076.95,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 49257.93,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.67,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 476803.1568506625,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 10.082123795777148,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1434.1147107357049,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 27.666854788072865,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 318506.10464240017,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 77.96389937482371,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3685830.4102568217,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 566.2001787735691,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 62,
+   "name": "Tunceli",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1337720.24,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.84,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 500453.25,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 638.96,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 288333.7,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 17715.81,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1328.69,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 279239.9,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 253589.02,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 40720.08,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.48,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 374109.05138132616,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 4.279740283926121,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 477.6484506207367,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.554110596397944,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 208743.12255303844,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 90.81403481379272,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2879205.7734278454,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1356.187266985663,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 63,
+   "name": "Şanlıurfa",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 2387954.35,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.54,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 893455.84,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2075.92,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 514762.13,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 31629.15,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 2372.19,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 498565.4,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 627901.73,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38398.22,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.36,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 374151.1390282649,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 7.788337774766625,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 869.3298513013868,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.55661518403817,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 208783.47192859862,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 125.94169791967111,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2928900.723405711,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1540.546524928373,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 64,
+   "name": "Uşak",
+   "region": "Ege",
+   "values": {
+    "population": {
+     "value": 525618.23,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.48,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 242254.36,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1705.21,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 140444.61,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9133.1,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 684.98,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 157697.42,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 100977.37,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 43728.34,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.42,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 460894.13603481755,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 23.594649267231357,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3244.1987409759363,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.71988945284489,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 300022.7370348247,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 64.03235385842076,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3316010.4366846546,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 500.8492920665848,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 65,
+   "name": "Van",
+   "region": "Ortadoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 1065587.86,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.45,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 415761.85,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2799.2,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 239865.95,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 14926.92,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1119.52,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 239139.39,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 197088.91,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38353.46,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.83,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 390171.3463589947,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 22.568180693624818,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2626.906804287353,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.51019920591062,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 224420.15245931948,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 82.41591232627967,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2830599.1812915583,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 874.2759780029635,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 66,
+   "name": "Yozgat",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 403336.18,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.08,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 168093.67,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1027.71,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 97174.78,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 6160.64,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 462.05,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 101473.03,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 132182.95,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 45121.81,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.0,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 416758.2238717092,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.49398812866241,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2548.0233387443695,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 24.092750618107207,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 251584.24914918368,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 130.26412042687602,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3255321.205058717,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 426.29507127317515,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 67,
+   "name": "Zonguldak",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1364973.51,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.75,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 558573.77,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4462.79,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 322734.58,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 20358.87,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1526.92,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 2,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 332682.25,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 313642.33,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 33119.2,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.71,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 409219.4946699002,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 26.78139349588825,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3269.506673429875,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.644017824199388,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 243727.99000326387,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 94.27684524798062,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2579262.819381731,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 938.833446342394,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 68,
+   "name": "Aksaray",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 895956.19,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.96,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 412759.95,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3789.47,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 239290.76,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 15559.44,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1166.96,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 268600.05,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 193542.34,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 52767.24,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.56,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 460692.112635552,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 30.774299724187788,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 4229.525999479953,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.707863919105243,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 299791.49985000945,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 72.05595829189161,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3796566.5097558154,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1149.1747517440601,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 69,
+   "name": "Bayburt",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 777373.83,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.79,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 307278.7,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1325.01,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 177351.32,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11078.61,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 830.9,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 178422.88,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 242610.01,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 38597.31,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.95,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 395277.90638385655,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 14.454196560677977,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1704.4695214398973,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.81416136686773,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 229520.04957511884,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 135.97471916157838,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2898485.880339335,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 594.5137387863616,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 70,
+   "name": "Karaman",
+   "region": "Batı Anadolu",
+   "values": {
+    "population": {
+     "value": 764047.84,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.35,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 341585.12,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2129.23,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 197866.99,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 12773.17,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 957.99,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 217299.23,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 222899.02,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 40955.76,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.09,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 447072.9476834854,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.894447407034978,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2786.7757600100017,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 25.897199054970173,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 284405.26708379935,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 102.57699486555934,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3091942.8566019004,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 705.1917196985407,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 71,
+   "name": "Kırıkkale",
+   "region": "Orta Anadolu",
+   "values": {
+    "population": {
+     "value": 709772.36,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.92,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 320008.32,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 2695.97,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 185411.34,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11993.82,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 899.54,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 204871.78,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 243711.72,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 46316.19,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.08,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 450860.4984279749,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 28.239762669494016,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3798.358673758443,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.122648675696528,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 288644.34788641246,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 118.95816983676326,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3367587.9357055784,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 818.5687796689305,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 72,
+   "name": "Batman",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 770732.61,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.46,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 306147.03,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 393.01,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 176725.14,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 11055.08,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 829.13,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 178401.37,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 185826.3,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 35972.47,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.59,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 397215.61800791067,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 4.303093745527681,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 509.917440758086,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.92950080313846,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 231469.8608639383,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 104.16192431706102,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2823269.4376992406,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 487.8891978590063,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 73,
+   "name": "Şırnak",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 388062.64,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 4.67,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 155030.27,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 360.38,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 89508.04,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 5608.39,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 420.63,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 90720.07,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 69333.27,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 34211.74,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.93,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 399498.05526241846,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 7.79204469036647,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 928.6645063281536,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.065358726622073,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 233776.8716926731,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 76.42550319901649,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2745531.992942631,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 228.14526624963142,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 74,
+   "name": "Bartın",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1132002.55,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.62,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 458552.62,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1746.97,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 264862.26,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 16660.97,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1249.57,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 271077.11,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 338526.13,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 32467.35,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.97,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 405080.9072824085,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 12.77037131373925,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1543.2562408980439,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.39767344163668,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 239466.87222568534,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 124.8818574168804,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2512481.3876013393,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 785.6727451912304,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 75,
+   "name": "Ardahan",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 630685.56,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.07,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 257533.35,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1237.34,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 148788.76,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 9380.36,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 703.53,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 153141.86,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 131494.67,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 36622.08,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.99,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 408338.7449048302,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 16.105078008100506,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1961.8968285876085,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.59159134704146,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 242818.0851326293,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 85.86461598416007,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2706202.752746444,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 555.9488594753853,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 76,
+   "name": "Iğdır",
+   "region": "Kuzeydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 568486.4,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.08,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 214706.0,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 549.94,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 123740.57,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 7625.3,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 571.9,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 120621.85,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 107023.31,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 30653.53,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.58,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 377680.09929525136,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 8.585752904621051,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 967.375824645937,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.76667199074595,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 212180.71355796725,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 88.72630456256474,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2281410.4597671963,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 421.0879283101943,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 77,
+   "name": "Yalova",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 1183024.22,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.04,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 461947.3,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 3255.44,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 266518.46,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 16589.38,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1244.2,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 265857.27,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 192723.88,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 33375.45,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.67,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 390480.00217611773,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 23.622427214215424,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2751.7948871748376,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 22.528571731185693,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 224726.81920239978,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 72.4914838702737,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2468383.956706412,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 960.5782911326042,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 78,
+   "name": "Karabük",
+   "region": "Batı Karadeniz",
+   "values": {
+    "population": {
+     "value": 1193277.96,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.24,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 543902.45,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 4302.12,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 315228.05,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 20445.13,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1533.38,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 1,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 351092.14,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 246783.49,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 36381.17,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.25,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 455805.32636335626,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 26.513603797852934,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3605.2957854010815,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 26.416984186986912,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 294224.94319764356,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 70.29023492237678,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2805408.2077782005,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 1033.2196861558107,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 79,
+   "name": "Kilis",
+   "region": "Güneydoğu Anadolu",
+   "values": {
+    "population": {
+     "value": 588296.01,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.99,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 236456.65,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1818.29,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 136545.89,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 8570.49,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 642.79,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 138986.21,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 94651.93,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39427.21,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.65,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 401934.8184938395,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 25.77619894293636,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 3090.7739795821494,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 23.210405591566058,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 236252.17175958748,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 68.10166994265114,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2990541.4579264144,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 440.9332349467901,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 80,
+   "name": "Osmaniye",
+   "region": "Akdeniz",
+   "values": {
+    "population": {
+     "value": 366977.1,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 3.9,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 138425.77,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 853.19,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 79775.03,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 4914.09,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 368.56,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 77697.22,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 82844.17,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 34579.06,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 0.64,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 377205.471404074,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 20.660273469966242,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 2324.913461902664,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 21.738421825231057,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 211722.2573288633,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 106.6243682849914,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 2622251.3039704114,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 246.7451741031487,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  },
+  {
+   "plaka": 81,
+   "name": "Düzce",
+   "region": "Doğu Marmara",
+   "values": {
+    "population": {
+     "value": 816035.03,
+     "year": "2024",
+     "sample": true
+    },
+    "household_size": {
+     "value": 2.81,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_mn_tl": {
+     "value": 393702.05,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_mn_usd": {
+     "value": 1282.52,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_employees": {
+     "value": 228517.64,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_active": {
+     "value": 15017.27,
+     "year": "2024",
+     "sample": true
+    },
+    "companies_new": {
+     "value": 1126.3,
+     "year": "2024",
+     "sample": true
+    },
+    "listed_companies": {
+     "value": 0,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_mn_tl": {
+     "value": 265379.35,
+     "year": "2024",
+     "sample": true
+    },
+    "loans_mn_tl": {
+     "value": 162402.77,
+     "year": "2024",
+     "sample": true
+    },
+    "m2_price_tl": {
+     "value": 39944.74,
+     "year": "2024",
+     "sample": true
+    },
+    "sege_score": {
+     "value": 1.6,
+     "year": "2024",
+     "sample": true
+    },
+    "gdp_per_capita_tl": {
+     "value": 482457.2910797714,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_gdp": {
+     "value": 10.919524507894344,
+     "year": "2024",
+     "sample": true
+    },
+    "exports_per_capita": {
+     "value": 1571.648217111464,
+     "year": "2024",
+     "sample": true
+    },
+    "insured_share": {
+     "value": 28.003410588881213,
+     "year": "2024",
+     "sample": true
+    },
+    "deposits_per_capita": {
+     "value": 325205.83093105693,
+     "year": "2024",
+     "sample": true
+    },
+    "loan_deposit": {
+     "value": 61.19646083992594,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_per_household": {
+     "value": 3007140.8097039484,
+     "year": "2024",
+     "sample": true
+    },
+    "wealth_total_bn": {
+     "value": 873.2854949683224,
+     "year": "2024",
+     "sample": true
+    }
+   }
+  }
+ ],
+ "generated_at": "2026-11-02T08:02:29+00:00"
+}

@@ -71,3 +71,15 @@ verinin ortak bitiş ayına kadar uzanması gerekir. Borsa fiyat verisi lisansl�
 `budget_balance_gdp` — değerler **gösterim biriminde** girilir (`4,5` = %4,5; CDS baz puan; cari denge
 ve rezerv milyar $). Çeyreklik seriler çeyrek sonu ayına (`2026-03`, `2026-06` …), yıllık seriler
 Aralık'a (`2025-12`) yazılır. CDS için ücretsiz resmî kaynak yoktur.
+
+## İller (`iller/<gösterge>.csv`)
+
+Sütunlar `plaka;yil;deger` (plaka 1–81). Göstergeler: `population`, `household_size`, `gdp_mn_tl`,
+`exports_mn_usd`, `insured_employees`, `companies_active`, `companies_new`, `listed_companies`,
+`deposits_mn_tl`, `loans_mn_tl`, `m2_price_tl`, `sege_score` (ayrıntı: `pipeline/provinces.py`).
+Aynı il için birden çok yıl varsa en son yıl kullanılır.
+
+## Dış ticaret dağılımı
+
+`dis_ticaret_ulke.csv`: `yil;ulke;ihracat_milyon_usd;ithalat_milyon_usd` ·
+`dis_ticaret_urun.csv`: `yil;urun;ihracat_milyon_usd` (kaynak: TÜİK). En son yıl gösterilir.

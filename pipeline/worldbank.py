@@ -30,6 +30,10 @@ INDICATORS = {
     "unemployment": ("SL.UEM.TOTL.ZS", "Unemployment, total", "İşsizlik oranı", "%", "rate"),
     "current_account": ("BN.CAB.XOKA.GD.ZS", "Current account balance (% of GDP)", "Cari denge / GSYH", "%", "rate"),
     "real_interest": ("FR.INR.RINR", "Real interest rate", "Reel faiz oranı", "%", "rate"),
+    "population": ("SP.POP.TOTL", "Population, total", "Nüfus", "kişi", "level"),
+    "exports_gdp": ("NE.EXP.GNFS.ZS", "Exports of goods and services (% of GDP)", "Mal ve hizmet ihracatı / GSYH", "%", "rate"),
+    "imports_gdp": ("NE.IMP.GNFS.ZS", "Imports of goods and services (% of GDP)", "Mal ve hizmet ithalatı / GSYH", "%", "rate"),
+    "urban": ("SP.URB.TOTL.IN.ZS", "Urban population (% of total", "Kentli nüfus oranı", "%", "rate"),
 }
 
 

@@ -1407,6 +1407,47 @@
    "expect": 0.5,
    "tol": 1e-12,
    "note": "0.45/0.9"
+  },
+  {
+   "name": "province_wealth hand case",
+   "fn": "province_wealth",
+   "args": [
+    {
+     "population": 1000,
+     "deposits_tl": 50000000.0,
+     "m2_price": 10000,
+     "household_size": 4,
+     "ownership_rate": 0.6,
+     "dwelling_m2": 100,
+     "household_deposit_share": 0.5
+    }
+   ],
+   "expect": {
+    "households": 250.0,
+    "housing": 150000000.0,
+    "financial": 25000000.0,
+    "total": 175000000.0,
+    "per_household": 700000.0,
+    "per_capita": 175000.0
+   },
+   "tol": 1e-06,
+   "note": "250 hh x 0.6 x 100 m2 x 10000 + 50M x 0.5"
+  },
+  {
+   "name": "province_wealth rejects share > 1",
+   "fn": "province_wealth",
+   "args": [
+    {
+     "population": 10,
+     "deposits_tl": 1,
+     "m2_price": 1,
+     "household_size": 3,
+     "ownership_rate": 1.5,
+     "dwelling_m2": 100,
+     "household_deposit_share": 0.5
+    }
+   ],
+   "raises": true
   }
  ]
 }

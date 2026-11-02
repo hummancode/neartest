@@ -596,3 +596,24 @@ def test_breakeven_gross_rate_round_trips():
     r = e.deposit_net(principal=1, gross_annual=g, days=30, withholding=0.10, inflation=0.40)
     assert close(r["real_annual"], 0.0, tol=1e-12)
     assert close(e.breakeven_gross_rate(inflation=0.45, days=365, withholding=0.10), 0.5)   # 0.45 / 0.9
+
+
+# --- province wealth estimate (model, not an official statistic) -----------------
+
+def test_province_wealth_hand_case():
+    # 1000 people / 4 = 250 households; 60 % own -> 150 x 100 m² x 10.000 TL = 150 M TL housing;
+    # deposits 50 M x 50 % household share = 25 M TL financial; total 175 M.
+    r = e.province_wealth(population=1000, deposits_tl=50e6, m2_price=10000, household_size=4,
+                          ownership_rate=0.6, dwelling_m2=100, household_deposit_share=0.5)
+    assert close(r["households"], 250.0)
+    assert close(r["housing"], 150e6) and close(r["financial"], 25e6) and close(r["total"], 175e6)
+    assert close(r["per_household"], 700000.0) and close(r["per_capita"], 175000.0)
+
+
+def test_province_wealth_rejects_bad_inputs():
+    with pytest.raises(e.SeriesError):
+        e.province_wealth(population=0, deposits_tl=1, m2_price=1, household_size=3, ownership_rate=0.5,
+                          dwelling_m2=100, household_deposit_share=0.5)
+    with pytest.raises(e.SeriesError):
+        e.province_wealth(population=10, deposits_tl=1, m2_price=1, household_size=3, ownership_rate=1.5,
+                          dwelling_m2=100, household_deposit_share=0.5)

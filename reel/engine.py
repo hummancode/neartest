@@ -846,3 +846,28 @@ def breakeven_gross_rate(*, inflation: float, days: int, withholding: float) -> 
         raise SeriesError("term must be positive and withholding below 100 %")
     net_term = (1.0 + inflation) ** (days / 365.0) - 1.0
     return net_term / (1.0 - withholding) * 365.0 / days
+
+
+# ---------------------------------------------------------------------------
+# Province household wealth — a transparent MODEL ESTIMATE, not an official statistic
+# ---------------------------------------------------------------------------
+
+def province_wealth(*, population: float, deposits_tl: float, m2_price: float, household_size: float,
+                    ownership_rate: float, dwelling_m2: float, household_deposit_share: float) -> dict:
+    """Rough household wealth of a province = owner-occupied housing + households' bank deposits.
+
+    housing   = (population / household_size) x ownership_rate x dwelling_m2 x m2_price
+    financial = deposits_tl x household_deposit_share
+    Leaves out second homes, land, vehicles, gold under the mattress, securities and debt.
+    """
+    if population <= 0 or household_size <= 0 or dwelling_m2 < 0 or m2_price < 0 or deposits_tl < 0:
+        raise SeriesError("population and household size must be positive; amounts non-negative")
+    for share in (ownership_rate, household_deposit_share):
+        if not 0 <= share <= 1:
+            raise SeriesError("shares must be between 0 and 1")
+    households = population / household_size
+    housing = households * ownership_rate * dwelling_m2 * m2_price
+    financial = deposits_tl * household_deposit_share
+    total = housing + financial
+    return {"households": households, "housing": housing, "financial": financial, "total": total,
+            "per_household": total / households, "per_capita": total / population}

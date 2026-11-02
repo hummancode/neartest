@@ -1,0 +1,106 @@
+{
+ "source": "TÜİK dış ticaret istatistikleri",
+ "partners": {
+  "year": "2024",
+  "items": [
+   {
+    "name": "Almanya",
+    "exports": 20000.0,
+    "imports": 15000.0
+   },
+   {
+    "name": "ABD",
+    "exports": 15029.5,
+    "imports": 1454.6
+   },
+   {
+    "name": "Birleşik Krallık",
+    "exports": 11294.4,
+    "imports": 3954.0
+   },
+   {
+    "name": "Irak",
+    "exports": 8487.5,
+    "imports": 10748.0
+   },
+   {
+    "name": "İtalya",
+    "exports": 6378.1,
+    "imports": 1042.3
+   },
+   {
+    "name": "Fransa",
+    "exports": 4793.0,
+    "imports": 2833.1
+   },
+   {
+    "name": "İspanya",
+    "exports": 3601.8,
+    "imports": 7701.3
+   },
+   {
+    "name": "Rusya",
+    "exports": 2706.7,
+    "imports": 746.8
+   },
+   {
+    "name": "Çin",
+    "exports": 2034.0,
+    "imports": 2030.0
+   },
+   {
+    "name": "BAE",
+    "exports": 1528.5,
+    "imports": 5518.2
+   }
+  ],
+  "sample": true
+ },
+ "products": {
+  "year": "2024",
+  "items": [
+   {
+    "name": "Motorlu kara taşıtları",
+    "exports": 20000.0
+   },
+   {
+    "name": "Makineler",
+    "exports": 15029.5
+   },
+   {
+    "name": "Demir-çelik",
+    "exports": 11294.4
+   },
+   {
+    "name": "Elektrikli cihazlar",
+    "exports": 8487.5
+   },
+   {
+    "name": "Mineral yakıtlar",
+    "exports": 6378.1
+   },
+   {
+    "name": "Örme giyim",
+    "exports": 4793.0
+   },
+   {
+    "name": "Plastikler",
+    "exports": 3601.8
+   },
+   {
+    "name": "Kıymetli taşlar ve metaller",
+    "exports": 2706.7
+   },
+   {
+    "name": "Meyve ve sert kabuklular",
+    "exports": 2034.0
+   },
+   {
+    "name": "Örülmemiş giyim",
+    "exports": 1528.5
+   }
+  ],
+  "sample": true
+ },
+ "generated_at": "2026-11-02T08:03:19+00:00"
+}

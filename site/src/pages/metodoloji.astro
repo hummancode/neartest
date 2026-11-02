@@ -39,6 +39,8 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#birikim">Birikim hedefi</a></li>
         <li><a href="#erime">Paranın erime hızı</a></li>
         <li><a href="#ulkeler">Ülke karşılaştırması</a></li>
+        <li><a href="#iller">İller ve servet tahmini</a></li>
+        <li><a href="#mevzuat">Mevzuat oranları</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
@@ -259,6 +261,22 @@ import { DISCLAIMER } from "../config.ts";
       <li>Her kod, API'nin döndürdüğü gösterge adı beklenen adla eşleşirse “doğrulandı” sayılır; eşleşmezse kullanılmaz.</li>
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
+
+    <h2 id="iller">İller ve servet tahmini</h2>
+    <ul>
+      <li>Gözlenen göstergeler resmî kaynaklardan il bazında alınır (TÜİK nüfus ve GSYH, SGK 4/a sigortalı, TOBB şirket, KAP borsa şirketi merkezi, BDDK mevduat ve kredi, SEGE). İhracat firmanın kayıtlı olduğu ile göre sayıldığından üretimin yapıldığı ili göstermeyebilir.</li>
+      <li>Türetilenler: kişi başı GSYH = GSYH / nüfus; ihracat / GSYH = ihracat ($) × o yılın 12 aylık ortalama USD/TRY'si / GSYH (aynı yıl); kişi başı ihracat ve mevduat; ücretli çalışan / nüfus; kredi / mevduat.</li>
+      <li>Harita renkleri, gösterilen illerin değerlerine göre beşte birlik dilimlerdir (kantil).</li>
+    </ul>
+    <p><strong>Tahmini hane serveti bir model tahminidir, resmî istatistik değildir:</strong></p>
+    <p class="formula card">Hane = nüfus / hane büyüklüğü &nbsp;&nbsp; Konut = hane × ev sahipliği oranı × ortalama konut m² × m² fiyatı &nbsp;&nbsp; Finansal = mevduat × hanelere ait pay</p>
+    <ul>
+      <li>Ev sahipliği oranı, konut büyüklüğü ve mevduatın hanelere ait payı varsayımdır; sayfada değiştirilebilir. Hane büyüklüğü il verisinden alınır.</li>
+      <li>Dahil olmayanlar: ikinci konutlar, arsa, araç, bankadışı altın ve döviz, menkul kıymetler, borçlar. Mevduat şubenin bulunduğu ile kaydedilir; büyük şehirlerde fazla, diğerlerinde eksik görünebilir.</li>
+    </ul>
+
+    <h2 id="mevzuat">Mevzuat oranları</h2>
+    <p>KKDF, BSMV, stopaj ve kredi kartı azami faizleri gibi düzenlenen oranlar <a href="/mevzuat">Mevzuat takibi</a> sayfasındaki kayıttan gelir. Her oranın tarihli geçmişi, kaynağı ve kontrol durumu (doğrulandı / doğrulanmadı / örnek) tutulur; hesaplayıcılar bu değeri varsayılan olarak kullanır, kullanıcı değiştirebilir.</p>
 
     <h2 id="kisisel">9. Kişisel enflasyon</h2>
     <p>

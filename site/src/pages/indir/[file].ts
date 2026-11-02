@@ -8,11 +8,12 @@ import { realRates } from "../../lib/rates.ts";
 import { levels } from "../../lib/levels.ts";
 import { housing } from "../../lib/housing.ts";
 import { status } from "../../lib/status.ts";
+import { provinces } from "../../lib/provinces.ts";
 import { shiftMonth } from "../../lib/engine.ts";
 
 const JSON_FILES: Record<string, unknown> = {
   reel_tablo: tablo, fiyatlar: prices, makro: macro, ulkeler: countries, reel_faiz: realRates,
-  seviyeler: levels, konut: housing, durum: status,
+  seviyeler: levels, konut: housing, durum: status, iller: provinces,
 };
 
 const esc = (v: unknown) => {
@@ -42,7 +43,15 @@ const csvTablo = () => toCsv([["varlik", "yil", "nominal_tl", "usd", "reel_tl", 
 const csvRates = () => toCsv([["ay", "mevduat_faizi", "kredi_faizi", "tufe_12ay", "reel_mevduat_son", "reel_kredi_son", "reel_mevduat_expost", "reel_kredi_expost"],
   ...realRates.rows.map((r) => [r.month, r.deposit_rate, r.credit_rate, r.cpi_12m, r.deposit_real_trailing, r.credit_real_trailing, r.deposit_real_ex_post, r.credit_real_ex_post])]);
 
+const csvProvinces = () => {
+  const ids = provinces.indicators.map((i) => i.id);
+  return toCsv([["plaka", "il", "bolge", ...ids, "ornek_veri"],
+    ...provinces.provinces.map((p) => [p.plaka, p.name, p.region, ...ids.map((id) => p.values[id]?.value ?? ""),
+      Object.values(p.values).some((v) => v.sample)])]);
+};
+
 const CSV_FILES: Record<string, () => string> = {
+  iller: csvProvinces,
   fiyatlar: csvPrices, makro: csvMacro, ulkeler: csvCountries, reel_tablo: csvTablo, reel_faiz: csvRates,
 };
 

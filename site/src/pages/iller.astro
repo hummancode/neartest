@@ -1,0 +1,289 @@
+---
+import Base from "../layouts/Base.astro";
+import { provinces, geo } from "../lib/provinces.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const P = provinces;
+const groups = [...new Set(P.indicators.map((i) => i.group))];
+const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.wealth_defaults };
+---
+<Base title="İller: ekonomik harita" description="81 ilin ekonomik profili harita üzerinde: nüfus, gelir, ihracat, ücretli çalışan, şirketler, borsa şirketleri, mevduat ve tahmini hane serveti." sample={P.sample}>
+  <h1>İller</h1>
+  <p class="lead">81 ilin ekonomik profili: gelir, ihracat, ücretli çalışan, şirketler, mevduat ve model tabanlı servet tahmini. Bir göstergeyi seçin, haritada bir ile dokunun.</p>
+
+  <section class="card controls">
+    <div class="form-grid">
+      <div class="field"><label for="ind">Gösterge</label>
+        <select id="ind">{groups.map((g) => <optgroup label={g}>{P.indicators.filter((i) => i.group === g).map((i) => <option value={i.id} selected={i.id === "gdp_per_capita_tl"}>{i.label}{i.kind === "estimate" ? " (tahmin)" : ""}</option>)}</optgroup>)}</select></div>
+      <div class="field"><label for="region">Bölge</label>
+        <select id="region"><option value="">Tüm Türkiye</option>{[...new Set(P.provinces.map((p) => p.region))].map((r) => <option value={r}>{r}</option>)}</select></div>
+    </div>
+  </section>
+
+  <div class="map-layout">
+    <section class="card map-card" aria-labelledby="map-title">
+      <h2 class="c-title" id="map-title"></h2>
+      <p class="muted small" id="map-sub"></p>
+      <div class="map-wrap">
+        <svg id="map" viewBox={`0 0 ${geo.width} ${geo.height}`} role="group" aria-label="Türkiye il haritası">
+          {geo.provinces.map((g) => (
+            <path d={g.d} data-plaka={g.plaka} class="prov" tabindex="0" role="button" aria-label={P.provinces[g.plaka - 1].name}></path>
+          ))}
+        </svg>
+        <div class="map-tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend" aria-label="Lejant"></div>
+      <p class="muted small">Harita: Natural Earth (kamu malı). Renk kademeleri 81 ilin değerlerine göre beşte birlik dilimlerdir.</p>
+    </section>
+
+    <aside class="card pcard" id="pcard" aria-live="polite">
+      <p class="muted">Haritada bir il seçin.</p>
+    </aside>
+  </div>
+
+  <section class="card sim" id="sim">
+    <h2 class="c-title">Servet tahmini: varsayımlar</h2>
+    <p class="muted small">Tahmini hane serveti = sahibi oturduğu konutların değeri + hanelere ait banka mevduatı. Resmî istatistik değildir; aşağıdaki varsayımları değiştirince harita ve il kartı güncellenir.</p>
+    <div class="form-grid">
+      <div class="field"><label for="own">Ev sahipliği oranı: <strong id="own-v"></strong></label><input id="own" type="range" min="30" max="90" step="1" /></div>
+      <div class="field"><label for="m2">Ortalama konut büyüklüğü: <strong id="m2-v"></strong></label><input id="m2" type="range" min="60" max="200" step="5" /></div>
+      <div class="field"><label for="dep">Mevduatın hanelere ait payı: <strong id="dep-v"></strong></label><input id="dep" type="range" min="20" max="90" step="1" /></div>
+      <div class="field"><label for="hs">Hane büyüklüğü</label><select id="hs"><option value="il">İl verisi (TÜİK)</option><option value="3">3 kişi (tüm iller)</option><option value="3.5">3,5 kişi</option><option value="4">4 kişi</option></select></div>
+    </div>
+    <p class="small"><button class="btn btn-ghost" type="button" id="sim-reset">Varsayılanlara dön</button> <span class="muted" id="sim-total"></span></p>
+    <p class="muted small">Dahil olmayanlar: ikinci konutlar, arsa, araç, yastık altı altın ve döviz, menkul kıymetler, borçlar. Mevduat bankanın şubesinin bulunduğu ile göre kaydedilir.</p>
+  </section>
+
+  <details class="card table-view">
+    <summary>Tablo görünümü (81 il)</summary>
+    <div class="scroll-x">
+      <table class="data" id="ptable"><thead><tr><th scope="col">#</th><th scope="col">İl</th><th scope="col">Bölge</th><th scope="col" id="pt-col">Değer</th></tr></thead><tbody></tbody></table>
+    </div>
+  </details>
+
+  <h2>Kaynaklar ve notlar</h2>
+  <ul class="small">
+    {P.indicators.filter((i) => i.kind === "observed").map((i) => <li><strong>{i.label}:</strong> {i.source}{i.sample ? " — şu an ÖRNEK VERİ" : ""}</li>)}
+    <li>İhracat, firmanın kayıtlı olduğu ile göre sayılır; üretimin yapıldığı ili göstermeyebilir. Borsa şirketleri merkez adresine göre sayılır.</li>
+    <li>Türetilen göstergeler (kişi başı, oranlar) ve servet tahmini sitede hesaplanır. Veri: <a href="/indir/iller.csv" download>CSV</a> · <a href="/indir/iller.json" download>JSON</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="p-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { provinceWealth } from "../lib/engine.ts";
+  import { formatP, ADDITIVE } from "../lib/provinces.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+
+  const data = JSON.parse(document.getElementById("p-data")!.textContent!);
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const IND: Record<string, any> = Object.fromEntries(data.indicators.map((i: any) => [i.id, i]));
+  const provs: any[] = data.provinces;
+  const indSel = $<HTMLSelectElement>("ind"), regSel = $<HTMLSelectElement>("region");
+  const sliders = { own: $<HTMLInputElement>("own"), m2: $<HTMLInputElement>("m2"), dep: $<HTMLInputElement>("dep") };
+  const hsSel = $<HTMLSelectElement>("hs");
+  const CLASSES = 5;
+  let selected: number | null = null;
+  // Working copy of values: wealth indicators are recomputed from the slider assumptions.
+  const values: Record<number, Record<string, any>> = Object.fromEntries(provs.map((p) => [p.plaka, { ...p.values }]));
+
+  function setDefaults() {
+    sliders.own.value = String(Math.round(data.defaults.ownership_rate * 100));
+    sliders.m2.value = String(data.defaults.dwelling_m2);
+    sliders.dep.value = String(Math.round(data.defaults.household_deposit_share * 100));
+    hsSel.value = "il";
+  }
+
+  function recomputeWealth() {
+    $("own-v").textContent = `%${sliders.own.value}`;
+    $("m2-v").textContent = `${sliders.m2.value} m²`;
+    $("dep-v").textContent = `%${sliders.dep.value}`;
+    let total = 0, sample = false;
+    for (const p of provs) {
+      const v = p.values;
+      if (!v.population || !v.deposits_mn_tl || !v.m2_price_tl) continue;
+      const hs = hsSel.value === "il" ? (v.household_size?.value ?? data.defaults.household_size) : Number(hsSel.value);
+      const w = provinceWealth({ population: v.population.value, deposits_tl: v.deposits_mn_tl.value * 1e6, m2_price: v.m2_price_tl.value,
+        household_size: hs, ownership_rate: Number(sliders.own.value) / 100, dwelling_m2: Number(sliders.m2.value),
+        household_deposit_share: Number(sliders.dep.value) / 100 });
+      const s = v.population.sample || v.deposits_mn_tl.sample || v.m2_price_tl.sample;
+      values[p.plaka].wealth_per_household = { value: w.per_household, year: v.deposits_mn_tl.year, sample: s };
+      values[p.plaka].wealth_total_bn = { value: w.total / 1e9, year: v.deposits_mn_tl.year, sample: s };
+      total += w.total; sample ||= s;
+    }
+    $("sim-total").textContent = `Türkiye toplamı (tahmin): ${formatP("milyar TL", total / 1e9)}${sample ? " — örnek veriyle" : ""}`;
+  }
+
+  function quantileBreaks(xs: number[]): number[] {
+    const s = [...xs].sort((a, b) => a - b);
+    return Array.from({ length: CLASSES - 1 }, (_, k) => s[Math.floor(((k + 1) * s.length) / CLASSES)]);
+  }
+  const classOf = (v: number, br: number[]) => br.filter((b) => v >= b).length;
+
+  function rankOf(id: string, plaka: number): [number, number] {
+    const list = provs.map((p) => values[p.plaka][id]?.value).filter((x) => x != null) as number[];
+    const v = values[plaka][id]?.value;
+    if (v == null) return [0, list.length];
+    return [list.filter((x) => x > v).length + 1, list.length];
+  }
+
+  function draw() {
+    const id = indSel.value, I = IND[id], region = regSel.value;
+    writeHash({ g: id, b: region, il: selected ? String(selected) : "" });
+    const inScope = (p: any) => !region || p.region === region;
+    const xs = provs.filter(inScope).map((p) => values[p.plaka][id]?.value).filter((x) => x != null) as number[];
+    const br = quantileBreaks(xs);
+    $("map-title").textContent = I.label + (I.kind === "estimate" ? " — model tahmini" : "");
+    const anySample = provs.some((p) => values[p.plaka][id]?.sample);
+    const year = provs.map((p) => values[p.plaka][id]?.year).find(Boolean);
+    $("map-sub").textContent = `${I.source}${year ? ` · ${year}` : ""}${anySample ? " · ÖRNEK VERİ" : ""}`;
+    document.querySelectorAll<SVGPathElement>(".prov").forEach((el) => {
+      const pl = Number(el.dataset.plaka), p = provs[pl - 1], v = values[pl][id]?.value;
+      el.setAttribute("class", "prov" + (v == null ? " nodata" : ` c${classOf(v, br)}`) + (inScope(p) ? "" : " out") + (selected === pl ? " sel" : ""));
+    });
+    const lg = $("legend");
+    lg.replaceChildren();
+    const edges = [Math.min(...xs), ...br, Math.max(...xs)];
+    for (let k = 0; k < CLASSES; k++) {
+      const item = document.createElement("span"); item.className = "lg-item";
+      const sw = document.createElement("span"); sw.className = `sw c${k}`;
+      const t = document.createElement("span"); t.textContent = `${formatP(I.unit, edges[k])} – ${formatP(I.unit, edges[k + 1])}`;
+      item.append(sw, t); lg.appendChild(item);
+    }
+    // table view
+    $("pt-col").textContent = I.label;
+    const rows = provs.filter(inScope).filter((p) => values[p.plaka][id]).sort((a, b) => values[b.plaka][id].value - values[a.plaka][id].value);
+    document.querySelector("#ptable tbody")!.replaceChildren(...rows.map((p, k) => {
+      const tr = document.createElement("tr");
+      for (const t of [String(k + 1), p.name, p.region, formatP(I.unit, values[p.plaka][id].value)]) { const td = document.createElement("td"); td.textContent = t; tr.appendChild(td); }
+      tr.addEventListener("click", () => select(p.plaka));
+      return tr;
+    }));
+    if (selected) card(selected);
+  }
+
+  function card(pl: number) {
+    const p = provs[pl - 1], box = $("pcard");
+    box.replaceChildren();
+    const h = document.createElement("h2"); h.className = "pc-title"; h.textContent = p.name;
+    const sub = document.createElement("p"); sub.className = "muted small"; sub.textContent = `${p.region} · plaka ${String(pl).padStart(2, "0")}`;
+    box.append(h, sub);
+    const groups = [...new Set(data.indicators.map((i: any) => i.group))] as string[];
+    for (const g of groups) {
+      const items = data.indicators.filter((i: any) => i.group === g && values[pl][i.id]);
+      if (!items.length) continue;
+      const gh = document.createElement("h3"); gh.className = "pc-group"; gh.textContent = g; box.appendChild(gh);
+      const dl = document.createElement("dl"); dl.className = "pc-list";
+      for (const i of items) {
+        const v = values[pl][i.id];
+        const dt = document.createElement("dt"); dt.textContent = i.label;
+        if (i.kind === "estimate") { const b = document.createElement("span"); b.className = "tag est"; b.textContent = "tahmin"; dt.appendChild(b); }
+        if (v.sample) { const b = document.createElement("span"); b.className = "tag"; b.textContent = "örnek"; dt.appendChild(b); }
+        const dd = document.createElement("dd");
+        const strong = document.createElement("strong"); strong.textContent = formatP(i.unit, v.value);
+        const [r, n] = rankOf(i.id, pl);
+        const meta = document.createElement("span"); meta.className = "muted small";
+        let share = "";
+        if (ADDITIVE.has(i.id)) {
+          const tot = provs.reduce((a, q) => a + (values[q.plaka][i.id]?.value ?? 0), 0);
+          if (tot > 0) share = ` · Türkiye payı %${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format((100 * v.value) / tot)}`;
+        }
+        meta.textContent = ` ${r}/${n}. sırada${share} · ${v.year}`;
+        dd.append(strong, meta);
+        dl.append(dt, dd);
+      }
+      box.appendChild(dl);
+    }
+  }
+
+  function select(pl: number) {
+    selected = pl;
+    draw();
+    card(pl);
+    if (matchMedia("(max-width: 900px)").matches) $("pcard").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const tip = $("tip");
+  document.querySelectorAll<SVGPathElement>(".prov").forEach((el) => {
+    const pl = Number(el.dataset.plaka);
+    const show = (ev?: PointerEvent) => {
+      const id = indSel.value, v = values[pl][id];
+      tip.replaceChildren();
+      const n = document.createElement("strong"); n.textContent = provs[pl - 1].name;
+      const t = document.createElement("div"); t.textContent = v ? formatP(IND[id].unit, v.value) : "veri yok";
+      tip.append(n, t);
+      tip.hidden = false;
+      const wrap = el.ownerSVGElement!.parentElement!.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const x = ev ? ev.clientX - wrap.left : r.left + r.width / 2 - wrap.left;
+      const y = ev ? ev.clientY - wrap.top : r.top - wrap.top;
+      tip.style.left = `${Math.min(Math.max(0, x + 12), wrap.width - tip.offsetWidth)}px`;
+      tip.style.top = `${Math.max(0, y - 40)}px`;
+    };
+    el.addEventListener("pointermove", show);
+    el.addEventListener("pointerleave", () => (tip.hidden = true));
+    el.addEventListener("focus", () => show());
+    el.addEventListener("blur", () => (tip.hidden = true));
+    el.addEventListener("click", () => select(pl));
+    el.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(pl); } });
+  });
+
+  setDefaults();
+  const h = readHash();
+  if (h.get("g") && IND[h.get("g")!]) indSel.value = h.get("g")!;
+  if (h.get("b") && [...regSel.options].some((o) => o.value === h.get("b"))) regSel.value = h.get("b")!;
+  const il = Number(h.get("il"));
+  if (il >= 1 && il <= 81) selected = il;
+  recomputeWealth();
+  [indSel, regSel].forEach((s) => s.addEventListener("change", draw));
+  [...Object.values(sliders), hsSel].forEach((s) => s.addEventListener("input", () => { recomputeWealth(); draw(); }));
+  $("sim-reset").addEventListener("click", () => { setDefaults(); recomputeWealth(); draw(); });
+  draw();
+  if (selected) card(selected);
+</script>
+
+<style is:global>
+  :root { --seq-0: #cde2fb; --seq-1: #86b6ef; --seq-2: #3987e5; --seq-3: #1c5cab; --seq-4: #0d366b; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --seq-0: #104281; --seq-1: #1c5cab; --seq-2: #2a78d6; --seq-3: #5598e7; --seq-4: #9ec5f4; } }
+  :root[data-theme="dark"] { --seq-0: #104281; --seq-1: #1c5cab; --seq-2: #2a78d6; --seq-3: #5598e7; --seq-4: #9ec5f4; }
+  .controls { margin-bottom: 12px; }
+  .map-layout { display: grid; gap: 12px; }
+  @media (min-width: 900px) { .map-layout { grid-template-columns: 1.7fr 1fr; align-items: start; } }
+  .map-card { min-width: 0; }
+  @media (max-width: 400px) { .map-card { padding: 10px 6px; } }
+  .c-title { font-size: 1.25rem; margin: 0 0 2px; }
+  .map-wrap { position: relative; }
+  #map { width: 100%; height: auto; display: block; }
+  .prov { stroke: var(--surface); stroke-width: 0.8; cursor: pointer; transition: opacity 0.15s; }
+  .prov:hover, .prov:focus-visible { stroke: var(--ink); stroke-width: 2; outline: none; }
+  .prov.sel { stroke: var(--ink); stroke-width: 2.4; }
+  .prov.out { opacity: 0.18; }
+  .prov.nodata { fill: var(--line); }
+  .prov.c0, .sw.c0 { fill: var(--seq-0); background: var(--seq-0); }
+  .prov.c1, .sw.c1 { fill: var(--seq-1); background: var(--seq-1); }
+  .prov.c2, .sw.c2 { fill: var(--seq-2); background: var(--seq-2); }
+  .prov.c3, .sw.c3 { fill: var(--seq-3); background: var(--seq-3); }
+  .prov.c4, .sw.c4 { fill: var(--seq-4); background: var(--seq-4); }
+  .map-tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.82rem; box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); z-index: 3; white-space: nowrap; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 4px; font-size: 0.78rem; color: var(--ink-2); }
+  .lg-item { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .pcard { min-height: 200px; }
+  @media (min-width: 900px) { .pcard { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; } }
+  .pc-title { margin: 0; font-size: 1.8rem; }
+  .pc-group { font-family: var(--font-body); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 4px; }
+  .pc-list { margin: 0; display: grid; grid-template-columns: 1fr; gap: 2px; }
+  .pc-list dt { font-size: 0.82rem; color: var(--ink-2); margin-top: 6px; }
+  .pc-list dd { margin: 0; }
+  .tag { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+  .tag.est { color: var(--accent); }
+  .sim { margin-top: 12px; }
+  .sim input[type="range"] { width: 100%; padding: 0; }
+  .table-view { margin-top: 12px; }
+  .table-view summary { cursor: pointer; font-weight: 600; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  #ptable { font-size: 0.88rem; }
+  #ptable th, #ptable td { text-align: left; }
+  #ptable tbody tr { cursor: pointer; }
+</style>

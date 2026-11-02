@@ -132,7 +132,7 @@ def test_paths_end_values_match_reel_tablo():
 
 
 def test_prices_are_contiguous_and_tl_is_flat():
-    *_, prices, _, _, _, _, _ = build.build(allow_sample=True)
+    *_, prices, _, _, _, _, _, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in prices["instruments"]}
     assert {"tl", "cpi", "gold", "car", "house_ist"} <= ids
     assert "min_wage" not in ids or "min_wage_net" in build.ORIGIN
@@ -143,7 +143,7 @@ def test_prices_are_contiguous_and_tl_is_flat():
 
 
 def test_housing_gold_return_is_currency_return():
-    *_, housing, _, _, _, _ = build.build(allow_sample=True)
+    *_, housing, _, _, _, _, _, _ = build.build(allow_sample=True)
     ist = next(c for c in housing["cities"] if c["id"] == "ist")
     w = ist["sources"]["kfe"]["windows"][0]
     assert w["years"] == 1 and w["gold"] is not None
@@ -151,7 +151,7 @@ def test_housing_gold_return_is_currency_return():
 
 
 def test_housing_adds_betam_when_present():
-    *_, base_housing, _, _, _, _ = build.build(allow_sample=True)
+    *_, base_housing, _, _, _, _, _, _ = build.build(allow_sample=True)
     data, is_sample = build.load_series(allow_sample=True)
     data = dict(data)
     data["betam_sale_ist"] = dict(data["house_ist"])        # stand-in values, test only
@@ -176,7 +176,7 @@ def test_car_new_from_basket(tmp_path, monkeypatch):
 
 
 def test_macro_indicators_and_end_month_not_held_back():
-    tablo, *_, macro, _, _, _ = build.build(allow_sample=True)
+    tablo, *_, macro, _, _, _, _, _ = build.build(allow_sample=True)
     ids = {i["id"] for i in macro["indicators"]}
     assert {"gdp_growth", "cds_5y", "policy_rate", "inflation", "bist100_usd"} <= ids
     gdp = next(i for i in macro["indicators"] if i["id"] == "gdp_growth")

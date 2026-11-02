@@ -4,7 +4,7 @@
  "counts": {
   "evds": 0,
   "manual": 0,
-  "sample": 34,
+  "sample": 36,
   "missing": 10
  },
  "weights": {
@@ -364,7 +364,7 @@
    "first_month": "2014-03",
    "last_month": "2026-09",
    "months": 51,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "gdp_usd_pc",
@@ -377,7 +377,7 @@
    "first_month": "2014-12",
    "last_month": "2025-12",
    "months": 12,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "unemployment",
@@ -390,7 +390,7 @@
    "first_month": "2014-01",
    "last_month": "2026-09",
    "months": 153,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "current_account",
@@ -403,7 +403,7 @@
    "first_month": "2014-01",
    "last_month": "2026-09",
    "months": 153,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "reserves",
@@ -416,7 +416,7 @@
    "first_month": "2014-01",
    "last_month": "2026-09",
    "months": 153,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "policy_rate",
@@ -429,7 +429,7 @@
    "first_month": "2014-01",
    "last_month": "2026-09",
    "months": 153,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "cds_5y",
@@ -442,7 +442,33 @@
    "first_month": "2014-01",
    "last_month": "2026-09",
    "months": 153,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
+  },
+  {
+   "name": "exports_12m",
+   "label": "İhracat (12 aylık toplam)",
+   "source": "TÜİK dış ticaret istatistikleri, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
+  },
+  {
+   "name": "imports_12m",
+   "label": "İthalat (12 aylık toplam)",
+   "source": "TÜİK dış ticaret istatistikleri, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "budget_balance_gdp",
@@ -455,7 +481,7 @@
    "first_month": "2014-03",
    "last_month": "2026-09",
    "months": 51,
-   "used_by": "Makro pano, ilişkiler"
+   "used_by": "Makro pano, ilişkiler, Türkiye profili"
   },
   {
    "name": "car_new",
@@ -588,5 +614,5 @@
    "used_by": "Nominal illüzyon, grafik"
   }
  ],
- "generated_at": "2026-11-02T07:56:50+00:00"
+ "generated_at": "2026-11-02T08:03:19+00:00"
 }

@@ -41,6 +41,7 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   required_saving: e.requiredSaving,
   half_life_years: e.halfLifeYears,
   breakeven_gross_rate: e.breakevenGrossRate,
+  province_wealth: e.provinceWealth,
 };
 
 function expand(arg: any): any {

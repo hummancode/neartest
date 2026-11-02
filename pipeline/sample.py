@@ -73,6 +73,8 @@ def build_sample() -> dict[str, dict[str, float]]:
         # step-shaped like a real policy rate (moves in 2.5-point steps, holds in between)
         "policy_rate": {m: max(5.0, round(wave(k, 20.0, 15.0, 18.0, 4.0) / 2.5) * 2.5) for k, m in enumerate(months)},
         "cds_5y": {m: wave(k, 380.0, 170.0, 15.0, 2.5) for k, m in enumerate(months)},
+        "exports_12m": {m: 150 + 1.0 * k + 15 * math.sin(k / 11.0) for k, m in enumerate(months)},
+        "imports_12m": {m: 200 + 1.3 * k + 25 * math.sin(k / 9.0 + 1) for k, m in enumerate(months)},
         "budget_balance_gdp": {m: wave(k, -2.5, 1.8, 12.0, 0.8) for k, m in enumerate(months) if m[5:] in ("03", "06", "09", "12")},
     }
     return groups | market | macro | {
@@ -114,6 +116,12 @@ def sample_worldbank() -> dict[str, dict[str, dict[str, float]]]:
                     v = 6 + (ci * 1.3) % 8 + 1.5 * w
                 elif key == "current_account":
                     v = -2 + 3 * w - (ci % 3)
+                elif key == "population":
+                    v = (20 + 25 * ((ci * 7) % 9)) * 1e6 * (1 + 0.011 * t) * (60 if iso == "IND" else 1)
+                elif key in ("exports_gdp", "imports_gdp"):
+                    v = 22 + 8 * w + (ci % 5) * 3 + (3 if key == "imports_gdp" else 0)
+                elif key == "urban":
+                    v = 60 + (ci * 5) % 30 + 0.3 * t
                 else:
                     v = 2 + 4 * w - (8 if iso in ("TUR", "ARG") and t > 15 else 0)
                 series[str(y)] = round(v, 2)

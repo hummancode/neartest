@@ -586,3 +586,22 @@ export function breakevenGrossRate(p: { inflation: number; days: number; withhol
   const netTerm = (1.0 + p.inflation) ** (p.days / 365.0) - 1.0;
   return (netTerm / (1.0 - p.withholding)) * 365.0 / p.days;
 }
+
+// --- province household wealth (MODEL ESTIMATE) -------------------------------------
+
+export interface WealthParams {
+  population: number; deposits_tl: number; m2_price: number; household_size: number;
+  ownership_rate: number; dwelling_m2: number; household_deposit_share: number;
+}
+/** Same model as reel/engine.py province_wealth. */
+export function provinceWealth(p: WealthParams) {
+  if (!(p.population > 0) || !(p.household_size > 0) || p.dwelling_m2 < 0 || p.m2_price < 0 || p.deposits_tl < 0) {
+    throw new SeriesError("population and household size must be positive; amounts non-negative");
+  }
+  for (const s of [p.ownership_rate, p.household_deposit_share]) if (!(s >= 0 && s <= 1)) throw new SeriesError("shares must be between 0 and 1");
+  const households = p.population / p.household_size;
+  const housing = households * p.ownership_rate * p.dwelling_m2 * p.m2_price;
+  const financial = p.deposits_tl * p.household_deposit_share;
+  const total = housing + financial;
+  return { households, housing, financial, total, per_household: total / households, per_capita: total / p.population };
+}

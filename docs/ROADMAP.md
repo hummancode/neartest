@@ -28,6 +28,10 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
 
+| ✅ | **Türkiye profili** (factbook tarzı): göstergeler, dış ticaret (12 ay, partner, ürün), benzer ülkeler içinde sıra, öne çıkan iller | TÜİK, EVDS, Dünya Bankası; dağılımlar elle |
+| 🟡 | **İller ekonomik haritası**: 81 il, 20 gösterge (nüfus, GSYH, ihracat, ihracat/GSYH, 4/a çalışan, şirketler, borsa şirketleri, mevduat/kredi, SEGE), il kartı, tablo | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
+| 🟡 | **Tahmin/simülasyon**: il bazında hane serveti modeli (varsayımlar canlı değiştirilebilir) | sonraki: senaryo motoru (faiz/kur/enflasyon şoklarının hane bütçesine etkisi), il bazında projeksiyon |
+
 ## 3. Hane ve kişisel karar araçları
 | | Fikir | Veri / not |
 |---|---|---|
@@ -45,6 +49,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 ## 4. Platform
 | | Fikir | Not |
 |---|---|---|
+| ✅ | Mevzuat takibi: tarihli oran kaydı, kaynak/durum, haftalık kontrol issue'su, hesaplayıcı varsayılanları | resmî metin doğrulaması insan tarafından |
 | ✅ | Paylaşılabilir bağlantı ve PNG kartlar | — |
 | ✅ | Veri setlerinin CSV/JSON indirilmesi (`/indir/…`, Veri durumu sayfasında) | — |
 | ⬜ | Haftalık bülten taslağının otomatik üretimi (yalnızca rakamlar) | elle onaylanır |

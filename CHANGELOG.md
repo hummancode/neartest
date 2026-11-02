@@ -97,3 +97,10 @@
   haftalık `mevzuat-check` workflow'u (doğrulanmamış/süresi geçen oranlar için tek issue). Hesaplayıcılar
   varsayılanları kayıttan alıyor ve durumunu gösteriyor. Oranlar web aramasından "aday" olarak girildi; resmî
   sayfalar (TCMB, GİB, Resmî Gazete) bu ortamdan açılamadığı için doğrulanmadı. Kredi faizi serisi: ihtiyaç kredisi.
+- 2026-11-02 — İller haritası ve Türkiye profili: `/iller` (Natural Earth il sınırları → `pipeline/geo.py` ile 55 KB
+  SVG yolları; 81 il, 20 gösterge: gözlenen/türetilen/model tahmini; kantil renkli harita, il kartı (sıra, Türkiye
+  payı, yıl), bölge filtresi, tablo, CSV; **hane serveti simülasyonu** — ev sahipliği, konut m², mevduat payı,
+  hane büyüklüğü canlı değiştirilebilir; motor `province_wealth`, önce test, TS). `/turkiye` (bir bakışta,
+  ekonomi, dış ticaret 12 aylık + partner/ürün, benzer ülkeler içinde sıra, öne çıkan iller). Yeni seriler:
+  ihracat/ithalat 12 aylık (EVDS), Dünya Bankası nüfus, ihracat/ithalat/GSYH, kentli nüfus. İl ve dış ticaret
+  verisi elle yüklenir (`data/manual/iller/`, `dis_ticaret_*.csv`); şu an örnek.
