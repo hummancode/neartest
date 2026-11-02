@@ -5,6 +5,7 @@ import { provinceUrl, slugify } from "../../lib/slug.ts";
 import { DISCLAIMER } from "../../config.ts";
 import { districts, districtGeo } from "../../lib/districts.ts";
 import { fmtPct, fmtSigned } from "../../lib/popviz.ts";
+import ShareCard from "../../components/ShareCard.astro";
 
 export function getStaticPaths() {
   return provinces.provinces.map((p) => ({ params: { slug: `${String(p.plaka).padStart(2, "0")}-${slugify(p.name)}` }, props: { plaka: p.plaka } }));
@@ -42,6 +43,9 @@ const r4 = (v: number | null | undefined) => (v == null ? undefined : Math.round
 const dList = (districts.provinces[String(plaka)] ?? []).map((d) => ({ ...d, g1: r4(d.g1), g5: r4(d.g5), g10: r4(d.g10), share: d.share == null ? null : r4(d.share)!, density: r4(d.density) }));
 const dShapes = districtGeo.provinces[String(plaka)];
 const popTiles = ["population_growth_1y", "population_cagr_5y", "population_cagr_10y", "population_change_10y", "population_density"].filter((id) => p.values[id]);
+const cardRows = (["gdp_per_capita_tl", "exports_mn_usd", "avg_wage_tl", "population_cagr_10y"] as const).filter((id) => p.values[id] && ind[id])
+  .map((id) => { const r = rank(id); return { label: `${ind[id].label}${r ? ` · ${r[0]}/${r[1]}. sıra` : ""}`, value: id === "population_cagr_10y" ? fmtPct(p.values[id].value) : formatP(ind[id].unit, p.values[id].value) }; });
+const cardSources = [...new Set(["population", "gdp_mn_tl", "exports_mn_usd", "avg_wage_tl"].map((id) => ind[id]?.source.split(/[,—]/)[0].trim()).filter(Boolean))];
 const DEFAULT_VIEW: Record<string, string> = { gva: "donut", jobs: "donut", exports_sector: "treemap", exports_country: "donut" };
 ---
 <Base title={`${p.name} ekonomik künyesi`} description={`${p.name}: nüfus, gelir, ihracat, ücretli çalışan, şirketler, konut fiyatı ve kira, mevduat, tahmini servet — 81 il içindeki yeri.`} sample={sample}>
@@ -65,6 +69,13 @@ const DEFAULT_VIEW: Record<string, string> = { gva: "donut", jobs: "donut", expo
       </div>
     ))}
   </div>
+
+  {p.values.population && (
+    <ShareCard filename={`il-${String(plaka).padStart(2, "0")}-${p.name.toLocaleLowerCase("tr")}.png`} card={{
+      sample, kicker: `${p.name} · il künyesi`, headline: `${formatP("kişi", p.values.population.value)}`,
+      sub: `nüfus (${p.values.population.year}) · ${p.region}`, rows: cardRows, sources: cardSources, endLabel: p.values.population.year, endNote: "",
+    }} />
+  )}
 
   {(popHist || dList.length > 0) && (
     <section id="nufus">
