@@ -26,7 +26,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | Olay penceresi: faiz artış/indirim ayları (politika faizi serisinden) ve elle eklenen resmi olaylar etrafında ortalama/medyan hareket | `data/manual/events.csv`; ay düzeyinde (günlük veriyle iyileştirilebilir) |
 | ✅ | Ülke karşılaştırması: Türkiye ve 11 benzer ekonomi (enflasyon, büyüme, kişi başı GSYH, işsizlik, cari denge, reel faiz) | Dünya Bankası WDI (CC BY 4.0); kodlar API adıyla doğrulanır; günlük işte çekilir |
 | ✅ | Reel konut fiyatları, Türkiye ve 60 ülke (BIS, gerçek veri) | GitHub kopyası, günlük |
-| ⬜ | Aylık altın (USD/ons, Dünya Bankası) ve Brent (EIA) — GitHub'dan, gerçek | `docs/ACIK-VERI-REHBERI.md` §4 |
+| ✅ | Emtia: aylık altın (Dünya Bankası), Brent ve doğal gaz (EIA) — gerçek veri | GitHub kopyaları, günlük |
+| ⬜ | Altının TL karşılığı ve Reel Tablo'daki "Gram Altın" satırının gerçek veriye geçmesi | USD/TRY (EVDS) gerekli |
 | ✅ | Uzun dönem kişi başı gelir 1923–2018 (Maddison, gerçek veri; lisans doğrulanacak) | OWID GitHub, günlük |
 | ✅ | Big Mac endeksi (gerçek veri, The Economist CC BY 4.0) | GitHub, günlük |
 | ⬜ | Enflasyon beklentileri vs gerçekleşme (Piyasa Katılımcıları Anketi) | EVDS |

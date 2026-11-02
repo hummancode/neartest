@@ -43,6 +43,10 @@ jobs:
         run: python -m pipeline.houseprices
         continue-on-error: true
 
+      - name: fetch commodity prices (gold: World Bank; Brent, gas: EIA — via Datahub on GitHub)
+        run: python -m pipeline.commodities
+        continue-on-error: true
+
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
       - run: python -m pipeline.params          # regulated rates registry -> site/data/mevzuat.json

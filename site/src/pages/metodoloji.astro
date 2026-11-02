@@ -262,6 +262,13 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="emtia">Emtia fiyatları</h2>
+    <ul>
+      <li>Altın: Dünya Bankası Commodity Price Data (Pink Sheet), aylık ortalama, 1960'tan beri; Brent petrol ve Henry Hub doğal gaz: ABD Enerji Bilgi İdaresi (EIA), aylık. Dosyalar Datahub'ın GitHub kopyalarından (ODC-PDDL 1.0) günlük indirilir.</li>
+      <li>n yıllık değişim = son ay / 12n ay önce − 1 (kesintisiz aylar); yıllık = bileşik. Zirveye göre = son / en yüksek − 1. Gram altın = ons / 31,1034768. Altın/petrol oranı = altın ($/ons) / Brent ($/varil), aynı ay; medyan tüm ortak dönem üzerinden.</li>
+      <li>Sınırlar: dolar cinsinden nominal; ABD enflasyonu ve TL kuru henüz uygulanmadı (EVDS bekleniyor). Ons fiyatı kuyumcu gram fiyatıyla aynı değildir.</li>
+    </ul>
+
     <h2 id="konut-dunya">Reel konut fiyatları (ülkeler arası)</h2>
     <ul>
       <li>Kaynak: BIS seçilmiş konut fiyatı endeksleri (2010 = 100), ulusal kaynaklardan derlenir; Türkiye için TCMB Konut Fiyat Endeksi. Dosyalar BIS verisinin GitHub'daki kopyasından (datasets/house-prices-global) günlük indirilir. Kullanım şartı: kaynak gösterilerek ("National sources, BIS Residential Property Price database").</li>

@@ -6,6 +6,7 @@ export const NAV: NavGroup[] = [
   { label: "Piyasalar", items: [
     { href: "/", label: "Reel Tablo", desc: "Mevduat, kredi, döviz, altın ve borsanın 1–10 yıllık nominal, dolar ve reel getirisi.", keywords: "getiri enflasyon" },
     { href: "/grafik", label: "Grafik: X'in Y cinsinden fiyatı", desc: "Otomobili gram altınla, konutu dolarla, altını borsayla ölçün.", keywords: "araba otomobil altın dolar" },
+    { href: "/emtia", label: "Emtia: altın, petrol, doğal gaz", desc: "Dünya fiyatları, dolar cinsinden: 1–20 yıllık değişim, altın/petrol oranı.", keywords: "altın ons gram petrol brent doğalgaz emtia", real: true },
     { href: "/borsa", label: "Borsa", desc: "Endeks ve hisselerin reel, dolar ve altın bazında getirisi; izleme listesi.", keywords: "bist hisse" },
   ] },
   { label: "Makro", items: [

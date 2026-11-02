@@ -3,6 +3,8 @@ import { NAV } from "../lib/nav.ts";
 import bigmac from "../../data/bigmac.json";
 import longrun from "../../data/uzun_donem.json";
 import districtGeo from "../../data/tr_ilceler.json";
+import emtia from "../../data/emtia.json";
+import housew from "../../data/konut_dunya.json";
 import Base from "../layouts/Base.astro";
 import Sparkline from "../components/Sparkline.astro";
 import { tablo, YEARS, type Row } from "../lib/data.ts";
@@ -88,6 +90,8 @@ function sparkLabel(row: Row) {
       return [
         tr && { href: "/big-mac", k: "Türkiye'de Big Mac", v: `${nf(0).format(tr[1])} TL`, s: `${nf(2).format(tr[3])} $ · The Economist` },
         S && { href: "/uzun-donem", k: `Kişi başı reel gelir, ${S.first}–${S.last}`, v: `×${nf(1).format(S.multiple)}`, s: "Maddison Project" },
+        (emtia as any).series?.gold && { href: "/emtia", k: "Altın, ons", v: `${nf(0).format((emtia as any).series.gold.latest)} $`, s: "Dünya Bankası" },
+        (() => { const t = (housew as any).countries?.find((c: any) => c.code === "TR"); return t && { href: "/konut-fiyatlari", k: "Reel konut fiyatı, 2010'dan beri", v: `+%${nf(0).format(t.since2010_pct)}`, s: "BIS / TCMB" }; })(),
         { href: "/nufus", k: "İlçe sınırları", v: `${nf(0).format(nDist)} ilçe`, s: "geoBoundaries / OpenStreetMap" },
       ].filter(Boolean).map((f: any) => (
         <a class="card fact" href={f.href}><span class="k-label">{f.k}</span><span class="fact-v">{f.v}</span><span class="muted small">{f.s} →</span></a>
@@ -195,7 +199,8 @@ function sparkLabel(row: Row) {
   .tool:hover { border-color: var(--ink-2); }
   .dir { margin-top: 18px; }
   .facts { display: grid; gap: 12px; grid-template-columns: 1fr; }
-  @media (min-width: 640px) { .facts { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 640px) { .facts { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 980px) { .facts { grid-template-columns: repeat(5, 1fr); } }
   .fact { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--ink); }
   .fact .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
   .fact-v { font-family: var(--font-head); font-size: 2rem; line-height: 1.15; }

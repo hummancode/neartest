@@ -1,0 +1,154 @@
+---
+import Base from "../layouts/Base.astro";
+import raw from "../../data/emtia.json";
+import { DISCLAIMER } from "../config.ts";
+import { fmtPct } from "../lib/popviz.ts";
+import ShareCard from "../components/ShareCard.astro";
+
+type S = { label: string; unit: string; source: string; first: string; last: string; latest: number; y1?: number; y5?: number; y10?: number; y20?: number;
+  y5_annual?: number; y10_annual?: number; y20_annual?: number; peak: string; peak_value: number; drawdown_pct: number; points: [string, number][] };
+const E = raw as unknown as { license: string; retrieved_at: string | null; series: Record<string, S>; gold_gram_usd?: number;
+  gold_brent?: { points: [string, number][]; latest: number; median: number; first: string; last: string } };
+const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+const ml = (m: string) => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}`;
+const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const g = E.series.gold, b = E.series.brent, n = E.series.gas;
+const keys = ["gold", "brent", "gas"].filter((k) => E.series[k]);
+const gb = E.gold_brent;
+---
+<Base title="Emtia: altın, petrol, doğal gaz" description="Altın (Dünya Bankası), Brent petrol ve doğal gaz (ABD EIA) aylık dolar fiyatları; 1, 5, 10, 20 yıllık değişim, altın/petrol oranı. Gerçek veri.">
+  <h1>Emtia: altın, petrol, doğal gaz</h1>
+  <p class="lead">Dünya piyasalarında dolar cinsinden aylık ortalama fiyatlar. TL karşılıkları, kur verisi (EVDS) bağlanınca eklenecek.</p>
+  <p class="muted small">Gerçek veri · Altın: {g?.source} · Brent ve doğal gaz: {b?.source} · Lisans: {E.license}{E.retrieved_at && ` · indirildi: ${E.retrieved_at}`}</p>
+
+  <div class="keys">
+    {g && <div class="card k"><span class="k-label">Altın · {ml(g.last)}</span><span class="k-value">{nf(0).format(g.latest)} $</span><span class="muted small">ons başına · gram {E.gold_gram_usd ? nf(2).format(E.gold_gram_usd) : "—"} $ · 1 yılda {g.y1 != null ? fmtPct(g.y1) : "—"}</span></div>}
+    {b && <div class="card k"><span class="k-label">Brent petrol · {ml(b.last)}</span><span class="k-value">{nf(2).format(b.latest)} $</span><span class="muted small">varil başına · 1 yılda {b.y1 != null ? fmtPct(b.y1) : "—"}</span></div>}
+    {n && <div class="card k"><span class="k-label">Doğal gaz (ABD) · {ml(n.last)}</span><span class="k-value">{nf(2).format(n.latest)} $</span><span class="muted small">MMBtu başına · 1 yılda {n.y1 != null ? fmtPct(n.y1) : "—"}</span></div>}
+    {gb && <div class="card k"><span class="k-label">1 ons altın kaç varil petrol?</span><span class="k-value">{nf(1).format(gb.latest)}</span><span class="muted small">{gb.first.slice(0, 4)}'den beri medyan {nf(1).format(gb.median)}</span></div>}
+  </div>
+
+  {g && gb && (
+    <ShareCard filename={`altin-petrol-${g.last}.png`} card={{
+      sample: false, kicker: "Altın ve petrol · dolar", headline: `${nf(0).format(g.latest)} $`,
+      sub: `1 ons altın (${ml(g.last)}) · gram ${E.gold_gram_usd ? nf(2).format(E.gold_gram_usd) : "—"} $`,
+      rows: [
+        ...(g.y5 != null ? [{ label: "Altın, son 5 yıl (dolar)", value: fmtPct(g.y5, 0) }] : []),
+        ...(b ? [{ label: "Brent petrol, varil", value: `${nf(2).format(b.latest)} $` }] : []),
+        { label: `1 ons altın = ? varil petrol (medyan ${nf(1).format(gb.median)})`, value: nf(1).format(gb.latest) },
+      ],
+      note: "Dolar cinsinden nominal fiyatlar; ABD enflasyonu düşülmedi.",
+      sources: ["Altın: Dünya Bankası (Pink Sheet)", "Brent: ABD EIA"], endLabel: ml(g.last), endNote: "aylık ortalama",
+    }} />
+  )}
+
+  <section>
+    <div class="s-head">
+      <h2>Karşılaştırmalı seyir</h2>
+      <div class="seg" role="group" aria-label="Dönem">
+        <button type="button" data-y="5" aria-pressed="false">5 yıl</button>
+        <button type="button" data-y="10" aria-pressed="true">10 yıl</button>
+        <button type="button" data-y="20" aria-pressed="false">20 yıl</button>
+      </div>
+    </div>
+    <div class="card"><div id="c-idx" class="chart-box"></div><p class="muted small">Dönem başı = 100, logaritmik ölçek, dolar cinsinden.</p></div>
+  </section>
+
+  <section>
+    <div class="s-head">
+      <h2>Fiyat</h2>
+      <label class="small">Seri: <select id="one">{keys.map((k) => <option value={k}>{E.series[k].label} ({E.series[k].unit})</option>)}</select></label>
+    </div>
+    <div class="card"><div id="c-one" class="chart-box"></div><p class="muted small" id="one-note"></p></div>
+  </section>
+
+  {gb && (
+    <section>
+      <h2>Altın / petrol oranı</h2>
+      <p class="muted small">1 ons altının kaç varil Brent petrole denk geldiği. Kesikli çizgi: {gb.first.slice(0, 4)}–{gb.last.slice(0, 4)} medyanı ({nf(1).format(gb.median)}). Oran, iki fiyatın birbirine göre konumunu gösterir; bir öngörü değildir.</p>
+      <div class="card"><div id="c-ratio" class="chart-box"></div></div>
+    </section>
+  )}
+
+  <section>
+    <h2>Değişim tablosu</h2>
+    <div class="card scroll-x">
+      <table class="data em">
+        <thead><tr><th scope="col">Emtia</th><th scope="col">Son</th><th scope="col">1 yıl</th><th scope="col">5 yıl</th><th scope="col">10 yıl</th><th scope="col">20 yıl</th><th scope="col">Zirve</th><th scope="col">Zirveye göre</th></tr></thead>
+        <tbody>
+          {keys.map((k) => { const s = E.series[k]; return (
+            <tr>
+              <th scope="row">{s.label}<br /><span class="muted small">{s.unit}</span></th>
+              <td>{nf(2).format(s.latest)}</td>
+              <td>{s.y1 != null ? fmtPct(s.y1) : "—"}</td>
+              <td>{s.y5 != null ? fmtPct(s.y5) : "—"}<br /><span class="muted small">{s.y5_annual != null ? `yıllık ${fmtPct(s.y5_annual)}` : ""}</span></td>
+              <td>{s.y10 != null ? fmtPct(s.y10) : "—"}<br /><span class="muted small">{s.y10_annual != null ? `yıllık ${fmtPct(s.y10_annual)}` : ""}</span></td>
+              <td>{s.y20 != null ? fmtPct(s.y20) : "—"}<br /><span class="muted small">{s.y20_annual != null ? `yıllık ${fmtPct(s.y20_annual)}` : ""}</span></td>
+              <td>{nf(2).format(s.peak_value)}<br /><span class="muted small">{ml(s.peak)}</span></td>
+              <td>{fmtPct(s.drawdown_pct)}</td>
+            </tr>
+          ); })}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Değişimler dolar cinsinden nominaldir (ABD enflasyonu düşülmedi). Gram altın = ons fiyatı / 31,1035; kuyumcu fiyatı (işçilik, vergi, makas) değildir. Ayrıntı: <a href="/metodoloji#emtia">Metodoloji</a>.</p>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="e-data" set:html={JSON.stringify({ series: Object.fromEntries(keys.map((k) => [k, { label: E.series[k].label, unit: E.series[k].unit, source: E.series[k].source, points: E.series[k].points }])), ratio: gb ?? null })}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  type Ser = { label: string; unit: string; source: string; points: [string, number][] };
+  const D = JSON.parse(document.getElementById("e-data")!.textContent!) as { series: Record<string, Ser>; ratio: { points: [string, number][]; median: number } | null };
+  const COL: Record<string, string> = { gold: "var(--cat-4)", brent: "var(--cat-1)", gas: "var(--cat-3)" };
+  const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d });
+  function auto(id: string, draw: (box: HTMLElement) => void) {
+    const box = document.getElementById(id);
+    if (!box) return () => {};
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(box); } }).observe(box);
+    return () => draw(box);
+  }
+  let years = 10;
+  const redrawIdx = auto("c-idx", (box) => {
+    const keys = Object.keys(D.series);
+    const maps = keys.map((k) => new Map(D.series[k].points));
+    const last = keys.map((k) => D.series[k].points.at(-1)![0]).sort()[0];
+    const startY = Number(last.slice(0, 4)) - years;
+    const start = `${startY}${last.slice(4)}`;
+    const months = D.series[keys[0]].points.map(([m]) => m).filter((m) => m >= start && m <= last && maps.every((mp) => mp.has(m)));
+    if (!months.length) return;
+    renderChart(box, { months, series: keys.map((k, i) => ({ key: k, label: D.series[k].label, color: COL[k] ?? "var(--cat-2)",
+      values: months.map((m) => (100 * maps[i].get(m)!) / maps[i].get(months[0])!) })) }, { baseline: 100, allowLog: true, format: (v) => nf(1).format(v) });
+  });
+  document.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) => b.addEventListener("click", () => {
+    years = Number(b.dataset.y);
+    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    redrawIdx();
+  }));
+  const one = document.getElementById("one") as HTMLSelectElement;
+  const redrawOne = auto("c-one", (box) => {
+    const s = D.series[one.value];
+    renderChart(box, { months: s.points.map(([m]) => m), series: [{ key: one.value, label: s.label, color: COL[one.value] ?? "var(--cat-1)", values: s.points.map(([, v]) => v) }] },
+      { baseline: null, allowLog: true, format: (v) => `${nf(2).format(v)} $` });
+    document.getElementById("one-note")!.textContent = `${s.unit}, aylık ortalama · ${s.source}`;
+  });
+  one.addEventListener("change", redrawOne);
+  if (D.ratio) {
+    const r = D.ratio;
+    auto("c-ratio", (box) => renderChart(box, { months: r.points.map(([m]) => m), series: [{ key: "r", label: "Altın / Brent", color: "var(--cat-4)", values: r.points.map(([, v]) => v) }] },
+      { baseline: r.median, allowLog: false, format: (v) => `${nf(1).format(v)} varil` }));
+  }
+</script>
+<style is:global>
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(4, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .s-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 5px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+  table.em td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>

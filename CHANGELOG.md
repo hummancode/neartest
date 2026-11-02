@@ -161,4 +161,8 @@
   `/konut-fiyatlari`: Türkiye reel/nominal, 60 ülke/bölgeyle karşılaştırma, 1/5 yıl ve 2010'dan beri sıralama,
   paylaşılabilir kart. `docs/ACIK-VERI-REHBERI.md`: sahibin indirebileceği açık veri dosyaları (bağlantı, biçim,
   repoda dosya adı, lisans).
+- 2026-11-02 — **Emtia (gerçek veri)**: altın (Dünya Bankası Pink Sheet), Brent ve Henry Hub doğal gaz (ABD EIA),
+  aylık, Datahub'ın GitHub kopyalarından (ODC-PDDL) günlük (`pipeline/commodities.py`, önce test). Yeni `/emtia`:
+  dönem seçmeli endeksli karşılaştırma, tek seri fiyat grafiği, altın/petrol oranı (medyan çizgisiyle), 1–20 yıllık
+  değişim ve zirveye uzaklık tablosu, paylaşılabilir kart. Ana sayfa "Gerçek veriyle" şeridi 5 kutuya çıktı.
 

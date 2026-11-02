@@ -4,7 +4,7 @@ import { paths } from "../lib/paths.ts";
 import { provinces } from "../lib/provinces.ts";
 import { provinceUrl } from "../lib/slug.ts";
 
-const ROUTES = ["/", "/turkiye/", "/iller/", "/nufus/", "/karsilastir/", "/mevzuat/", "/kart/", "/yapilandirma/", "/mevduat/", "/birikim/", "/ulkeler/", "/big-mac/", "/uzun-donem/", "/kredi/", "/taksit/", "/maas/", "/olaylar/", "/borsa/", "/portfoy/", "/makro/", "/iliskiler/", "/grafik/", "/konut/", "/konut-fiyatlari/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
+const ROUTES = ["/", "/turkiye/", "/iller/", "/nufus/", "/karsilastir/", "/mevzuat/", "/kart/", "/yapilandirma/", "/mevduat/", "/birikim/", "/ulkeler/", "/big-mac/", "/uzun-donem/", "/kredi/", "/taksit/", "/maas/", "/olaylar/", "/borsa/", "/emtia/", "/portfoy/", "/makro/", "/iliskiler/", "/grafik/", "/konut/", "/konut-fiyatlari/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
 
 export function GET() {
   const urls = SITE_URL

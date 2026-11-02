@@ -751,6 +751,20 @@ def write_houseprices() -> str:
     return f"Konut (BIS): {len(out['countries'])} ülke/bölge, Türkiye son {tr['last'] if tr else '—'}"
 
 
+OUT_COMMODITIES = ROOT / "site" / "data" / "emtia.json"
+
+
+def write_commodities() -> str:
+    from pipeline.commodities import build_commodities, load_raw
+    raw = load_raw()
+    if raw is None:
+        return "Emtia: indirme yok, mevcut dosya korundu" if OUT_COMMODITIES.exists() else "Emtia: veri yok"
+    out = build_commodities(*raw)
+    out["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    write_if_changed(OUT_COMMODITIES, out)
+    return "Emtia: " + ", ".join(f"{k} {v['last']}" for k, v in out["series"].items())
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
@@ -775,6 +789,7 @@ def main() -> int:
     print(write_bigmac())
     print(write_longrun())
     print(write_houseprices())
+    print(write_commodities())
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
