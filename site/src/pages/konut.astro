@@ -1,0 +1,326 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { YEARS } from "../lib/data.ts";
+import { monthLabel, pct, pctPlain } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+import { prices } from "../lib/prices.ts";
+
+const hasMinWage = prices.instruments.some((i) => i.id === "min_wage");
+
+const h = housing;
+const measures = [
+  { key: "nominal_tl", label: "Nominal TL", short: "Nom." },
+  { key: "real_tl", label: "Reel TL", short: "Reel" },
+  { key: "usd", label: "USD", short: "USD" },
+  { key: "gold", label: "Gram altın", short: "Altın" },
+] as const;
+const payload = { cities: h.cities, reference: h.reference, end: h.end_month, sample: h.sample };
+---
+<Base title="Konut: fiyatlar ve kirala mı, satın al mı?" description="Büyükşehirlerde konut fiyatlarının reel, dolar ve altın cinsinden getirisi; kiralamak ile satın almayı karşılaştıran hesaplayıcı." sample={h.sample}>
+  <h1>Konut</h1>
+  <p class="lead">
+    Büyükşehirlerde konut fiyatları enflasyonu, doları ve altını yendi mi? Ve bugün kiralamak mı, satın almak mı
+    daha mantıklı — kendi varsayımlarınızla hesaplayın.
+  </p>
+
+  <h2>Konut fiyatlarının reel getirisi</h2>
+  <p class="muted small">Veri bitişi {monthLabel(h.end_month)}. Büyük rakam kümülatif, küçük rakam yıllık. Kaynak seçimi şehir kartlarının üstündedir.</p>
+  <div class="cities">
+    {h.cities.map((c) => (
+      <section class="card city" data-city={c.id}>
+        <div class="city-head">
+          <h3>{c.label}</h3>
+          {Object.keys(c.sources).length > 1 ? (
+            <div class="seg" role="group" aria-label={`${c.label} veri kaynağı`}>
+              {Object.entries(c.sources).map(([k, s], i) => (
+                <button type="button" data-src={k} aria-pressed={i === 0 ? "true" : "false"}>{k === "kfe" ? "TCMB" : "BETAM"}</button>
+              ))}
+            </div>
+          ) : (
+            <span class="muted small">{c.sources.kfe.label}</span>
+          )}
+        </div>
+        {Object.entries(c.sources).map(([k, s], i) => (
+          <div class="src-panel" data-panel={k} hidden={i !== 0}>
+            {s.sample && <p class="tag-line"><span class="tag">örnek veri</span></p>}
+            <table class="data compact">
+              <thead><tr><th scope="col"><span class="sr-only">Ölçü</span></th>{YEARS.map((y) => <th scope="col">{y} yıl</th>)}</tr></thead>
+              <tbody>
+                {measures.map((m) => (
+                  <tr class={m.key === "real_tl" ? "real" : undefined}>
+                    <th scope="row"><span class="lbl-long">{m.label}</span><span class="lbl-short" aria-hidden="true">{m.short}</span></th>
+                    {YEARS.map((y) => {
+                      const w = s.windows.find((x) => x.years === y);
+                      const v = w ? w[m.key] : null;
+                      const a = w ? w[`${m.key}_annual`] : null;
+                      return <td><span class="cum">{pct(v)}</span>{a !== null && a !== undefined && <span class="ann">yıllık {pct(a)}</span>}</td>;
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p class="links small">
+              Grafik: <a href={`/grafik#x=${s.series === c.sources.kfe.series ? `house_${c.id}` : `betam_sale_${c.id}`}&y=cpi&w=10`}>reel</a> ·
+              <a href={`/grafik#x=${s.series === c.sources.kfe.series ? `house_${c.id}` : `betam_sale_${c.id}`}&y=usd&w=10`}>dolar</a> ·
+              <a href={`/grafik#x=${s.series === c.sources.kfe.series ? `house_${c.id}` : `betam_sale_${c.id}`}&y=gold&w=10`}>gram altın</a>
+              {hasMinWage && <> · <a href={`/grafik#x=${s.series === c.sources.kfe.series ? `house_${c.id}` : `betam_sale_${c.id}`}&y=min_wage&w=10`}>asgari ücret</a></>}
+            </p>
+          </div>
+        ))}
+      </section>
+    ))}
+  </div>
+
+  <h2 id="hesapla">Kirala mı, satın al mı?</h2>
+  <p>
+    Aynı evi satın almak ile kiralayıp aradaki parayı yatırmayı karşılaştırır. Varsayılan değerler son 12 ayın
+    verisinden ve örnek varsayımlardan gelir; <strong>geleceğe dair tahmin değildir</strong>, kendi beklentinizi girin.
+    Hesap tarayıcınızda yapılır.
+  </p>
+
+  <form id="rvb" class="card rvb" novalidate onsubmit="return false">
+    <fieldset>
+      <legend>Ev ve kira</legend>
+      <div class="field"><label for="city">Şehir (referans değerler için)</label>
+        <select id="city">{h.cities.map((c) => <option value={c.id}>{c.label}</option>)}</select></div>
+      <div class="field"><label for="price">Ev fiyatı (TL)</label><input id="price" inputmode="decimal" value="5.000.000" /><small>örnek</small></div>
+      <div class="field"><label for="rent">Aynı evin aylık kirası (TL)</label><input id="rent" inputmode="decimal" value="25.000" /><small>örnek</small></div>
+    </fieldset>
+    <fieldset>
+      <legend>Kredi</legend>
+      <div class="field"><label for="down">Peşinat (%)</label><input id="down" inputmode="decimal" value="30" /><small>%100 = nakit</small></div>
+      <div class="field"><label for="loanrate">Konut kredisi faizi (aylık %)</label><input id="loanrate" inputmode="decimal" /><small id="ref-loan"></small></div>
+      <div class="field"><label for="months">Vade (ay)</label><input id="months" inputmode="numeric" value="120" /></div>
+    </fieldset>
+    <fieldset>
+      <legend>Beklentiler (yıllık %)</legend>
+      <div class="field"><label for="hg">Ev fiyatı artışı</label><input id="hg" inputmode="decimal" /><small id="ref-hg"></small></div>
+      <div class="field"><label for="rg">Kira artışı</label><input id="rg" inputmode="decimal" /><small id="ref-rg"></small></div>
+      <div class="field"><label for="ir">Alternatif yatırım getirisi</label><input id="ir" inputmode="decimal" /><small id="ref-ir"></small></div>
+      <div class="field"><label for="inf">Enflasyon</label><input id="inf" inputmode="decimal" /><small id="ref-inf"></small></div>
+    </fieldset>
+    <fieldset>
+      <legend>Masraflar ve süre</legend>
+      <div class="field"><label for="bc">Alım masrafı (% fiyat)</label><input id="bc" inputmode="decimal" value="4" /><small>tapu harcı, ekspertiz vb. — örnek</small></div>
+      <div class="field"><label for="sc">Satış masrafı (% fiyat)</label><input id="sc" inputmode="decimal" value="2" /><small>örnek</small></div>
+      <div class="field"><label for="up">Bakım, vergi, sigorta (yıllık % fiyat)</label><input id="up" inputmode="decimal" value="0,5" /><small>örnek</small></div>
+      <div class="field"><label for="years">Karşılaştırma süresi (yıl)</label><input id="years" inputmode="numeric" value="10" /></div>
+    </fieldset>
+  </form>
+  <p id="rvb-error" class="error" role="alert" hidden></p>
+
+  <section class="results" aria-live="polite">
+    <div class="card stat"><p class="stat-label">Satın alırsanız</p><p class="stat-value" id="o-buy">—</p><p class="muted small" id="o-buy-real"></p></div>
+    <div class="card stat"><p class="stat-label">Kiralarsanız</p><p class="stat-value" id="o-rent">—</p><p class="muted small" id="o-rent-real"></p></div>
+    <div class="card stat verdict"><p class="stat-label">Sonuç</p><p class="verdict-text" id="o-verdict">—</p><p class="muted small" id="o-breakeven"></p></div>
+  </section>
+  <p class="muted small" id="o-payment"></p>
+  <p class="muted small" id="o-sens"></p>
+
+  <details class="card yearly">
+    <summary>Yıl yıl dökümü</summary>
+    <div class="scroll-x">
+      <table class="data" id="yearly">
+        <thead><tr><th scope="col">Yıl</th><th scope="col">Ev değeri</th><th scope="col">Kalan kredi</th><th scope="col">Yıllık kira (son ay ×12)</th><th scope="col">Satın alma serveti</th><th scope="col">Kiralama serveti</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+  <div class="actions"><button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button></div>
+
+  <h3>Varsayımlar</h3>
+  <ul class="small">
+    <li>Satın alan bugün peşinat + alım masrafını öder, her ay eşit taksit ve bakım öder. Servet = ev değeri − satış masrafı − kalan borç.</li>
+    <li>Kiracı, satın alanın bugün ödediğini yatırır; her ay (taksit + bakım − kira) farkını yatırır ya da çeker.</li>
+    <li>Kira yılda bir artar; ev fiyatı ve yatırım aylık bileşik büyür. Vergi, kira geliri, taşınma, kredi sigortası dahil değildir.</li>
+    <li>Ayrıntılı formül: <a href="/metodoloji#kiravsal">Metodoloji</a>. Kaynaklar: <a href="/veri">Veri durumu</a>.</li>
+  </ul>
+  <p><strong>{DISCLAIMER}</strong> Sonuç tamamen girdiğiniz varsayımlara bağlıdır.</p>
+
+  <script type="application/json" id="housing-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { rentVsBuy, SeriesError, type RentVsBuyParams } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  const data = JSON.parse(document.getElementById("housing-data")!.textContent!);
+  const ref = data.reference;
+  const pct1 = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(x * 100);
+  const tl = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(x)) + " TL";
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const sampleNote = data.sample ? " (örnek veri)" : "";
+
+  // City cards: source toggle
+  document.querySelectorAll<HTMLElement>(".city").forEach((card) => {
+    card.querySelectorAll<HTMLButtonElement>("[data-src]").forEach((b) => b.addEventListener("click", () => {
+      card.querySelectorAll<HTMLButtonElement>("[data-src]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+      card.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== b.dataset.src));
+    }));
+  });
+
+  const FIELDS = ["price", "rent", "down", "loanrate", "months", "hg", "rg", "ir", "inf", "bc", "sc", "up", "years"];
+  const fmtIn = (x: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(x);
+  const city = () => data.cities.find((c: any) => c.id === $<HTMLSelectElement>("city").value);
+
+  function setRefs(fill: boolean) {
+    const c = city();
+    const hg = c.house_12m.betam ?? c.house_12m.kfe;
+    const rg = c.rent_12m_betam ?? ref.rent_12m;
+    const refs: [string, number | null, string][] = [
+      ["hg", hg, `son 12 ay, ${c.label} ${c.house_12m.betam != null ? "BETAM" : "TCMB KFE"}: %${hg == null ? "—" : pct1(hg)}${sampleNote}`],
+      ["rg", rg, `son 12 ay kira (${c.rent_12m_betam != null ? `BETAM ${c.label}` : "TÜFE kira"}): %${rg == null ? "—" : pct1(rg)}${sampleNote}`],
+      ["ir", ref.deposit_rate, `TL mevduat faizi (brüt): %${ref.deposit_rate == null ? "—" : pct1(ref.deposit_rate)}${sampleNote}`],
+      ["inf", ref.cpi_12m, `son 12 ay TÜFE: %${ref.cpi_12m == null ? "—" : pct1(ref.cpi_12m)}${sampleNote}`],
+    ];
+    for (const [id, v, text] of refs) {
+      $(`ref-${id}`).textContent = `referans: ${text}`;
+      if (fill && v != null) $(id).value = fmtIn(+(v * 100).toFixed(1));
+    }
+    const loan = ref.credit_rate != null ? ref.credit_rate / 12 : null;
+    $("ref-loan").textContent = `referans: TL kredi faizi / 12 = %${loan == null ? "—" : pct1(loan)}${sampleNote}`;
+    if (fill && loan != null) $("loanrate").value = fmtIn(+(loan * 100).toFixed(2));
+  }
+
+  const MONEY = new Set(["price", "rent"]);
+  function num(id: string): number | null {
+    const raw = $(id).value.trim();
+    if (raw === "") return null;
+    // TL amounts use Turkish grouping ("25.000" = 25000); rates/percentages are small
+    // numbers where a single comma or dot is the decimal mark ("2,5", "-3", "0.5").
+    if (MONEY.has(id)) return parseAmount(raw);
+    if (/^-?\d+([.,]\d+)?$/.test(raw)) return Number(raw.replace(",", "."));
+    return null;
+  }
+
+  function read(): RentVsBuyParams | string {
+    const v: Record<string, number | null> = Object.fromEntries(FIELDS.map((f) => [f, num(f)]));
+    for (const f of FIELDS) if (v[f] === null) return "Tüm alanları doldurun.";
+    if (v.price! <= 0) return "Ev fiyatı pozitif olmalı.";
+    if (v.down! < 0 || v.down! > 100) return "Peşinat %0 ile %100 arasında olmalı.";
+    if (!Number.isInteger(v.months!) || v.months! < 1 || v.months! > 480) return "Vade 1–480 ay arasında tam sayı olmalı.";
+    if (!Number.isInteger(v.years!) || v.years! < 1 || v.years! > 40) return "Süre 1–40 yıl arasında tam sayı olmalı.";
+    return {
+      price: v.price!, rent: v.rent!, down_share: v.down! / 100, loan_rate_monthly: v.loanrate! / 100, loan_months: v.months!,
+      house_growth: v.hg! / 100, rent_growth: v.rg! / 100, invest_return: v.ir! / 100, inflation: v.inf! / 100,
+      buy_cost: v.bc! / 100, sell_cost: v.sc! / 100, upkeep: v.up! / 100, years: v.years!,
+    };
+  }
+
+  function update() {
+    const p = read();
+    const err = $<HTMLElement>("rvb-error");
+    if (typeof p === "string") { err.textContent = p; err.hidden = false; return; }
+    let r;
+    try { r = rentVsBuy(p); } catch (e) {
+      if (e instanceof SeriesError) { err.textContent = "Bu değerlerle hesap yapılamadı."; err.hidden = false; return; }
+      throw e;
+    }
+    err.hidden = true;
+    writeHash({ c: $<HTMLSelectElement>("city").value, ...Object.fromEntries(FIELDS.map((f) => [f, $(f).value])) });
+    $("o-buy").textContent = tl(r.buy_wealth);
+    $("o-rent").textContent = tl(r.rent_wealth);
+    $("o-buy-real").textContent = `bugünkü TL ile ${tl(r.buy_wealth_real)} · ${p.years}. yıl sonunda net servet`;
+    $("o-rent-real").textContent = `bugünkü TL ile ${tl(r.rent_wealth_real)} · ${p.years}. yıl sonunda yatırım değeri`;
+    const diff = r.buy_wealth - r.rent_wealth;
+    $("o-verdict").textContent = Math.abs(diff) < 1
+      ? "Bu varsayımlarla iki yol eşit."
+      : `Bu varsayımlarla ${diff > 0 ? "satın almak" : "kiralamak"} ${tl(Math.abs(diff))} (bugünkü TL ile ${tl(Math.abs(diff) / (1 + p.inflation) ** p.years)}) daha avantajlı.`;
+    $("o-breakeven").textContent = r.breakeven_year
+      ? `Satın alma ${r.breakeven_year}. yıldan itibaren önde kalıyor.`
+      : "Seçilen süre içinde satın alma kalıcı olarak öne geçmiyor.";
+    const firstNegative = r.yearly.find((y) => y.rent_wealth < 0);
+    if (firstNegative) {
+      $("o-breakeven").textContent += ` Kiracının birikimi ${firstNegative.year}. yılda tükeniyor; sonrasında kira farkının aynı getiri oranıyla borçlanılarak karşılandığı varsayılır.`;
+    }
+    const rent0 = p.rent;
+    $("o-payment").textContent = r.monthly_payment > 0
+      ? `Aylık kredi taksiti: ${tl(r.monthly_payment)} · İlk yıl aylık kira: ${tl(rent0)} · Taksit/kira oranı: ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(r.monthly_payment / rent0)}`
+      : `Nakit alım · İlk yıl aylık kira: ${tl(rent0)}`;
+    // Sensitivity: same inputs, house price growth ±10 points.
+    const lo = rentVsBuy({ ...p, house_growth: p.house_growth - 0.10 });
+    const hi = rentVsBuy({ ...p, house_growth: p.house_growth + 0.10 });
+    const w = (x: { buy_wealth: number; rent_wealth: number }) => (x.buy_wealth >= x.rent_wealth ? "satın almak" : "kiralamak");
+    $("o-sens").textContent = `Duyarlılık: ev fiyatı artışı 10 puan düşük olursa ${w(lo)}, 10 puan yüksek olursa ${w(hi)} önde.`;
+    const tbody = document.querySelector("#yearly tbody")!;
+    tbody.replaceChildren(...r.yearly.map((y) => {
+      const tr = document.createElement("tr");
+      for (const t of [String(y.year), tl(y.house_value), tl(y.loan_balance), tl(y.rent * 12), tl(y.buy_wealth), tl(y.rent_wealth)]) {
+        const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+      }
+      return tr;
+    }));
+  }
+
+  // Restore from link, else fill references.
+  const h = readHash();
+  if (h.get("price")) {
+    if (h.get("c")) $<HTMLSelectElement>("city").value = h.get("c")!;
+    setRefs(false);
+    for (const f of FIELDS) if (h.get(f) !== null) $(f).value = h.get(f)!;
+  } else {
+    setRefs(true);
+  }
+  $<HTMLSelectElement>("city").addEventListener("change", () => { setRefs(true); update(); });
+  for (const f of FIELDS) $(f).addEventListener("input", update);
+  $("copy-link").addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  update();
+</script>
+
+<style>
+  .cities { display: grid; gap: 16px; }
+  @media (min-width: 860px) { .cities { grid-template-columns: 1fr 1fr; } }
+  .city { padding: 14px 10px 8px; min-width: 0; }
+  .city-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .city-head h3 { margin: 0; font-size: 1.6rem; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button { background: none; border: 0; color: var(--ink-2); font: inherit; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .tag-line { margin: 6px 0 0; }
+  .tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 1px 5px; }
+  .compact td { vertical-align: top; }
+  .compact .cum { display: block; font-weight: 600; white-space: nowrap; font-size: 0.92rem; }
+  .compact .ann { display: block; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+  .compact tbody th { font-size: 0.82rem; white-space: nowrap; color: var(--ink-2); }
+  .compact tr.real th, .compact tr.real .cum { color: var(--ink); font-weight: 700; }
+  @media (max-width: 520px) {
+    .compact th, .compact td { padding: 6px 2px; }
+    .compact .cum { font-size: 0.78rem; }
+    .compact .ann { display: none; }
+    .compact tbody th { font-size: 0.72rem; }
+  }
+  .lbl-short { display: none; }
+  @media (max-width: 380px) {
+    .city { padding: 12px 6px 6px; }
+    .lbl-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .lbl-short { display: inline; }
+    .compact .cum { font-size: 0.72rem; letter-spacing: -0.01em; }
+    .compact thead th { font-size: 0.65rem; }
+  }
+  .links { margin: 6px 0 2px; }
+  .rvb { display: grid; gap: 12px; }
+  @media (min-width: 860px) { .rvb { grid-template-columns: 1fr 1fr; } }
+  fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; min-width: 0; }
+  legend { font-weight: 700; font-size: 0.9rem; padding: 0 4px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .field small { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 3px; }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .results { display: grid; gap: 12px; margin-top: 16px; }
+  @media (min-width: 720px) { .results { grid-template-columns: 1fr 1fr 1.3fr; } }
+  .stat-label { font-weight: 600; font-size: 0.9rem; color: var(--ink-2); margin: 0; }
+  .stat-value { font-family: var(--font-head); font-size: clamp(2rem, 9vw, 2.8rem); margin: 2px 0; line-height: 1.1; overflow-wrap: anywhere; }
+  .verdict-text { font-weight: 700; font-size: 1.05rem; margin: 4px 0; }
+  .stat p:last-child { margin-bottom: 0; }
+  .yearly { margin-top: 12px; }
+  .yearly summary { cursor: pointer; font-weight: 600; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  #yearly { min-width: 640px; font-size: 0.85rem; }
+  .actions { margin-top: 12px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

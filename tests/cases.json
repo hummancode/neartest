@@ -459,6 +459,249 @@
     "b": 0.2
    },
    "tol": 1e-12
+  },
+  {
+   "name": "ratio_index halves when Y rises twice as fast",
+   "fn": "ratio_index",
+   "args": [
+    {
+     "2024-01": 10.0,
+     "2024-02": 15.0,
+     "2024-03": 20.0
+    },
+    {
+     "2024-01": 2.0,
+     "2024-02": 4.0,
+     "2024-03": 8.0
+    },
+    "2024-01",
+    "2024-03"
+   ],
+   "expect": {
+    "months": [
+     "2024-01",
+     "2024-02",
+     "2024-03"
+    ],
+    "values": [
+     100.0,
+     75.0,
+     50.0
+    ]
+   },
+   "tol": 1e-12,
+   "note": "100*(15/4)/(10/2)=75"
+  },
+  {
+   "name": "ratio_index needs every month",
+   "fn": "ratio_index",
+   "args": [
+    {
+     "2024-01": 1.0,
+     "2024-03": 1.0
+    },
+    {
+     "2024-01": 1.0,
+     "2024-02": 1.0,
+     "2024-03": 1.0
+    },
+    "2024-01",
+    "2024-03"
+   ],
+   "raises": true
+  },
+  {
+   "name": "mortgage_payment textbook",
+   "fn": "mortgage_payment",
+   "args": [
+    1000,
+    0.01,
+    12
+   ],
+   "expect": 88.8487886783416,
+   "tol": 1e-09
+  },
+  {
+   "name": "mortgage_payment zero rate",
+   "fn": "mortgage_payment",
+   "args": [
+    1200,
+    0.0,
+    12
+   ],
+   "expect": 100.0,
+   "tol": 1e-12
+  },
+  {
+   "name": "rent_vs_buy cash, no growth",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 10.0,
+     "down_share": 1.0,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.0,
+     "rent_growth": 0.0,
+     "invest_return": 0.0,
+     "inflation": 0.0,
+     "buy_cost": 0.0,
+     "sell_cost": 0.0,
+     "upkeep": 0.0,
+     "years": 1
+    }
+   ],
+   "expect": {
+    "buy_wealth": 1200.0,
+    "rent_wealth": 1080.0,
+    "breakeven_year": 1
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "renter pays 12x10 rent"
+  },
+  {
+   "name": "rent_vs_buy investment return",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 0.0,
+     "down_share": 1.0,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.0,
+     "rent_growth": 0.0,
+     "invest_return": 0.12,
+     "inflation": 0.0,
+     "buy_cost": 0.0,
+     "sell_cost": 0.0,
+     "upkeep": 0.0,
+     "years": 1
+    }
+   ],
+   "expect": {
+    "buy_wealth": 1200.0,
+    "rent_wealth": 1344.0,
+    "breakeven_year": null
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "1200*1.12"
+  },
+  {
+   "name": "rent_vs_buy mortgage repaid",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 10.0,
+     "down_share": 0.5,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.0,
+     "rent_growth": 0.0,
+     "invest_return": 0.0,
+     "inflation": 0.0,
+     "buy_cost": 0.0,
+     "sell_cost": 0.0,
+     "upkeep": 0.0,
+     "years": 1
+    }
+   ],
+   "expect": {
+    "buy_wealth": 1200.0,
+    "rent_wealth": 1080.0,
+    "monthly_payment": 50.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "600 + 12*(50-10)"
+  },
+  {
+   "name": "rent_vs_buy costs and real terms",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 0.0,
+     "down_share": 1.0,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.0,
+     "rent_growth": 0.0,
+     "invest_return": 0.0,
+     "inflation": 0.1,
+     "buy_cost": 0.04,
+     "sell_cost": 0.02,
+     "upkeep": 0.0,
+     "years": 1
+    }
+   ],
+   "expect": {
+    "buy_wealth": 1176.0,
+    "rent_wealth": 1248.0,
+    "buy_wealth_real": 1069.090909090909,
+    "rent_wealth_real": 1134.5454545454545
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": ""
+  },
+  {
+   "name": "rent_vs_buy yearly rent step",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 10.0,
+     "down_share": 1.0,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.0,
+     "rent_growth": 0.5,
+     "invest_return": 0.0,
+     "inflation": 0.0,
+     "buy_cost": 0.0,
+     "sell_cost": 0.0,
+     "upkeep": 0.0,
+     "years": 2
+    }
+   ],
+   "expect": {
+    "rent_wealth": 900.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "12*10 + 12*15 = 300"
+  },
+  {
+   "name": "rent_vs_buy breakeven never",
+   "fn": "rent_vs_buy",
+   "args": [
+    {
+     "price": 1200.0,
+     "rent": 0.0,
+     "down_share": 1.0,
+     "loan_rate_monthly": 0.0,
+     "loan_months": 12,
+     "house_growth": 0.3,
+     "rent_growth": 0.0,
+     "invest_return": 0.5,
+     "inflation": 0.0,
+     "buy_cost": 0.0,
+     "sell_cost": 0.0,
+     "upkeep": 0.0,
+     "years": 3
+    }
+   ],
+   "expect": {
+    "breakeven_year": null
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": ""
   }
  ]
 }

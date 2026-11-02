@@ -118,11 +118,72 @@ CPI_WEIGHTS_SOURCE = {
     "verified": False,
 }
 
-ALL_SERIES = SERIES | CPI_GROUP_SERIES
+# Prices for the "X priced in Y" chart tool and the housing page. Codes NOT verified.
+# Cars: no official TL price series exists; TÜİK's CPI sub-index for cars is the only
+# official measure (quality-adjusted index, not list prices). Never scrape listing sites.
+MARKET_SERIES = {
+    "car_cpi": {
+        "label": "TÜFE: Otomobil alt endeksi",
+        "source": "TÜİK, TCMB EVDS üzerinden",
+        "code": None,
+        "verified": False,
+        "unit": "endeks",
+    },
+    "rent_cpi": {
+        "label": "TÜFE: Gerçek kira alt endeksi",
+        "source": "TÜİK, TCMB EVDS üzerinden",
+        "code": None,
+        "verified": False,
+        "unit": "endeks",
+    },
+    **{
+        f"house_{key}": {
+            "label": f"Konut Fiyat Endeksi — {name}",
+            "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+            "code": None,
+            "verified": False,
+            "unit": "endeks",
+        }
+        for key, name in (("tr", "Türkiye"), ("ist", "İstanbul"), ("ank", "Ankara"), ("izm", "İzmir"))
+    },
+}
+
+CITIES = [
+    {"id": "ist", "label": "İstanbul", "series": "house_ist", "betam_sale": "betam_sale_ist", "betam_rent": "betam_rent_ist"},
+    {"id": "ank", "label": "Ankara", "series": "house_ank", "betam_sale": "betam_sale_ank", "betam_rent": "betam_rent_ank"},
+    {"id": "izm", "label": "İzmir", "series": "house_izm", "betam_sale": "betam_sale_izm", "betam_rent": "betam_rent_izm"},
+    {"id": "tr", "label": "Türkiye", "series": "house_tr", "betam_sale": "betam_sale_tr", "betam_rent": "betam_rent_tr"},
+]
+
+ALL_SERIES = SERIES | CPI_GROUP_SERIES | MARKET_SERIES
 
 # Series used only when real data exists (data/raw or data/manual). Never sampled:
 # the site shows them as missing instead of inventing numbers.
 OPTIONAL_SERIES = {
+    # New-car list prices from official dealer price lists. Either an index CSV
+    # (data/manual/car_new.csv) or a basket of model prices
+    # (data/manual/car_new_basket.csv: month;model;price) turned into a chained
+    # Jevons index by the builder. Our own price tracker, not an official statistic.
+    "car_new": {
+        "label": "0 km otomobil liste fiyatı endeksi (resmi bayi fiyat listeleri)",
+        "source": "Markaların resmi fiyat listeleri, elle derlenen sepet (data/manual/car_new_basket.csv)",
+        "code": None,
+        "verified": False,
+        "unit": "endeks",
+    },
+    # BETAM (Bahçeşehir Üniversitesi) housing sale / rent indices from its monthly
+    # reports, entered by hand. Check BETAM's terms and cite it when published.
+    **{
+        f"betam_{kind}_{key}": {
+            "label": f"BETAM {'satılık' if kind == 'sale' else 'kiralık'} konut endeksi — {name}",
+            "source": "BETAM konut piyasası raporları (elle girilir)",
+            "code": None,
+            "verified": False,
+            "unit": "endeks veya TL/m²",
+        }
+        for kind in ("sale", "rent")
+        for key, name in (("tr", "Türkiye"), ("ist", "İstanbul"), ("ank", "Ankara"), ("izm", "İzmir"))
+    },
     "min_wage_net": {
         "label": "Net asgari ücret (aylık, bekâr işçi)",
         "source": "ÇSGB / Resmî Gazete (elle girilir: data/manual/min_wage_net.csv)",

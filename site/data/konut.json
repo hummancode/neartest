@@ -1,0 +1,330 @@
+{
+ "end_month": "2026-09",
+ "sample": true,
+ "cities": [
+  {
+   "id": "ist",
+   "label": "İstanbul",
+   "sources": {
+    "kfe": {
+     "label": "TCMB Konut Fiyat Endeksi",
+     "series": "house_ist",
+     "sample": true,
+     "windows": [
+      {
+       "years": 1,
+       "nominal_tl": 0.3261159985604465,
+       "usd": 0.03188639686957906,
+       "real_tl": -0.002920301834250849,
+       "nominal_tl_annual": 0.3261159985604465,
+       "usd_annual": 0.03188639686957906,
+       "real_tl_annual": -0.002920301834250849,
+       "gold": 0.031576993306231094,
+       "gold_annual": 0.031576993306231094
+      },
+      {
+       "years": 3,
+       "nominal_tl": 2.0993863838447515,
+       "usd": 0.36456503830755205,
+       "real_tl": 0.31740952124987887,
+       "nominal_tl_annual": 0.458003523719855,
+       "usd_annual": 0.10916991162892575,
+       "real_tl_annual": 0.09624325091718422,
+       "gold": 0.1507648144051239,
+       "gold_annual": 0.0479217591119816
+      },
+      {
+       "years": 5,
+       "nominal_tl": 4.8032100279440995,
+       "usd": 0.5633520371547811,
+       "real_tl": 0.3944729166936898,
+       "nominal_tl_annual": 0.4214567748331417,
+       "usd_annual": 0.0934812908365048,
+       "real_tl_annual": 0.06876449235574555,
+       "gold": 0.24940380885441216,
+       "gold_annual": 0.045539789389680285
+      },
+      {
+       "years": 10,
+       "nominal_tl": 39.69446343818665,
+       "usd": 1.8272711769987455,
+       "real_tl": 1.3497351681439524,
+       "nominal_tl_annual": 0.4486168504948822,
+       "usd_annual": 0.10952411681489593,
+       "real_tl_annual": 0.08918560187585123,
+       "gold": 0.6107912149862256,
+       "gold_annual": 0.04882716023236888
+      }
+     ]
+    }
+   },
+   "rent_12m_betam": null,
+   "house_12m": {
+    "kfe": 0.3261159985604465
+   }
+  },
+  {
+   "id": "ank",
+   "label": "Ankara",
+   "sources": {
+    "kfe": {
+     "label": "TCMB Konut Fiyat Endeksi",
+     "series": "house_ank",
+     "sample": true,
+     "windows": [
+      {
+       "years": 1,
+       "nominal_tl": 0.31382887892103595,
+       "usd": 0.022325459797422287,
+       "real_tl": -0.01215873765335651,
+       "nominal_tl_annual": 0.31382887892103595,
+       "usd_annual": 0.022325459797422287,
+       "real_tl_annual": -0.01215873765335651,
+       "gold": 0.022018923010890257,
+       "gold_annual": 0.022018923010890257
+      },
+      {
+       "years": 3,
+       "nominal_tl": 1.6739254225331783,
+       "usd": 0.17724758863536705,
+       "real_tl": 0.1365652340472323,
+       "nominal_tl_annual": 0.38797964382641226,
+       "usd_annual": 0.055899546084700935,
+       "real_tl_annual": 0.04359371716271587,
+       "gold": -0.007203713408109991,
+       "gold_annual": -0.002407026932764622
+      },
+      {
+       "years": 5,
+       "nominal_tl": 3.938825483665653,
+       "usd": 0.3304917181803264,
+       "real_tl": 0.18676703825731455,
+       "nominal_tl_annual": 0.3763368444767592,
+       "usd_annual": 0.05877196969352316,
+       "real_tl_annual": 0.034839732689292635,
+       "gold": 0.06330588430299366,
+       "gold_annual": 0.012352229052063235
+      },
+      {
+       "years": 10,
+       "nominal_tl": 26.287051112884797,
+       "usd": 0.8957835193953461,
+       "real_tl": 0.5755790399418534,
+       "nominal_tl_annual": 0.3918603410114505,
+       "usd_annual": 0.06605319071280902,
+       "real_tl_annual": 0.04651153459507551,
+       "gold": 0.08009145475720558,
+       "gold_annual": 0.007734328372879462
+      }
+     ]
+    }
+   },
+   "rent_12m_betam": null,
+   "house_12m": {
+    "kfe": 0.31382887892103595
+   }
+  },
+  {
+   "id": "izm",
+   "label": "İzmir",
+   "sources": {
+    "kfe": {
+     "label": "TCMB Konut Fiyat Endeksi",
+     "series": "house_izm",
+     "sample": true,
+     "windows": [
+      {
+       "years": 1,
+       "nominal_tl": 0.37992148566940664,
+       "usd": 0.07375388831448126,
+       "real_tl": 0.03753495163113274,
+       "nominal_tl_annual": 0.37992148566940664,
+       "usd_annual": 0.07375388831448126,
+       "real_tl_annual": 0.03753495163113274,
+       "gold": 0.0734319310910787,
+       "gold_annual": 0.0734319310910787
+      },
+      {
+       "years": 3,
+       "nominal_tl": 1.7902277694208144,
+       "usd": 0.22845195517166106,
+       "real_tl": 0.18600012216963946,
+       "nominal_tl_annual": 0.40781812493662484,
+       "usd_annual": 0.07099158528891802,
+       "real_tl_annual": 0.058509868373401996,
+       "gold": 0.035977946461289045,
+       "gold_annual": 0.011851632724026784
+      },
+      {
+       "years": 5,
+       "nominal_tl": 4.6248386646966635,
+       "usd": 0.515299798348986,
+       "real_tl": 0.35161146002323385,
+       "nominal_tl_annual": 0.4126091468643682,
+       "usd_annual": 0.0866750932627014,
+       "real_tl_annual": 0.06211214049952485,
+       "gold": 0.21100129377072974,
+       "gold_annual": 0.039031995943653364
+      },
+      {
+       "years": 10,
+       "nominal_tl": 32.08952148288448,
+       "usd": 1.2989134748353082,
+       "real_tl": 0.910618933297652,
+       "nominal_tl_annual": 0.4189563918160111,
+       "usd_annual": 0.08680658856803292,
+       "real_tl_annual": 0.06688450512482036,
+       "gold": 0.30976811117535563,
+       "gold_annual": 0.02735240337259448
+      }
+     ]
+    }
+   },
+   "rent_12m_betam": null,
+   "house_12m": {
+    "kfe": 0.37992148566940664
+   }
+  },
+  {
+   "id": "tr",
+   "label": "Türkiye",
+   "sources": {
+    "kfe": {
+     "label": "TCMB Konut Fiyat Endeksi",
+     "series": "house_tr",
+     "sample": true,
+     "windows": [
+      {
+       "years": 1,
+       "nominal_tl": 0.3183884819542435,
+       "usd": 0.025873409109699264,
+       "real_tl": -0.008730464696057538,
+       "nominal_tl_annual": 0.3183884819542435,
+       "usd_annual": 0.025873409109699264,
+       "real_tl_annual": -0.008730464696057538,
+       "gold": 0.025565808496603504,
+       "gold_annual": 0.025565808496603504
+      },
+      {
+       "years": 3,
+       "nominal_tl": 1.8528226586752408,
+       "usd": 0.2560105706119751,
+       "real_tl": 0.21260638962799638,
+       "nominal_tl_annual": 0.4182678506940902,
+       "usd_annual": 0.07894116922777106,
+       "real_tl_annual": 0.06636680503315051,
+       "gold": 0.05921867452637941,
+       "gold_annual": 0.019362242142900055
+      },
+      {
+       "years": 5,
+       "nominal_tl": 4.280675647056974,
+       "usd": 0.42258422332249346,
+       "real_tl": 0.2689113673650083,
+       "nominal_tl_annual": 0.39488337635293136,
+       "usd_annual": 0.07303922422813791,
+       "real_tl_annual": 0.04878449349844449,
+       "gold": 0.13690461571922174,
+       "gold_annual": 0.02599396433029466
+      },
+      {
+       "years": 10,
+       "nominal_tl": 31.293746612311736,
+       "usd": 1.243626559494412,
+       "real_tl": 0.8646701716890803,
+       "nominal_tl_annual": 0.41550641965426416,
+       "usd_annual": 0.08416418708382367,
+       "real_tl_annual": 0.06429054109343157,
+       "gold": 0.27826930120646587,
+       "gold_annual": 0.024854555508923903
+      }
+     ]
+    }
+   },
+   "rent_12m_betam": null,
+   "house_12m": {
+    "kfe": 0.3183884819542435
+   }
+  }
+ ],
+ "reference": {
+  "cpi_12m": 0.33000000000000007,
+  "rent_12m": 0.44999999999999996,
+  "deposit_rate": 0.1,
+  "credit_rate": 0.18,
+  "sample": true
+ },
+ "sources": {
+  "cpi_tr": {
+   "label": "TÜFE (2003=100)",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "usdtry": {
+   "label": "USD/TRY",
+   "source": "TCMB EVDS",
+   "code": "TP.DK.USD.A.YTL",
+   "verified": false,
+   "sample": true
+  },
+  "gold_gram_tl": {
+   "label": "Gram altın",
+   "source": "Belirlenecek",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "rent_cpi": {
+   "label": "TÜFE: Gerçek kira alt endeksi",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "deposit_rate": {
+   "label": "TL mevduat faizi (ağırlıklı ortalama, yıllık)",
+   "source": "TCMB EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "credit_rate": {
+   "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
+   "source": "TCMB EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "house_ist": {
+   "label": "Konut Fiyat Endeksi — İstanbul",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "house_ank": {
+   "label": "Konut Fiyat Endeksi — Ankara",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "house_izm": {
+   "label": "Konut Fiyat Endeksi — İzmir",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  },
+  "house_tr": {
+   "label": "Konut Fiyat Endeksi — Türkiye",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "sample": true
+  }
+ },
+ "generated_at": "2026-11-02T06:26:19+00:00"
+}

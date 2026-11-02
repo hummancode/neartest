@@ -224,3 +224,110 @@ def test_index_paths_require_contiguous_months():
     asset = {"2024-06": 100.0, "2025-06": 200.0}   # 11 months missing
     with pytest.raises(e.SeriesError):
         e.index_paths(asset, asset, asset, "2025-06", 1)
+
+
+# --- ratio charts: "X priced in Y" ------------------------------------------
+
+def test_ratio_index_rebases_to_100():
+    # X doubles in TL, Y (e.g. gold) goes up 4x -> X in Y terms halves: 100 -> 50
+    x = {"2024-01": 10.0, "2024-02": 15.0, "2024-03": 20.0}
+    y = {"2024-01": 2.0, "2024-02": 4.0, "2024-03": 8.0}
+    out = e.ratio_index(x, y, "2024-01", "2024-03")
+    assert out["months"] == ["2024-01", "2024-02", "2024-03"]
+    assert out["values"] == [100.0, 75.0, 50.0]      # 100*(15/4)/(10/2) = 75
+
+
+def test_ratio_index_needs_every_month():
+    with pytest.raises(e.SeriesError):
+        e.ratio_index({"2024-01": 1.0, "2024-03": 1.0}, {"2024-01": 1.0, "2024-02": 1.0, "2024-03": 1.0}, "2024-01", "2024-03")
+
+
+# --- rent vs buy -------------------------------------------------------------
+
+def test_mortgage_payment_textbook():
+    # 1000 at 1 %/month over 12 months: 1000*0.01/(1-1.01**-12) = 88.8487886...
+    assert close(e.mortgage_payment(1000, 0.01, 12), 1000 * 0.01 / (1 - 1.01 ** -12))
+    assert close(e.mortgage_payment(1200, 0.0, 12), 100.0)    # zero rate: straight division
+
+
+def _rvb(**kw):
+    p = dict(price=1200.0, rent=10.0, down_share=1.0, loan_rate_monthly=0.0, loan_months=12,
+             house_growth=0.0, rent_growth=0.0, invest_return=0.0, inflation=0.0,
+             buy_cost=0.0, sell_cost=0.0, upkeep=0.0, years=1)
+    p.update(kw)
+    return e.rent_vs_buy(**p)
+
+
+def test_rent_vs_buy_cash_no_growth():
+    # Buyer pays 1200 cash, owns a 1200 house. Renter keeps 1200 but pays 12 x 10 rent -> 1080.
+    r = _rvb()
+    assert close(r["buy_wealth"], 1200.0) and close(r["rent_wealth"], 1080.0)
+    assert r["breakeven_year"] == 1
+
+
+def test_rent_vs_buy_investment_return():
+    # No rent, 12 %/year on the renter's 1200 -> 1344 after a year; house flat -> buyer 1200.
+    r = _rvb(rent=0.0, invest_return=0.12)
+    assert close(r["rent_wealth"], 1344.0, tol=1e-9) and close(r["buy_wealth"], 1200.0)
+    assert r["breakeven_year"] is None
+
+
+def test_rent_vs_buy_mortgage_fully_repaid():
+    # 50 % down, rest at 0 % over 12 months: buyer pays 50/month; renter invests the 600 down payment
+    # and pays 10 rent while the buyer pays 50 -> renter adds 40/month: 600 + 12*40 = 1080.
+    r = _rvb(down_share=0.5)
+    assert close(r["buy_wealth"], 1200.0) and close(r["rent_wealth"], 1080.0)
+
+
+def test_rent_vs_buy_costs_and_real_terms():
+    # 4 % purchase cost, 2 % selling cost, 10 % inflation, cash, no rent, nothing else moves:
+    # buyer: 1200*(1-0.02) = 1176; renter keeps 1200 + 48 (the purchase cost he didn't pay) = 1248.
+    r = _rvb(rent=0.0, buy_cost=0.04, sell_cost=0.02, inflation=0.10)
+    assert close(r["buy_wealth"], 1176.0) and close(r["rent_wealth"], 1248.0)
+    assert close(r["buy_wealth_real"], 1176.0 / 1.10) and close(r["rent_wealth_real"], 1248.0 / 1.10)
+
+
+def test_rent_steps_up_once_a_year():
+    # 2 years, rent 10 rising 50 % after year one: rents = 12*10 + 12*15 = 300 -> renter 1200 - 300.
+    r = _rvb(rent_growth=0.5, years=2, loan_months=12)
+    assert close(r["rent_wealth"], 900.0)
+    assert len(r["yearly"]) == 2 and close(r["yearly"][0]["rent_wealth"], 1080.0)
+
+
+def test_breakeven_means_buying_stays_ahead():
+    # Cash purchase, house +30 %/yr, renter earns 50 %/yr on 1200 with no rent:
+    # renter ahead every year -> None. With 0 % return the buyer is ahead from year 1.
+    assert _rvb(rent=0.0, house_growth=0.30, invest_return=0.50, years=3)["breakeven_year"] is None
+    assert _rvb(rent=0.0, house_growth=0.30, years=3)["breakeven_year"] == 1
+
+
+# --- price basket index (new-car list prices) --------------------------------
+
+def test_jevons_chain_geometric_mean_of_relatives():
+    # model A 100 -> 110 (x1.1), model B 200 -> 180 (x0.9): sqrt(1.1*0.9) = sqrt(0.99)
+    idx = e.jevons_chain_index({"2024-01": {"A": 100, "B": 200}, "2024-02": {"A": 110, "B": 180}})
+    assert idx["2024-01"] == 100.0
+    assert close(idx["2024-02"], 100 * math.sqrt(0.99))
+
+
+def test_jevons_new_model_counts_only_from_its_second_month():
+    prices = {
+        "2024-01": {"A": 100},
+        "2024-02": {"A": 110, "C": 500},     # C enters: no relative yet -> index 110
+        "2024-03": {"A": 110, "C": 550},     # A flat, C x1.1 -> sqrt(1.0*1.1)
+    }
+    idx = e.jevons_chain_index(prices)
+    assert close(idx["2024-02"], 110.0)
+    assert close(idx["2024-03"], 110.0 * math.sqrt(1.1))
+
+
+def test_jevons_chains_over_months():
+    idx = e.jevons_chain_index({"2024-01": {"A": 100}, "2024-02": {"A": 150}, "2024-03": {"A": 200}})
+    assert close(idx["2024-03"], 200.0)
+
+
+def test_jevons_rejects_gaps_and_no_overlap():
+    with pytest.raises(e.SeriesError):
+        e.jevons_chain_index({"2024-01": {"A": 100}, "2024-03": {"A": 120}})
+    with pytest.raises(e.SeriesError):
+        e.jevons_chain_index({"2024-01": {"A": 100}, "2024-02": {"B": 120}})

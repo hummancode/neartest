@@ -39,11 +39,13 @@ for (const [file, s] of Object.entries(html)) {
     if (/^(https?:|mailto:|data:)/.test(href)) {
       continue;
     }
+    if (href.startsWith("#") && href.includes("=")) continue;
     if (href.startsWith("#")) {
       if (href.length > 1 && !ids(s).has(href.slice(1))) errors.push(`${name}: çapa bulunamadı ${href}`);
       continue;
     }
-    const [path, anchor] = href.split("#");
+    let [path, anchor] = href.split("#");
+    if (anchor && anchor.includes("=")) anchor = undefined; // calculator/chart state, not an element id
     const target = resolvePage(path);
     if (!target) {
       errors.push(`${name}: kırık bağlantı ${href}`);

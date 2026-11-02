@@ -114,7 +114,7 @@ def test_manual_csv_is_used_and_scaled(tmp_path, monkeypatch):
 
 
 def test_status_lists_every_series_with_origin():
-    *_, status, _ = build.build(allow_sample=True)
+    _, _, _, _, status, *_ = build.build(allow_sample=True)
     names = {r["name"] for r in status["rows"]}
     assert {"cpi_tr", "deposit_rate", "cpi_food", "min_wage_net"} <= names
     assert all(r["origin"] in ("evds", "manual", "sample", "missing") for r in status["rows"])
@@ -122,10 +122,54 @@ def test_status_lists_every_series_with_origin():
 
 
 def test_paths_end_values_match_reel_tablo():
-    tablo, *_, paths = build.build(allow_sample=True)
+    tablo, _, _, _, _, paths, *_ = build.build(allow_sample=True)
     for row in tablo["rows"]:
         for w in row["windows"]:
             p = paths["assets"][row["id"]]["windows"][str(w["years"])]
             assert abs(p["real"][-1] / 100 - 1 - w["real_tl"]) < 1e-5
             assert abs(p["usd"][-1] / 100 - 1 - w["usd"]) < 1e-5
             assert len(p["months"]) == 12 * w["years"] + 1
+
+
+def test_prices_are_contiguous_and_tl_is_flat():
+    *_, prices, _ = build.build(allow_sample=True)
+    ids = {i["id"] for i in prices["instruments"]}
+    assert {"tl", "cpi", "gold", "car", "house_ist"} <= ids
+    assert "min_wage" not in ids or "min_wage_net" in build.ORIGIN
+    assert set(prices["series"]["tl"]["values"]) == {1.0}
+    for sid, s in prices["series"].items():
+        last = build.e.shift_month(s["start"], len(s["values"]) - 1)
+        assert last == prices["end_month"], sid
+
+
+def test_housing_gold_return_is_currency_return():
+    *_, housing = build.build(allow_sample=True)
+    ist = next(c for c in housing["cities"] if c["id"] == "ist")
+    w = ist["sources"]["kfe"]["windows"][0]
+    assert w["years"] == 1 and w["gold"] is not None
+    assert housing["reference"]["deposit_rate"] is not None
+
+
+def test_housing_adds_betam_when_present():
+    *_, base_housing = build.build(allow_sample=True)
+    data, is_sample = build.load_series(allow_sample=True)
+    data = dict(data)
+    data["betam_sale_ist"] = dict(data["house_ist"])        # stand-in values, test only
+    data["betam_rent_ist"] = {m: v * 2 for m, v in data["rent_cpi"].items()}
+    out = build.build_housing(data, is_sample, base_housing["end_month"])
+    ist = next(c for c in out["cities"] if c["id"] == "ist")
+    assert set(ist["sources"]) == {"kfe", "betam"}
+    assert abs(ist["rent_12m_betam"] - out["reference"]["rent_12m"]) < 1e-12   # x2 scaling cancels
+    ank = next(c for c in out["cities"] if c["id"] == "ank")
+    assert set(ank["sources"]) == {"kfe"} and ank["rent_12m_betam"] is None
+
+
+def test_car_new_from_basket(tmp_path, monkeypatch):
+    (tmp_path / "car_new_basket.csv").write_text("Ay;Model;Fiyat\n2024-1;A;100\n2024-1;B;200\n2024-2;A;110\n2024-2;B;180\n", encoding="utf-8")
+    monkeypatch.setattr(build, "RAW", tmp_path / "no-raw")
+    monkeypatch.setattr(build.manual, "MANUAL", tmp_path)
+    monkeypatch.setattr(build, "META", {k: dict(v) for k, v in build.META.items()})
+    monkeypatch.setattr(build, "ORIGIN", {})
+    data, _ = build.load_series(allow_sample=True)
+    assert abs(data["car_new"]["2024-02"] - 100 * 0.99 ** 0.5) < 1e-9
+    assert build.ORIGIN["car_new"] == "manual"

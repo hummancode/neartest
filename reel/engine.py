@@ -12,6 +12,7 @@ Conventions
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -280,3 +281,138 @@ def index_paths(
         "real": [100.0 * (asset_tl[m] / cpi[m]) / (a0 / c0) for m in months],
         "usd": [100.0 * (asset_tl[m] / usdtry[m]) / (a0 / f0) for m in months],
     }
+
+
+# ---------------------------------------------------------------------------
+# "X priced in Y" ratio charts
+# ---------------------------------------------------------------------------
+
+def ratio_index(x_tl: dict[str, float], y_tl: dict[str, float], start: str, end: str) -> dict[str, list]:
+    """X's price measured in units of Y, rebased to 100 at `start`.
+
+    Both inputs are TL price levels (or indices); X in Y terms is X/Y. Every month
+    from start to end must exist in both series.
+    """
+    months, m = [], start
+    while _month_index(m) <= _month_index(end):
+        months.append(m)
+        m = shift_month(m, 1)
+    for m in months:
+        if m not in x_tl or m not in y_tl or y_tl[m] <= 0:
+            raise SeriesError(f"missing data for {m}")
+    base = x_tl[start] / y_tl[start]
+    if base <= 0:
+        raise SeriesError("start ratio must be positive")
+    return {"months": months, "values": [100.0 * (x_tl[m] / y_tl[m]) / base for m in months]}
+
+
+# ---------------------------------------------------------------------------
+# Rent vs buy
+# ---------------------------------------------------------------------------
+
+def mortgage_payment(principal: float, monthly_rate: float, months: int) -> float:
+    """Level (annuity) monthly payment."""
+    if months <= 0:
+        raise SeriesError("loan term must be positive")
+    if monthly_rate == 0:
+        return principal / months
+    return principal * monthly_rate / (1.0 - (1.0 + monthly_rate) ** -months)
+
+
+def rent_vs_buy(
+    *,
+    price: float,               # house price today (TL)
+    rent: float,                # monthly rent for a comparable house today (TL)
+    down_share: float,          # down payment as share of price (1.0 = cash)
+    loan_rate_monthly: float,   # mortgage rate per month (Turkish loans are quoted monthly)
+    loan_months: int,
+    house_growth: float,        # expected house price change per year
+    rent_growth: float,         # rent increase, applied once a year (contract renewal)
+    invest_return: float,       # yearly return on the renter's invested savings
+    inflation: float,           # yearly CPI, only to express results in today's TL
+    buy_cost: float,            # purchase costs (title deed fee etc.) as share of price
+    sell_cost: float,           # selling costs as share of the future price
+    upkeep: float,              # yearly upkeep/tax/insurance as share of current price
+    years: int,
+) -> dict:
+    """Compare net wealth after `years` of buying vs renting and investing the difference.
+
+    Buyer: pays down payment + purchase costs today, then mortgage and upkeep monthly.
+    Renter: invests what the buyer paid up front, then each month invests (buyer's
+    outflow - rent), or withdraws when rent is higher. Buyer wealth = house value
+    after selling costs - remaining loan. Monthly steps; growth rates compound monthly,
+    rent steps up every 12 months.
+    """
+    if not 0 <= down_share <= 1:
+        raise SeriesError("down payment share must be between 0 and 1")
+    if price <= 0 or years <= 0:
+        raise SeriesError("price and years must be positive")
+    loan = price * (1.0 - down_share)
+    payment = mortgage_payment(loan, loan_rate_monthly, loan_months) if loan > 0 else 0.0
+    gh = (1.0 + house_growth) ** (1 / 12) - 1.0
+    gi = (1.0 + invest_return) ** (1 / 12) - 1.0
+
+    house, balance = price, loan
+    portfolio = price * down_share + price * buy_cost
+    yearly = []
+    for t in range(1, 12 * years + 1):
+        rent_t = rent * (1.0 + rent_growth) ** ((t - 1) // 12)
+        pay = 0.0
+        if balance > 0 and t <= loan_months:
+            interest = balance * loan_rate_monthly
+            pay = min(payment, balance + interest)
+            balance = max(0.0, balance + interest - pay)
+        buyer_out = pay + upkeep * house / 12.0
+        portfolio = portfolio * (1.0 + gi) + (buyer_out - rent_t)
+        house *= 1.0 + gh
+        if t % 12 == 0:
+            year = t // 12
+            buy_w = house * (1.0 - sell_cost) - balance
+            yearly.append({"year": year, "buy_wealth": buy_w, "rent_wealth": portfolio,
+                           "house_value": house, "loan_balance": balance, "rent": rent_t})
+    # First year from which buying stays ahead until the horizon (None if it never does).
+    breakeven = None
+    for row in reversed(yearly):
+        if row["buy_wealth"] < row["rent_wealth"]:
+            break
+        breakeven = row["year"]
+    deflator = (1.0 + inflation) ** years
+    last = yearly[-1]
+    return {
+        "monthly_payment": payment,
+        "buy_wealth": last["buy_wealth"],
+        "rent_wealth": last["rent_wealth"],
+        "buy_wealth_real": last["buy_wealth"] / deflator,
+        "rent_wealth_real": last["rent_wealth"] / deflator,
+        "breakeven_year": breakeven,
+        "yearly": yearly,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Price basket index (e.g. new-car list prices from official dealers)
+# ---------------------------------------------------------------------------
+
+def jevons_chain_index(prices: dict[str, dict[str, float]], base: float = 100.0) -> dict[str, float]:
+    """Chained Jevons index: each month moves by the geometric mean of price relatives
+    of the items priced in both that month and the previous one.
+
+    Items entering or leaving the basket only affect months where they have two
+    consecutive prices. Months must be contiguous. This tracks list prices of a
+    chosen basket; it is not a quality-adjusted index and not an official statistic.
+    """
+    months = sorted(prices, key=_month_index)
+    if not months:
+        raise SeriesError("empty basket")
+    if len(months) != _month_index(months[-1]) - _month_index(months[0]) + 1:
+        raise SeriesError("basket has month gaps")
+    out = {months[0]: base}
+    level = base
+    for prev, cur in zip(months, months[1:]):
+        common = [k for k in prices[cur] if k in prices[prev] and prices[prev][k] > 0 and prices[cur][k] > 0]
+        if not common:
+            raise SeriesError(f"no item priced in both {prev} and {cur}")
+        log_mean = sum(math.log(prices[cur][k] / prices[prev][k]) for k in common) / len(common)
+        level *= math.exp(log_mean)
+        out[cur] = level
+    return out

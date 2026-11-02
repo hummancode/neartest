@@ -107,3 +107,28 @@ def load(name: str, directory: Path | None = None) -> tuple[dict[str, float], di
     meta_path = directory / f"{name}.meta.json"
     meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
     return series, meta
+
+
+def parse_basket_csv(text: str) -> dict[str, dict[str, float]]:
+    """Basket CSV (month, item, price) -> {"YYYY-MM": {item: price}}. Header optional."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return {}
+    sample = "\n".join(lines[:5])
+    delimiter = ";" if ";" in sample else ("\t" if "\t" in sample else ",")
+    out: dict[str, dict[str, float]] = {}
+    for i, row in enumerate(csv.reader(io.StringIO("\n".join(lines)), delimiter=delimiter)):
+        if len(row) < 3:
+            continue
+        month = parse_month(row[0])
+        if month is None:
+            if i == 0:
+                continue
+            raise ManualDataError(f"satır {i + 1}: tarih okunamadı: {row[0]!r}")
+        item, price = row[1].strip(), parse_number(row[2])
+        if math.isnan(price):
+            continue
+        if item in out.setdefault(month, {}):
+            raise ManualDataError(f"satır {i + 1}: {item!r} {month} için iki kez girilmiş")
+        out[month][item] = price
+    return out

@@ -25,6 +25,8 @@ import { DISCLAIMER } from "../config.ts";
         <li><a href="#usdvarlik">Dolar fiyatlı varlıklar</a></li>
         <li><a href="#trend">Trend çizgisi</a></li>
         <li><a href="#illuzyon">Nominal illüzyon makinesi</a></li>
+        <li><a href="#grafik">Grafik: X'in Y cinsinden fiyatı</a></li>
+        <li><a href="#kiravsal">Kirala mı, satın al mı?</a></li>
         <li><a href="#kisisel">Kişisel enflasyon</a></li>
         <li><a href="#reelfaiz">Reel faiz</a></li>
         <li><a href="#kaynak">Veri kaynakları</a></li>
@@ -123,6 +125,38 @@ import { DISCLAIMER } from "../config.ts";
       <strong>Asgari ücret ile:</strong> seviye, o ay geçerli net asgari ücrettir (değiştiği aylar arasında son değer
       geçerli sayılır). Seri resmî kaynaktan elle girilir; girilmemişse bu satır gösterilmez.
     </p>
+
+    <h2 id="grafik">Grafik: X'in Y cinsinden fiyatı</h2>
+    <p>Grafik aracındaki her çizgi, iki TL fiyat serisinin oranının dönem başında 100'e eşitlenmiş hâlidir:</p>
+    <p class="formula card">Değer<sub>t</sub> = 100 × (X<sub>t</sub> / Y<sub>t</sub>) / (X<sub>0</sub> / Y<sub>0</sub>)</p>
+    <ul>
+      <li>Y = TL ise çizgi X'in nominal fiyat değişimidir; Y = TÜFE ise reel değişimdir; Y = USD/TRY ise dolar cinsinden değişimdir.</li>
+      <li>Yalnızca iki serinin de verisi olan aylar kullanılır; “Tümü” seçeneği iki serinin ortak başlangıcından başlar.</li>
+      <li>Otomobil serisi TÜİK'in TÜFE otomobil alt endeksidir (kalite ayarlı); ilan fiyatı değildir. İlan sitelerinden veri çekilmez.</li>
+      <li>Konut serileri TCMB Konut Fiyat Endeksi'dir (hedonik, nitelik sabit); belirli bir evin fiyatı değildir.</li>
+      <li>BETAM satılık/kiralık konut endeksleri (veri girilmişse) ilan verisine dayanır; TCMB endeksinden farklı yöntem ve kapsamdadır, ayrı seçenek olarak sunulur.</li>
+    </ul>
+    <h3>0 km otomobil liste fiyatı endeksi</h3>
+    <p>
+      Markaların resmi bayi fiyat listelerinden elle derlenen bir model sepetiyle hesaplanır (veri girilmişse).
+      Yöntem zincirleme Jevons endeksidir:
+    </p>
+    <p class="formula card">E<sub>t</sub> = E<sub>t−1</sub> × exp( ortalama<sub>k</sub> ln(p<sub>k,t</sub> / p<sub>k,t−1</sub>) )</p>
+    <p>
+      Ortalama, iki ayda da fiyatı olan modeller üzerinden alınır; sepete yeni giren model ancak ikinci ayından itibaren etkiler.
+      Liste fiyatıdır: kampanya, indirim ve kalite (donanım) değişimi ayarlanmaz. Resmî bir istatistik değil, şeffaf bir fiyat takibidir.
+    </p>
+
+    <h2 id="kiravsal">Kirala mı, satın al mı?</h2>
+    <p>Aylık adımlarla iki yolun vade sonundaki net serveti karşılaştırılır.</p>
+    <ul>
+      <li><strong>Satın alan:</strong> bugün peşinat ve alım masraflarını öder; her ay kredi taksiti (eşit taksitli, aylık faiz) ve bakım/vergi (ev değerinin yıllık %'si / 12) öder. Servet = ev değeri × (1 − satış masrafı) − kalan kredi borcu.</li>
+      <li><strong>Kiracı:</strong> satın alanın bugün ödediği tutarı yatırır; her ay (satın alanın ödemesi − kira) farkını yatırır, kira daha yüksekse yatırımından çeker. Servet = yatırımının değeri.</li>
+      <li>Ev fiyatı ve yatırım getirisi aylık bileşik büyür; kira yılda bir kez artar (sözleşme yenilemesi).</li>
+      <li>Reel değer = nominal değer / (1 + beklenen enflasyon)<sup>yıl</sup>.</li>
+      <li>Başabaş yılı: satın almanın o yıldan vade sonuna kadar her yıl önde kaldığı ilk yıl.</li>
+      <li>Vergi, kira geliri, kredi sigortası, taşınma maliyeti ve kredi erken kapama dikkate alınmaz. Sonuç, girilen varsayımlara çok duyarlıdır.</li>
+    </ul>
 
     <h2 id="kisisel">9. Kişisel enflasyon</h2>
     <p>

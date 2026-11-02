@@ -30,6 +30,8 @@ def expand(arg):
 
 def call(fn, args):
     args = [expand(a) for a in args]
+    if fn == "rent_vs_buy":
+        return e.rent_vs_buy(**args[0])
     if fn == "asset_windows":
         if len(args) == 5:
             args[4] = tuple(args[4])
@@ -37,7 +39,7 @@ def call(fn, args):
     return getattr(e, fn)(*args)
 
 
-def matches(actual, expected, tol):
+def matches(actual, expected, tol, subset=False):
     if isinstance(expected, bool) or expected is None or isinstance(expected, str):
         return actual == expected
     if isinstance(expected, (int, float)):
@@ -47,7 +49,7 @@ def matches(actual, expected, tol):
             matches(a, x, tol) for a, x in zip(actual, expected))
     if isinstance(expected, dict):
         # Window rows: expected keys are a subset. Plain series: keys must match exactly.
-        if isinstance(actual, dict) and "years" not in expected and set(actual) != set(expected):
+        if isinstance(actual, dict) and not subset and "years" not in expected and set(actual) != set(expected):
             return False
         return isinstance(actual, dict) and all(k in actual and matches(actual[k], v, tol) for k, v in expected.items())
     raise TypeError(expected)
@@ -59,4 +61,4 @@ def test_case(case):
         with pytest.raises(e.SeriesError):
             call(case["fn"], case["args"])
     else:
-        assert matches(call(case["fn"], case["args"]), case["expect"], case["tol"])
+        assert matches(call(case["fn"], case["args"]), case["expect"], case["tol"], case.get("subset", False))

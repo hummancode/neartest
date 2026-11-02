@@ -46,3 +46,12 @@
   üretme betiği), `SITE_URL` ile canonical ve `sitemap.xml`, theme-color. README güncellendi.
   Doğrulama: 79 Python + 33 TS testi, `npm run check` 17 sayfa, tüm sayfalar 320/1280 px açık/koyu
   temada hatasız; hesaplayıcı sonuçları JSON'dan bağımsız hesapla birebir.
+- 2026-11-02 — Grafik ve Konut: `/grafik` ("X'in Y cinsinden fiyatı": otomobil, konut, altın, borsa, döviz,
+  mevduat, kira; TL / reel / USD / EUR / altın / BIST / S&P / asgari ücret cinsinden; 3 seriye kadar,
+  1-3-5-10 yıl/tümü, hazır kısayollar, paylaşılabilir bağlantı). `/konut`: şehir bazında konut getirisi
+  (nominal/reel/USD/altın; TCMB KFE, girilmişse BETAM) ve kirala-mı-satın-al-mı hesaplayıcısı
+  (taksit, masraflar, kira/ev/yatırım beklentileri, reel sonuç, başabaş, duyarlılık, yıl yıl döküm).
+  Motor: `ratio_index`, `mortgage_payment`, `rent_vs_buy`, `jevons_chain_index` (önce test; TS'ye
+  taşındı, 40 ortak vaka). Yeni seriler: TÜFE otomobil ve kira alt endeksleri, KFE (TR/İst/Ank/İzm);
+  isteğe bağlı: 0 km bayi liste fiyatı sepeti, BETAM satılık/kiralık. Mobil menü. Sayfadaki
+  hesap Python ile birebir doğrulandı (tutar ayrıştırma hatası bu sırada bulunup düzeltildi).

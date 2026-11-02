@@ -1,0 +1,247 @@
+---
+import Base from "../layouts/Base.astro";
+import { prices, PRESETS } from "../lib/prices.ts";
+import { monthLabel } from "../lib/format.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const ids = new Set(prices.instruments.map((i) => i.id));
+const groups = [...new Set(prices.instruments.map((i) => i.group))];
+const presets = PRESETS.filter(([, xs, y]) => ids.has(y) && xs.every((x) => ids.has(x)));
+const payload = { instruments: prices.instruments, series: prices.series, end: prices.end_month };
+---
+<Base title="Grafik: neyin fiyatı, neyle ölçülürse" description="Otomobil, konut, altın, borsa ve dövizi TL, reel TL, dolar, gram altın veya borsa endeksi cinsinden karşılaştırın." sample={prices.sample}>
+  <h1>Grafik</h1>
+  <p class="lead">
+    Bir şeyin fiyatını TL yerine başka bir şeyle ölçün: otomobil gram altın cinsinden, konut dolar cinsinden,
+    altın borsa cinsinden. 100 = dönem başı; çizgi yükseliyorsa seçilen şey, ölçü birimine göre pahalanıyor.
+  </p>
+
+  <div class="presets" aria-label="Hazır grafikler">
+    {presets.map(([title, xs, y]) => (
+      <button type="button" class="chip" data-x={xs.join(",")} data-y={y}>{title}</button>
+    ))}
+  </div>
+
+  <section class="card controls" aria-label="Grafik seçenekleri">
+    <div class="ctl">
+      <label for="x1">Ne?</label>
+      <div class="xs">
+        {[1, 2, 3].map((n) => (
+          <select id={`x${n}`} data-slot={n} aria-label={`Seri ${n}`}>
+            {n > 1 && <option value="">— yok —</option>}
+            {groups.map((g) => (
+              <optgroup label={g}>
+                {prices.instruments.filter((i) => i.group === g).map((i) => <option value={i.id} selected={n === 1 && i.id === "car"}>{i.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        ))}
+      </div>
+    </div>
+    <div class="ctl">
+      <label for="y">Hangi cinsten?</label>
+      <select id="y">
+        {groups.map((g) => (
+          <optgroup label={g}>
+            {prices.instruments.filter((i) => i.group === g).map((i) => <option value={i.id} selected={i.id === "gold"}>{i.label}</option>)}
+          </optgroup>
+        ))}
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl" id="w-lbl">Dönem</span>
+      <div class="seg" role="group" aria-labelledby="w-lbl">
+        {["1", "3", "5", "10", "all"].map((w) => (
+          <button type="button" data-win={w} aria-pressed={w === "10" ? "true" : "false"}>{w === "all" ? "Tümü" : `${w} yıl`}</button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="card chart-card" aria-labelledby="chart-title">
+    <h2 id="chart-title" class="chart-title"></h2>
+    <p class="muted small" id="chart-sub"></p>
+    <div id="chart" class="chart-box"></div>
+    <p id="chart-error" class="error" hidden></p>
+    <div class="scroll-x">
+      <table class="data results" id="results">
+        <thead><tr><th scope="col">Seri</th><th scope="col">Dönem değişimi</th><th scope="col">Yıllık</th><th scope="col">En düşük → en yüksek</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button>
+    </div>
+  </section>
+
+  <h2>Nasıl okunur?</h2>
+  <ul>
+    <li>Her çizgi, seçilen şeyin fiyatının ölçü biriminin fiyatına oranıdır (ikisi de TL cinsinden), dönem başında 100'e eşitlenir.</li>
+    <li>“TL (nominal)” seçilirse çizgi düz TL fiyat değişimidir; “TÜFE sepeti” seçilirse enflasyondan arındırılmış (reel) değişimdir.</li>
+    <li><strong>Otomobil</strong>, TÜİK'in TÜFE otomobil alt endeksidir: kalite değişimi dikkate alınmış bir fiyat endeksidir, ilan fiyatı değildir.</li>
+    <li><strong>Konut</strong>, TCMB Konut Fiyat Endeksi'dir (aynı nitelikteki konutların fiyat değişimi); bir evin TL fiyatı değildir.</li>
+    <li><strong>Mevduat</strong>, faizin her ay yeniden yatırıldığı bir getiri endeksidir; S&amp;P 500 her ay o ayın kuruyla TL'ye çevrilir.</li>
+  </ul>
+  <p>Formül: X'in Y cinsinden değeri<sub>t</sub> = 100 × (X<sub>t</sub> / Y<sub>t</sub>) / (X<sub>0</sub> / Y<sub>0</sub>). Ayrıntılar: <a href="/metodoloji#grafik">Metodoloji</a> · Kaynaklar: <a href="/veri">Veri durumu</a>.</p>
+  <p class="muted small">Veri bitişi: {monthLabel(prices.end_month)}. Hesap tarayıcınızda yapılır.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+
+  <script type="application/json" id="prices-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+
+<script>
+  import { ratioIndex, annualize, shiftMonth, SeriesError } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
+
+  type Inst = { id: string; label: string; sample: boolean };
+  const data = JSON.parse(document.getElementById("prices-data")!.textContent!);
+  const inst: Record<string, Inst> = Object.fromEntries(data.instruments.map((i: Inst) => [i.id, i]));
+  const END: string = data.end;
+  const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const label = (m: string) => `${MONTHS[Number(m.slice(5)) - 1]} ${m.slice(0, 4)}`;
+  const pct = new Intl.NumberFormat("tr-TR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero" });
+  const n1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)"];
+  // Short names for the chart's end labels (the table keeps the full names).
+  const shortLabel = (l: string) => l.replace("Konut — ", "Konut ").replace(/ \(.*\)$/, "");
+
+  // Expand {start, values} runs into month maps once.
+  const levels: Record<string, Record<string, number>> = {};
+  for (const [id, s] of Object.entries(data.series as Record<string, { start: string; values: number[] }>)) {
+    const map: Record<string, number> = {};
+    s.values.forEach((v, k) => (map[shiftMonth(s.start, k)] = v));
+    levels[id] = map;
+  }
+
+  const xSel = [1, 2, 3].map((n) => document.getElementById(`x${n}`) as HTMLSelectElement);
+  const ySel = document.getElementById("y") as HTMLSelectElement;
+  const winBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-win]")];
+  const box = document.getElementById("chart")!;
+  const err = document.getElementById("chart-error")!;
+  const tbody = document.querySelector("#results tbody")!;
+  let win = "10";
+
+  function chosen(): string[] {
+    return [...new Set(xSel.map((s) => s.value).filter(Boolean))].slice(0, 3);
+  }
+  function startFor(xs: string[], y: string): string {
+    const first = [y, ...xs].map((id) => data.series[id].start).sort().pop()!;
+    if (win === "all") return first;
+    const want = shiftMonth(END, -12 * Number(win));
+    return want < first ? first : want;
+  }
+
+  function draw() {
+    const xs = chosen();
+    const y = ySel.value;
+    writeHash({ x: xs.join(","), y, w: win });
+    const start = startFor(xs, y);
+    const title = `${xs.map((x) => inst[x].label).join(", ")} — ${inst[y].label} cinsinden`;
+    document.getElementById("chart-title")!.textContent = title;
+    document.getElementById("chart-sub")!.textContent =
+      `${label(start)} → ${label(END)} · 100 = dönem başı` + (xs.some((x) => inst[x].sample) || inst[y].sample ? " · ÖRNEK VERİ içerir" : "");
+    tbody.replaceChildren();
+    try {
+      const lines = xs.map((x, k) => ({ x, k, r: ratioIndex(levels[x], levels[y], start, END) }));
+      err.hidden = true;
+      renderChart(box, {
+        months: lines[0].r.months,
+        series: lines.map(({ x, k, r }) => ({ key: x, label: shortLabel(inst[x].label), color: COLORS[k], values: r.values })),
+      });
+      const years = (lines[0].r.months.length - 1) / 12;
+      for (const { x, k, r } of lines) {
+        const total = r.values[r.values.length - 1] / 100 - 1;
+        const tr = document.createElement("tr");
+        const name = document.createElement("th");
+        name.scope = "row";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.style.background = COLORS[k];
+        name.append(key, document.createTextNode(inst[x].label));
+        const cells = [
+          pct.format(total),
+          years >= 1 ? pct.format(annualize(total, years)) : "—",
+          `${n1.format(Math.min(...r.values))} → ${n1.format(Math.max(...r.values))}`,
+        ].map((t) => { const td = document.createElement("td"); td.textContent = t; return td; });
+        tr.append(name, ...cells);
+        tbody.appendChild(tr);
+      }
+    } catch (e) {
+      if (!(e instanceof SeriesError)) throw e;
+      box.replaceChildren();
+      err.textContent = "Seçilen seriler bu dönemde ortak veriye sahip değil. Daha kısa bir dönem deneyin.";
+      err.hidden = false;
+    }
+  }
+
+  function setWin(w: string) {
+    win = w;
+    winBtns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.win === w ? "true" : "false"));
+  }
+  function apply(xs: string[], y: string) {
+    xSel.forEach((s, k) => (s.value = xs[k] && inst[xs[k]] ? xs[k] : k === 0 ? s.value : ""));
+    if (inst[y]) ySel.value = y;
+    draw();
+  }
+
+  // Restore from a shared link (#x=car,gold&y=usd&w=10).
+  {
+    const h = readHash();
+    const w = h.get("w");
+    if (w && ["1", "3", "5", "10", "all"].includes(w)) setWin(w);
+    const xs = (h.get("x") || "").split(",").filter((x) => inst[x]);
+    if (xs.length) xSel.forEach((s, k) => (s.value = xs[k] ?? (k === 0 ? s.value : "")));
+    const y = h.get("y");
+    if (y && inst[y]) ySel.value = y;
+  }
+
+  for (const s of [...xSel, ySel]) s.addEventListener("change", draw);
+  winBtns.forEach((b) => b.addEventListener("click", () => { setWin(b.dataset.win!); draw(); }));
+  document.querySelectorAll<HTMLButtonElement>(".chip").forEach((c) =>
+    c.addEventListener("click", () => apply(c.dataset.x!.split(","), c.dataset.y!)));
+  document.getElementById("copy-link")!.addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
+  let lastW = 0;
+  new ResizeObserver(() => {
+    if (Math.abs(box.clientWidth - lastW) < 2) return;
+    lastW = box.clientWidth;
+    draw();
+  }).observe(box);
+</script>
+
+<style>
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  @media (max-width: 640px) {
+    .presets { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+    .chip { flex: none; }
+  }
+  .chip {
+    background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-radius: 999px;
+    padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--ink-2); }
+  .controls { display: grid; gap: 14px; }
+  @media (min-width: 860px) { .controls { grid-template-columns: 2fr 1fr auto; align-items: end; } }
+  .ctl label, .ctl .lbl { display: block; font-weight: 600; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 6px; }
+  .xs { display: grid; gap: 6px; }
+  @media (min-width: 560px) { .xs { grid-template-columns: repeat(3, 1fr); } }
+  select {
+    width: 100%; font: inherit; font-size: 0.95rem; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button { background: none; border: 0; color: var(--ink-2); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .chart-card { margin-top: 16px; }
+  @media (max-width: 400px) { .chart-card, .controls { padding: 12px 8px; } }
+  .chart-title { font-size: 1.4rem; margin: 0 0 2px; }
+  .chart-box { min-height: 280px; margin-top: 8px; }
+  .error { color: var(--warn-bg); font-weight: 600; }
+  .scroll-x { overflow-x: auto; margin-top: 8px; }
+  .results { min-width: 480px; font-size: 0.9rem; }
+  .results th:first-child { text-align: left; }
+  .results th, .results td { text-align: right; }
+  .results tbody th { font-weight: 600; }
+  .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+  .actions { margin-top: 12px; }
+</style>

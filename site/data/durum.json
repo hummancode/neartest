@@ -4,8 +4,8 @@
  "counts": {
   "evds": 0,
   "manual": 0,
-  "sample": 20,
-  "missing": 1
+  "sample": 26,
+  "missing": 10
  },
  "weights": {
   "label": "TÜFE grup ağırlıkları",
@@ -276,6 +276,201 @@
    "used_by": "Kişisel enflasyon"
   },
   {
+   "name": "car_cpi",
+   "label": "TÜFE: Otomobil alt endeksi",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Grafik"
+  },
+  {
+   "name": "rent_cpi",
+   "label": "TÜFE: Gerçek kira alt endeksi",
+   "source": "TÜİK, TCMB EVDS üzerinden",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "house_tr",
+   "label": "Konut Fiyat Endeksi — Türkiye",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "house_ist",
+   "label": "Konut Fiyat Endeksi — İstanbul",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "house_ank",
+   "label": "Konut Fiyat Endeksi — Ankara",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "house_izm",
+   "label": "Konut Fiyat Endeksi — İzmir",
+   "source": "TCMB Konut Fiyat Endeksi (KFE), EVDS",
+   "code": null,
+   "verified": false,
+   "origin": "sample",
+   "origin_label": "ÖRNEK (sentetik)",
+   "first_month": "2014-01",
+   "last_month": "2026-09",
+   "months": 153,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "car_new",
+   "label": "0 km otomobil liste fiyatı endeksi (resmi bayi fiyat listeleri)",
+   "source": "Markaların resmi fiyat listeleri, elle derlenen sepet (data/manual/car_new_basket.csv)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Grafik"
+  },
+  {
+   "name": "betam_sale_tr",
+   "label": "BETAM satılık konut endeksi — Türkiye",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_sale_ist",
+   "label": "BETAM satılık konut endeksi — İstanbul",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_sale_ank",
+   "label": "BETAM satılık konut endeksi — Ankara",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_sale_izm",
+   "label": "BETAM satılık konut endeksi — İzmir",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_rent_tr",
+   "label": "BETAM kiralık konut endeksi — Türkiye",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_rent_ist",
+   "label": "BETAM kiralık konut endeksi — İstanbul",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_rent_ank",
+   "label": "BETAM kiralık konut endeksi — Ankara",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
+   "name": "betam_rent_izm",
+   "label": "BETAM kiralık konut endeksi — İzmir",
+   "source": "BETAM konut piyasası raporları (elle girilir)",
+   "code": null,
+   "verified": false,
+   "origin": "missing",
+   "origin_label": "Yok",
+   "first_month": null,
+   "last_month": null,
+   "months": 0,
+   "used_by": "Konut, grafik"
+  },
+  {
    "name": "min_wage_net",
    "label": "Net asgari ücret (aylık, bekâr işçi)",
    "source": "ÇSGB / Resmî Gazete (elle girilir: data/manual/min_wage_net.csv)",
@@ -286,8 +481,8 @@
    "first_month": null,
    "last_month": null,
    "months": 0,
-   "used_by": "Nominal illüzyon"
+   "used_by": "Nominal illüzyon, grafik"
   }
  ],
- "generated_at": "2026-11-02T06:01:06+00:00"
+ "generated_at": "2026-11-02T06:26:19+00:00"
 }

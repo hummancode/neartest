@@ -14,6 +14,9 @@ Plan ve kurallar: `CLAUDE.md`. Değişiklikler: `CHANGELOG.md`.
 `seriler.json` (grafikler), `durum.json` (veri durumu). Seri kodları `pipeline/series.py`'de; doğrulanmadan
 `verified=True` yapılmaz.
 
+**İsteğe bağlı elle yüklenen kaynaklar** (asla örneklenmez): 0 km otomobil fiyat sepeti
+(`car_new_basket.csv` → zincirleme Jevons endeksi), BETAM satılık/kiralık konut endeksleri, net asgari ücret.
+
 **API anahtarı olmadan gerçek veri:** EVDS web arayüzünden (veya başka resmî kaynaktan) indirilen CSV'yi
 `data/manual/<seri>.csv` olarak koyun — ayrıntılar `data/manual/README.md`. Öncelik: `data/raw/` (API)
 → `data/manual/` → örnek veri. Sitedeki `/veri` sayfası her serinin nereden geldiğini gösterir.

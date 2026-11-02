@@ -174,3 +174,81 @@ export function inflationContributions(amounts: Record<string, number>, groupCha
 export function personalInflation(amounts: Record<string, number>, groupChanges: Record<string, number>): number {
   return Object.values(inflationContributions(amounts, groupChanges)).reduce((a, b) => a + b, 0);
 }
+
+// --- "X priced in Y" ratio charts ------------------------------------------
+
+/** X's price in units of Y (both TL levels), rebased to 100 at `start`. */
+export function ratioIndex(xTl: Series, yTl: Series, start: string, end: string): { months: string[]; values: number[] } {
+  const months: string[] = [];
+  for (let m = start; monthIndex(m) <= monthIndex(end); m = shiftMonth(m, 1)) months.push(m);
+  for (const m of months) {
+    if (!(m in xTl) || !(m in yTl) || yTl[m] <= 0) throw new SeriesError(`missing data for ${m}`);
+  }
+  const base = xTl[start] / yTl[start];
+  if (!(base > 0)) throw new SeriesError("start ratio must be positive");
+  return { months, values: months.map((m) => (100.0 * (xTl[m] / yTl[m])) / base) };
+}
+
+// --- rent vs buy -----------------------------------------------------------
+
+export function mortgagePayment(principal: number, monthlyRate: number, months: number): number {
+  if (months <= 0) throw new SeriesError("loan term must be positive");
+  if (monthlyRate === 0) return principal / months;
+  return (principal * monthlyRate) / (1.0 - (1.0 + monthlyRate) ** -months);
+}
+
+export interface RentVsBuyParams {
+  price: number; rent: number; down_share: number; loan_rate_monthly: number; loan_months: number;
+  house_growth: number; rent_growth: number; invest_return: number; inflation: number;
+  buy_cost: number; sell_cost: number; upkeep: number; years: number;
+}
+export interface RentVsBuyYear { year: number; buy_wealth: number; rent_wealth: number; house_value: number; loan_balance: number; rent: number }
+export interface RentVsBuyResult {
+  monthly_payment: number; buy_wealth: number; rent_wealth: number;
+  buy_wealth_real: number; rent_wealth_real: number; breakeven_year: number | null; yearly: RentVsBuyYear[];
+}
+
+/** Same model as reel/engine.py rent_vs_buy (see its docstring). */
+export function rentVsBuy(p: RentVsBuyParams): RentVsBuyResult {
+  if (!(p.down_share >= 0 && p.down_share <= 1)) throw new SeriesError("down payment share must be between 0 and 1");
+  if (!(p.price > 0) || !(p.years > 0)) throw new SeriesError("price and years must be positive");
+  const loan = p.price * (1.0 - p.down_share);
+  const payment = loan > 0 ? mortgagePayment(loan, p.loan_rate_monthly, p.loan_months) : 0.0;
+  const gh = (1.0 + p.house_growth) ** (1 / 12) - 1.0;
+  const gi = (1.0 + p.invest_return) ** (1 / 12) - 1.0;
+  let house = p.price;
+  let balance = loan;
+  let portfolio = p.price * p.down_share + p.price * p.buy_cost;
+  const yearly: RentVsBuyYear[] = [];
+  for (let t = 1; t <= 12 * p.years; t++) {
+    const rentT = p.rent * (1.0 + p.rent_growth) ** Math.floor((t - 1) / 12);
+    let pay = 0.0;
+    if (balance > 0 && t <= p.loan_months) {
+      const interest = balance * p.loan_rate_monthly;
+      pay = Math.min(payment, balance + interest);
+      balance = Math.max(0.0, balance + interest - pay);
+    }
+    const buyerOut = pay + (p.upkeep * house) / 12.0;
+    portfolio = portfolio * (1.0 + gi) + (buyerOut - rentT);
+    house *= 1.0 + gh;
+    if (t % 12 === 0) {
+      yearly.push({ year: t / 12, buy_wealth: house * (1.0 - p.sell_cost) - balance, rent_wealth: portfolio, house_value: house, loan_balance: balance, rent: rentT });
+    }
+  }
+  let breakeven: number | null = null;
+  for (let k = yearly.length - 1; k >= 0; k--) {
+    if (yearly[k].buy_wealth < yearly[k].rent_wealth) break;
+    breakeven = yearly[k].year;
+  }
+  const deflator = (1.0 + p.inflation) ** p.years;
+  const last = yearly[yearly.length - 1];
+  return {
+    monthly_payment: payment,
+    buy_wealth: last.buy_wealth,
+    rent_wealth: last.rent_wealth,
+    buy_wealth_real: last.buy_wealth / deflator,
+    rent_wealth_real: last.rent_wealth / deflator,
+    breakeven_year: breakeven,
+    yearly,
+  };
+}

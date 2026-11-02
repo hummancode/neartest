@@ -54,7 +54,15 @@ def build_sample() -> dict[str, dict[str, float]]:
         f"cpi_{gid}": _path(100.0, g, 0.0, 0.0) for gid, g in _GROUP_GROWTH.items()
     }
     rates_credit = {m: r + 0.08 for m, r in rates.items()}
-    return groups | {
+    market = {
+        "car_cpi": _path(100.0, 0.40, 0.04, 0.7),
+        "rent_cpi": _path(100.0, 0.45, 0.0, 0.0),
+        "house_tr": _path(100.0, 0.42, 0.05, 1.5),
+        "house_ist": _path(100.0, 0.45, 0.06, 1.2),
+        "house_ank": _path(100.0, 0.40, 0.05, 1.9),
+        "house_izm": _path(100.0, 0.43, 0.05, 2.4),
+    }
+    return groups | market | {
         "credit_rate": rates_credit,
         "usdtry": _path(2.2, 0.30, 0.03, 0.0),
         "eurtry": _path(3.0, 0.29, 0.03, 0.5),

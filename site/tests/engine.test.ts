@@ -21,6 +21,9 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   normalize_shares: e.normalizeShares,
   inflation_contributions: e.inflationContributions,
   personal_inflation: e.personalInflation,
+  ratio_index: e.ratioIndex,
+  mortgage_payment: e.mortgagePayment,
+  rent_vs_buy: e.rentVsBuy,
 };
 
 function expand(arg: any): any {
@@ -37,7 +40,7 @@ function expand(arg: any): any {
   return arg;
 }
 
-function matches(actual: any, expected: any, tol: number): boolean {
+function matches(actual: any, expected: any, tol: number, subset = false): boolean {
   if (expected === null || typeof expected === "string" || typeof expected === "boolean") return actual === expected;
   if (typeof expected === "number") return typeof actual === "number" && Math.abs(actual - expected) <= tol;
   if (Array.isArray(expected)) {
@@ -45,7 +48,7 @@ function matches(actual: any, expected: any, tol: number): boolean {
   }
   if (typeof expected === "object") {
     if (actual === null || typeof actual !== "object") return false;
-    if (!("years" in expected)) {
+    if (!subset && !("years" in expected)) {
       const a = Object.keys(actual).sort().join();
       const b = Object.keys(expected).sort().join();
       if (a !== b) return false;
@@ -64,7 +67,7 @@ for (const c of cases) {
       assert.throws(() => fn(...args), e.SeriesError);
     } else {
       const got = fn(...args);
-      assert.ok(matches(got, c.expect, c.tol), `${c.fn}: got ${JSON.stringify(got)}, expected ${JSON.stringify(c.expect)}`);
+      assert.ok(matches(got, c.expect, c.tol, c.subset ?? false), `${c.fn}: got ${JSON.stringify(got)}, expected ${JSON.stringify(c.expect)}`);
     }
   });
 }

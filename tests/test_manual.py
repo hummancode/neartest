@@ -49,3 +49,15 @@ def test_number_parsing():
     assert manual.parse_number("45.25") == 45.25
     assert manual.parse_number("1.000") == 1000.0     # thousands, Turkish style
     assert math.isnan(manual.parse_number("ND"))
+
+
+def test_basket_csv():
+    text = "Ay;Model;Fiyat\n2024-1;Marka X 1.0 Benzinli;1.250.000\n2024-1;Marka Y Hibrit;2.000.000,50\n2024-2;Marka X 1.0 Benzinli;1.300.000\n"
+    out = manual.parse_basket_csv(text)
+    assert out == {"2024-01": {"Marka X 1.0 Benzinli": 1250000.0, "Marka Y Hibrit": 2000000.5},
+                   "2024-02": {"Marka X 1.0 Benzinli": 1300000.0}}
+
+
+def test_basket_csv_rejects_duplicate_model_month():
+    with pytest.raises(manual.ManualDataError):
+        manual.parse_basket_csv("2024-01,A,100\n2024-01,A,110\n")

@@ -16,7 +16,7 @@ from pathlib import Path
 import csv
 
 from pipeline import manual, sample
-from pipeline.series import ALL_SERIES, ASSETS, CPI_GROUPS, CPI_WEIGHTS_SOURCE, OPTIONAL_SERIES, SERIES
+from pipeline.series import ALL_SERIES, ASSETS, CITIES, CPI_GROUPS, CPI_WEIGHTS_SOURCE, OPTIONAL_SERIES, SERIES
 from reel import engine as e
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,6 +27,32 @@ OUT_GROUPS = ROOT / "site" / "data" / "tufe_gruplari.json"
 OUT_RATES = ROOT / "site" / "data" / "reel_faiz.json"
 OUT_STATUS = ROOT / "site" / "data" / "durum.json"
 OUT_PATHS = ROOT / "site" / "data" / "seriler.json"
+OUT_PRICES = ROOT / "site" / "data" / "fiyatlar.json"
+OUT_HOUSING = ROOT / "site" / "data" / "konut.json"
+
+# Instruments of the "X priced in Y" chart tool: (id, label, group, source series).
+INSTRUMENTS = [
+    ("tl", "TL (nominal)", "Ölçü", None),
+    ("cpi", "TÜFE sepeti (reel TL)", "Ölçü", "cpi_tr"),
+    ("usd", "Dolar", "Döviz", "usdtry"),
+    ("eur", "Euro", "Döviz", "eurtry"),
+    ("gold", "Gram altın", "Emtia", "gold_gram_tl"),
+    ("bist100", "BIST 100", "Borsa", "bist100"),
+    ("sp500", "S&P 500 (TL)", "Borsa", "sp500_usd"),
+    ("deposit", "TL mevduat (faiz getirisi)", "Faiz", "deposit_rate"),
+    ("car", "Otomobil (TÜFE alt endeksi)", "Tüketim", "car_cpi"),
+    ("car_new", "0 km otomobil (bayi liste fiyatı)", "Tüketim", "car_new"),
+    ("rent", "Kira (TÜFE alt endeksi)", "Tüketim", "rent_cpi"),
+    ("house_ist", "Konut — İstanbul", "Konut", "house_ist"),
+    ("house_ank", "Konut — Ankara", "Konut", "house_ank"),
+    ("house_izm", "Konut — İzmir", "Konut", "house_izm"),
+    ("house_tr", "Konut — Türkiye", "Konut", "house_tr"),
+    *[(f"betam_sale_{k}", f"Konut (BETAM satılık) — {n}", "Konut", f"betam_sale_{k}") for k, n in
+      (("ist", "İstanbul"), ("ank", "Ankara"), ("izm", "İzmir"), ("tr", "Türkiye"))],
+    *[(f"betam_rent_{k}", f"Kira (BETAM kiralık) — {n}", "Konut", f"betam_rent_{k}") for k, n in
+      (("ist", "İstanbul"), ("ank", "Ankara"), ("izm", "İzmir"), ("tr", "Türkiye"))],
+    ("min_wage", "Net asgari ücret", "Gelir", "min_wage_net"),
+]
 WEIGHTS_CSV = ROOT / "data" / "manual" / "tufe_agirliklari.csv"
 
 # Series the in-browser "nominal illusion" calculator needs, as raw monthly levels.
@@ -52,6 +78,13 @@ def _real_series(name: str) -> tuple[dict, str, dict] | None:
     if loaded:
         series, meta = loaded
         return {m: v * scale for m, v in series.items()}, "manual", meta
+    if name == "car_new":
+        basket = manual.MANUAL / "car_new_basket.csv"
+        if basket.exists():
+            prices = manual.parse_basket_csv(basket.read_text(encoding="utf-8-sig"))
+            meta_path = manual.MANUAL / "car_new_basket.meta.json"
+            meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+            return e.jevons_chain_index(prices), "manual", meta
     return None
 
 
@@ -93,7 +126,7 @@ def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
     return raw
 
 
-def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict, dict]:
+def build(allow_sample: bool) -> tuple[dict, ...]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
@@ -142,7 +175,10 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict, dict]:
     status["generated_at"] = tablo["generated_at"]
     paths = build_paths(data, is_sample, end)
     paths["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates, status, paths
+    prices = build_prices(data, is_sample, end)
+    housing = build_housing(data, is_sample, end)
+    prices["generated_at"] = housing["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates, status, paths, prices, housing
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -262,11 +298,126 @@ def build_paths(data: dict, is_sample: dict, end: str) -> dict:
     return {"end_month": end, "sample": any(a["sample"] for a in assets.values()), "assets": assets}
 
 
+def _instrument_tl(source: str | None, data: dict, end: str) -> dict[str, float] | None:
+    """TL price level (or index) of one chart instrument, cut at `end`."""
+    end_idx = e._month_index(end)
+    if source is None:  # plain TL: a constant, so "X in TL" is X's nominal price
+        months = sorted(data["cpi_tr"], key=e._month_index)
+        out = {m: 1.0 for m in months}
+    elif source not in data:
+        return None
+    elif source == "deposit_rate":
+        out = e.deposit_index(data[source])
+    elif source == "sp500_usd":
+        out = e.to_tl(data[source], data["usdtry"])
+    elif source == "min_wage_net":
+        out = forward_fill(data[source], end)
+    else:
+        out = data[source]
+    return {m: v for m, v in out.items() if e._month_index(m) <= end_idx}
+
+
+def build_prices(data: dict, is_sample: dict, end: str) -> dict:
+    """Monthly TL levels of every chart instrument (contiguous runs: start month + values)."""
+    instruments, series = [], {}
+    for iid, label, group, source in INSTRUMENTS:
+        tl = _instrument_tl(source, data, end)
+        if not tl:
+            continue
+        months = sorted(tl, key=e._month_index)
+        # Keep the longest contiguous run that ends at the last month.
+        run = [months[-1]]
+        for m in reversed(months[:-1]):
+            if e.shift_month(m, 1) != run[0]:
+                break
+            run.insert(0, m)
+        used = [] if source is None else [source] + (["usdtry"] if source == "sp500_usd" else [])
+        instruments.append({
+            "id": iid, "label": label, "group": group,
+            "sample": any(is_sample.get(u, False) for u in used),
+            "sources": [src(u, is_sample) for u in used],
+        })
+        series[iid] = {"start": run[0], "values": [round(tl[m], 8) for m in run]}
+    return {
+        "end_month": end,
+        "sample": any(i["sample"] for i in instruments),
+        "instruments": instruments,
+        "series": series,
+    }
+
+
+def _house_windows(house: dict, data: dict, end: str) -> list[dict]:
+    cpi, fx, gold = data["cpi_tr"], data["usdtry"], data["gold_gram_tl"]
+    out = []
+    for w in e.asset_windows(house, cpi, fx, end):
+        try:
+            g = e.currency_return(w.nominal_tl, e.window_return(gold, end, 12 * w.years))
+        except e.SeriesError:
+            g = None
+        out.append(w.__dict__ | {"gold": g, "gold_annual": None if g is None else e.annualize(g, w.years)})
+    return out
+
+
+def build_housing(data: dict, is_sample: dict, end: str) -> dict:
+    """House price returns per city (nominal / real / USD / gold), per source, and reference rates.
+
+    Sources: TCMB KFE (always; sample until verified) and BETAM sale index (only if entered).
+    """
+    def change_12m(name):
+        if name not in data:
+            return None
+        try:
+            return e.window_return(data[name], end, 12)
+        except e.SeriesError:
+            return None
+
+    base = ("cpi_tr", "usdtry", "gold_gram_tl")
+    cities = []
+    for c in CITIES:
+        sources = {"kfe": {
+            "label": "TCMB Konut Fiyat Endeksi",
+            "series": c["series"],
+            "sample": any(is_sample.get(s, False) for s in (c["series"], *base)),
+            "windows": _house_windows(data[c["series"]], data, end),
+        }}
+        if c["betam_sale"] in data:
+            sources["betam"] = {
+                "label": "BETAM satılık konut endeksi",
+                "series": c["betam_sale"],
+                "sample": any(is_sample.get(s, False) for s in base),
+                "windows": _house_windows(data[c["betam_sale"]], data, end),
+            }
+        cities.append({
+            "id": c["id"], "label": c["label"], "sources": sources,
+            "rent_12m_betam": change_12m(c["betam_rent"]),
+            "house_12m": {k: change_12m(v["series"]) for k, v in sources.items()},
+        })
+
+    used = ["cpi_tr", "usdtry", "gold_gram_tl", "rent_cpi", "deposit_rate", "credit_rate"]
+    used += [c["series"] for c in CITIES]
+    used += [n for c in CITIES for n in (c["betam_sale"], c["betam_rent"]) if n in data]
+    return {
+        "end_month": end,
+        "sample": any(is_sample.get(n, False) for n in used),
+        "cities": cities,
+        "reference": {
+            "cpi_12m": change_12m("cpi_tr"),
+            "rent_12m": change_12m("rent_cpi"),
+            "deposit_rate": data["deposit_rate"].get(end),
+            "credit_rate": data["credit_rate"].get(end),
+            "sample": any(is_sample[n] for n in ("cpi_tr", "rent_cpi", "deposit_rate", "credit_rate")),
+        },
+        "sources": {n: src(n, is_sample) for n in used},
+    }
+
+
 USED_BY = {
     "cpi_tr": "Tüm reel hesaplar", "usdtry": "USD getirisi, nominal illüzyon", "eurtry": "Reel Tablo",
     "deposit_rate": "Reel Tablo, reel faiz", "credit_rate": "Reel Tablo, reel faiz",
     "gold_gram_tl": "Reel Tablo, nominal illüzyon", "bist100": "Reel Tablo", "sp500_usd": "Reel Tablo",
-    "min_wage_net": "Nominal illüzyon",
+    "min_wage_net": "Nominal illüzyon, grafik",
+    "car_cpi": "Grafik", "rent_cpi": "Konut, grafik", "car_new": "Grafik",
+    "house_tr": "Konut, grafik", "house_ist": "Konut, grafik", "house_ank": "Konut, grafik", "house_izm": "Konut, grafik",
 }
 
 
@@ -275,6 +426,7 @@ def build_status(data: dict, weights_sample: bool, end: str) -> dict:
     rows = []
     for name in ALL_SERIES | OPTIONAL_SERIES:
         m, origin = META[name], ORIGIN.get(name, "missing")
+        used_by = USED_BY.get(name) or ("Konut, grafik" if name.startswith("betam_") else "Kişisel enflasyon")
         s = data.get(name, {})
         months = sorted(s, key=e._month_index)
         rows.append({
@@ -288,7 +440,7 @@ def build_status(data: dict, weights_sample: bool, end: str) -> dict:
             "first_month": months[0] if months else None,
             "last_month": months[-1] if months else None,
             "months": len(months),
-            "used_by": USED_BY.get(name, "Kişisel enflasyon"),
+            "used_by": used_by,
         })
     counts = {k: sum(r["origin"] == k for r in rows) for k in ORIGIN_LABEL}
     return {
@@ -363,7 +515,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates, status, paths = build(args.sample)
+    result, levels, groups, rates, status, paths, prices, housing = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
@@ -371,8 +523,10 @@ def main() -> int:
     write_if_changed(OUT_RATES, rates)
     write_if_changed(OUT_STATUS, status)
     write_if_changed(OUT_PATHS, paths)
+    write_if_changed(OUT_PRICES, prices)
+    write_if_changed(OUT_HOUSING, housing)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}, {OUT_STATUS.relative_to(ROOT)}, {OUT_PATHS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: site/data/*.json (8 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

@@ -70,7 +70,7 @@ export function renderChart(root: HTMLElement, data: ChartData, opts: { onScale?
   root.classList.add("chart");
   const W = Math.max(240, root.clientWidth);
   const H = W < 520 ? 280 : 380;
-  const M = { left: 44, right: W < 520 ? 78 : 96, top: 14, bottom: 30 };
+  const M = { left: 44, right: W < 520 ? 92 : 104, top: 14, bottom: 30 };
   const n = data.months.length;
   const all = data.series.flatMap((s) => s.values).concat(100);
   const ys = yScale(Math.min(...all), Math.max(...all));
