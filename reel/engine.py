@@ -971,3 +971,25 @@ def housing_affordability(*, m2_price: float, rent_m2: float, monthly_wage: floa
     rent = rent_m2 * dwelling_m2
     return {"price": price, "rent": rent, "gross_yield": 12 * rent / price, "amortization_years": price / (12 * rent),
             "price_to_annual_wage": price / (12 * monthly_wage), "rent_to_wage": rent / monthly_wage}
+
+
+# ---------------------------------------------------------------------------
+# Economic structure
+# ---------------------------------------------------------------------------
+
+def shares(values: dict[str, float]) -> dict[str, float]:
+    """Parts -> shares of the total."""
+    total = sum(v for v in values.values() if v > 0)
+    if total <= 0:
+        raise SeriesError("total must be positive")
+    return {k: max(v, 0.0) / total for k, v in values.items()}
+
+
+def location_quotients(local: dict[str, float], national: dict[str, float]) -> dict[str, float]:
+    """LQ = local share / national share. > 1: the place is more specialised in that sector than the country."""
+    return {k: local[k] / national[k] for k in local if national.get(k, 0) > 0}
+
+
+def hhi(share_values: dict[str, float]) -> float:
+    """Herfindahl–Hirschman index of shares (1 = one sector only, 1/n = n equal sectors)."""
+    return sum(s * s for s in share_values.values())

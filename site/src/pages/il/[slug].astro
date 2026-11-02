@@ -76,6 +76,41 @@ const sample = Object.values(p.values).some((v) => v.sample);
     );
   })}
 
+  {Object.keys(p.structure).length > 0 && (
+    <section id="yapi">
+      <h2>Ekonomik yapı ve ihracat</h2>
+      {p.history.exports_mn_usd && (
+        <div class="card">
+          <h3 class="s-title">İhracatın yıllar içinde seyri{p.history.exports_mn_usd.sample && <span class="tag">örnek</span>}</h3>
+          <div id="exp-chart" class="chart-box"></div>
+          <p class="muted small">Milyon $, cari fiyatlarla · {ind.exports_mn_usd?.source}</p>
+        </div>
+      )}
+      <div class="structs">
+        {["gva", "jobs", "exports_sector", "exports_country"].filter((k) => p.structure[k]).map((k) => {
+          const st = p.structure[k];
+          const mx = st.items[0]?.value || 1;
+          const showLq = st.items.some((x) => x.lq != null);
+          return (
+            <div class="card">
+              <h3 class="s-title">{st.title} ({st.year}){st.sample && <span class="tag">örnek</span>}</h3>
+              <ol class="bars">
+                {st.items.slice(0, 12).map((x) => (
+                  <li>
+                    <span class="b-name" title={x.name}>{x.name}</span>
+                    <span class="b-bar"><span style={`width:${(100 * x.value) / mx}%`}></span></span>
+                    <span class="b-val">%{new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(100 * x.share)}{showLq && x.lq != null ? <span class={`lq ${x.lq >= 1.25 ? "hi" : ""}`}> · LQ {new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(x.lq)}</span> : null}</span>
+                  </li>
+                ))}
+              </ol>
+              <p class="muted small">{st.source}{showLq ? " · LQ: ildeki pay / Türkiye'deki pay (1'in üstü: il bu sektörde ülke ortalamasından yoğun)" : ""}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  )}
+
   <h2>Borsa şirketleri</h2>
   {!P.has_company_list ? <p class="muted">Şirket listesi henüz girilmedi (KAP merkez adresleri).</p>
     : p.companies.length === 0 ? <p class="muted">Bu ilde merkezi bulunan borsa şirketi yok.</p>
@@ -90,7 +125,20 @@ const sample = Object.values(p.values).some((v) => v.sample);
   <p><a class="btn btn-ghost" href={`/iller#il=${plaka}`}>Haritada gör ve varsayımları değiştir →</a></p>
   <p class="muted small">Model tahminleri varsayılan varsayımlarla hesaplanmıştır (ev sahipliği %{Math.round(P.wealth_defaults.ownership_rate * 100)}, konut {P.wealth_defaults.dwelling_m2} m², mevduatın hanelere ait payı %{Math.round(P.wealth_defaults.household_deposit_share * 100)}, servet dağınıklığı {P.wealth_defaults.inequality_multiplier}×, Türkiye yastık altı altın {new Intl.NumberFormat("tr-TR").format(P.wealth_defaults.gold_total_tonnes)} ton). Resmî istatistik değildir. Yöntem: <a href="/metodoloji#iller">Metodoloji</a>.</p>
   <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="h-data" set:html={JSON.stringify(p.history.exports_mn_usd?.points ?? [])}></script>
 </Base>
+<script>
+  import { renderChart } from "../../lib/chart.ts";
+  const pts: [string, number][] = JSON.parse(document.getElementById("h-data")!.textContent!);
+  const box = document.getElementById("exp-chart");
+  if (box && pts.length > 1) {
+    const nf = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+    const draw = () => renderChart(box, { months: pts.map(([y]) => `${y}-12`), series: [{ key: "x", label: "İhracat", color: "var(--series-1)", values: pts.map(([, v]) => v) }] },
+      { baseline: null, allowLog: false, format: (v) => `${nf.format(v)} mn $` });
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(); } }).observe(box);
+  }
+</script>
 <style is:global>
   .crumb a { color: var(--ink-2); }
   .hero { display: grid; gap: 12px; align-items: center; }
@@ -111,5 +159,17 @@ const sample = Object.values(p.values).some((v) => v.sample);
   .tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: middle; }
   .tag.est { color: var(--accent); }
   .companies { padding-left: 1.2em; }
+  .structs { display: grid; gap: 12px; margin-top: 12px; }
+  @media (min-width: 900px) { .structs { grid-template-columns: 1fr 1fr; } }
+  .s-title { font-size: 1.05rem; margin: 0 0 8px; }
+  .chart-box { min-height: 220px; }
+  .bars { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.84rem; }
+  .bars li { display: grid; grid-template-columns: minmax(100px, 1.3fr) 1fr 9.5em; gap: 8px; align-items: center; }
+  .b-val { text-align: right; }
+  .b-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .b-bar { height: 10px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .b-bar span { display: block; height: 100%; background: var(--series-1); border-radius: 3px; }
+  .b-val { color: var(--ink-2); white-space: nowrap; font-size: 0.78rem; }
+  .lq.hi { color: var(--ink); font-weight: 700; }
   .others { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 </style>

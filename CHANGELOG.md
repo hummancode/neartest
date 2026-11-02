@@ -112,3 +112,10 @@
   sayfası (`/il/34-istanbul`…): değer, sıra, bölge ortalaması, il medyanı, şirketler. Motor: `normal_cdf`/`normal_ppf`
   (iki dilde aynı algoritma), `gini_from_sigma`, `sigma_from_gini`, `top_share_lognormal`, `wealth_inequality`,
   `gold_allocation`, `housing_affordability` (önce test; 82 ortak vaka). Sonuçlar Python ile birebir doğrulandı.
+- 2026-11-02 — İllerde ekonomik yapı ve ihracat: il bazında GSYH'nin ve sigortalı istihdamın sektörlere dağılımı
+  (uzmanlaşma katsayısı LQ), ihracatın sektörlere ve pazarlara dağılımı, ihracat yoğunlaşması (HHI), en büyük
+  pazarın payı, ihracatın yıllık seyri ve 5 yıllık değişimi. Haritada tarım/sanayi/hizmet payları ve yoğunlaşma
+  göstergeleri; il kartında özet (uzmanlaşılan sektörler, öne çıkan ihracat sektörleri, ana pazarlar); il künye
+  sayfasında dağılım çubukları ve ihracat grafiği; Türkiye profilinde illerin toplamından ulusal yapı ve her
+  sektörde öne çıkan iller. Motor: `shares`, `location_quotients`, `hhi` (önce test). Veri elle
+  (`iller/gsyh_sektor.csv`, `istihdam_sektor.csv`, `ihracat_sektor.csv`, `ihracat_ulke.csv`); şu an örnek.

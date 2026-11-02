@@ -47,3 +47,28 @@ def test_new_derived_and_estimates(tmp_path):
     assert v["wealth_gini"]["value"] > 0.4                       # multiplier 1.8 > 1
     assert abs(v["gold_tonnes"]["value"] - pv.WEALTH_DEFAULTS["gold_total_tonnes"]) < 1e-9   # only province with data
     assert abs(v["gold_value_bn"]["value"] - v["gold_tonnes"]["value"] * 1e6 * 4000 / 1e9) < 1e-9
+
+
+def test_breakdowns_shares_lq_and_history(tmp_path):
+    (tmp_path / "gsyh_sektor.csv").write_text(
+        "plaka;yil;sektor;deger\n6;2024;Sanayi;50\n6;2024;Hizmet;50\n34;2024;Sanayi;0\n34;2024;Hizmet;100\n", encoding="utf-8")
+    (tmp_path / "ihracat_sektor.csv").write_text("6;2024;Otomotiv;3\n6;2024;Kimya;1\n", encoding="utf-8")
+    (tmp_path / "ihracat_ulke.csv").write_text("6;2024;Almanya;3\n6;2024;ABD;1\n", encoding="utf-8")
+    (tmp_path / "exports_mn_usd.csv").write_text("6;2019;2\n6;2024;4\n", encoding="utf-8")
+    out = pv.build_provinces({}, allow_sample=False, directory=tmp_path)
+    ank = next(p for p in out["provinces"] if p["plaka"] == 6)
+    gva = {x["name"]: x for x in ank["structure"]["gva"]["items"]}
+    # national: Sanayi 50/200 = 25 %, Hizmet 75 %; Ankara 50 % / 50 % -> LQ 2 and 2/3
+    assert abs(gva["Sanayi"]["lq"] - 2.0) < 1e-12 and abs(gva["Hizmet"]["lq"] - 2 / 3) < 1e-12
+    assert abs(ank["values"]["export_hhi"]["value"] - (0.75 ** 2 + 0.25 ** 2)) < 1e-12
+    assert ank["values"]["top_market_share"]["value"] == 75.0
+    assert ank["values"]["exports_growth_5y"]["value"] == 100.0
+    assert ank["summary"]["top_exports"] == ["Otomotiv", "Kimya"]
+
+
+def test_sample_breakdowns_add_up():
+    out = pv.build_provinces({f"2024-{m:02d}": 30.0 for m in range(1, 13)}, allow_sample=True, directory=pv.MANUAL / "no-such")
+    ist = out["provinces"][33]
+    gva_total = sum(x["value"] for x in ist["structure"]["gva"]["items"])
+    assert abs(gva_total - ist["values"]["gdp_mn_tl"]["value"]) / gva_total < 1e-3
+    assert ist["structure"]["exports_country"]["sample"] is True and "exports_mn_usd" in ist["history"]

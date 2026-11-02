@@ -38,6 +38,26 @@ const last5y = (pts: [string, number][]) => {
   const end = pts[pts.length - 1][0];
   return pts.filter(([m]) => m >= `${Number(end.slice(0, 4)) - 5}${end.slice(4)}`).map(([, v]) => v);
 };
+// National structure = sum of province breakdowns.
+function national(key: string) {
+  const tot: Record<string, number> = {}, byProv: Record<string, { name: string; plaka: number; v: number }[]> = {};
+  let sample = false, year = "";
+  for (const p of pv) {
+    const st = p.structure?.[key];
+    if (!st) continue;
+    sample ||= st.sample; year = st.year;
+    for (const x of st.items) {
+      tot[x.name] = (tot[x.name] ?? 0) + x.value;
+      (byProv[x.name] ??= []).push({ name: p.name, plaka: p.plaka, v: x.value });
+    }
+  }
+  const sum = Object.values(tot).reduce((a, b) => a + b, 0);
+  const items = Object.entries(tot).sort((a, b) => b[1] - a[1]).map(([name, v]) => ({
+    name, v, share: sum ? v / sum : 0, leaders: (byProv[name] ?? []).sort((a, b) => b.v - a.v).slice(0, 3).map((x) => ({ ...x, share: v ? x.v / v : 0 })),
+  }));
+  return { items, sample, year };
+}
+const natGva = national("gva"), natExp = national("exports_sector");
 const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
 ---
 <Base title="Türkiye profili" description="Türkiye ekonomisi tek sayfada: büyüme, enflasyon, dış ticaret, partnerler, ürünler, benzer ülkeler içindeki yeri ve öne çıkan iller." sample={anySample}>
@@ -110,6 +130,28 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
       </section>
     )}
   </div>
+
+  {natGva.items.length > 0 && (
+    <>
+      <h2>Ekonomik yapı</h2>
+      <div class="two">
+        {[[natGva, "GSYH'nin sektörlere dağılımı"], [natExp, "Sektörlere göre ihracat"]].map(([nat, title]: any) => (
+          <section class="card">
+            <h3>{title} ({nat.year}){nat.sample && <span class="tag">örnek</span>}</h3>
+            <ol class="bars">{nat.items.slice(0, 10).map((x: any) => (
+              <li><span class="b-name" title={x.name}>{x.name}</span><span class="b-bar"><span style={`width:${(100 * x.v) / nat.items[0].v}%`}></span></span><span class="b-val">%{nf1.format(100 * x.share)}</span></li>
+            ))}</ol>
+            <details class="leaders"><summary class="small">Her sektörde öne çıkan iller</summary>
+              <ul class="small">{nat.items.slice(0, 10).map((x: any) => (
+                <li><strong>{x.name}:</strong> {x.leaders.map((l: any) => `${l.name} %${nf1.format(100 * l.share)}`).join(", ")}</li>
+              ))}</ul>
+            </details>
+          </section>
+        ))}
+      </div>
+      <p class="muted small">İl verilerinin toplamından hesaplanır (TÜİK il bazında GSYH; TİM/TÜİK il bazında sektörel ihracat). İhracat, firmanın kayıtlı olduğu ile göre sayılır.</p>
+    </>
+  )}
 
   <h2>Benzer ekonomiler içinde</h2>
   <section class="card scroll-x">
@@ -188,7 +230,8 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
   .two { display: grid; gap: 12px; margin-top: 12px; }
   @media (min-width: 900px) { .two { grid-template-columns: 1fr 1fr; } .two.three { grid-template-columns: repeat(3, 1fr); } }
   .bars { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.85rem; }
-  .bars li { display: grid; grid-template-columns: minmax(90px, 1.2fr) 1.5fr auto; gap: 8px; align-items: center; }
+  .bars li { display: grid; grid-template-columns: minmax(90px, 1.2fr) 1.5fr 9em; gap: 8px; align-items: center; }
+  .b-val { text-align: right; }
   .b-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .b-bar { height: 10px; background: var(--line); border-radius: 3px; overflow: hidden; }
   .b-bar span { display: block; height: 100%; background: var(--series-1); border-radius: 3px; }
@@ -198,5 +241,8 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
   .peers tbody th { font-weight: 600; }
   .scroll-x { overflow-x: auto; }
   .toplist { padding-left: 1.3em; margin: 0; }
+  .leaders { margin-top: 8px; }
+  .leaders summary { cursor: pointer; }
+  .leaders ul { padding-left: 1.1em; }
   .toplist li { margin: 4px 0; }
 </style>

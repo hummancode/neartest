@@ -665,3 +665,23 @@ def test_housing_affordability():
     r = e.housing_affordability(m2_price=20000, rent_m2=100, monthly_wage=25000, dwelling_m2=100)
     assert close(r["gross_yield"], 0.06) and close(r["amortization_years"], 2e6 / 120000)
     assert close(r["price_to_annual_wage"], 2e6 / 300000) and close(r["rent_to_wage"], 0.4)
+
+
+# --- economic structure: shares, specialization, concentration ---------------------
+
+def test_shares():
+    assert e.shares({"a": 30.0, "b": 10.0}) == {"a": 0.75, "b": 0.25}
+    with pytest.raises(e.SeriesError):
+        e.shares({"a": 0.0})
+
+
+def test_location_quotients():
+    # province: industry 50 %, services 50 %; country: industry 25 %, services 75 %
+    lq = e.location_quotients({"ind": 0.5, "srv": 0.5}, {"ind": 0.25, "srv": 0.75})
+    assert close(lq["ind"], 2.0) and close(lq["srv"], 2 / 3)
+
+
+def test_hhi():
+    assert close(e.hhi({"a": 1.0}), 1.0)                     # one sector: fully concentrated
+    assert close(e.hhi({"a": 0.5, "b": 0.5}), 0.5)
+    assert close(e.hhi({k: 0.1 for k in "abcdefghij"}), 0.1)  # ten equal sectors

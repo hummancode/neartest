@@ -5,7 +5,9 @@ import { DISCLAIMER } from "../config.ts";
 
 const P = provinces;
 const groups = [...new Set(P.indicators.map((i) => i.group))];
-const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.wealth_defaults, gold_gram_tl: P.gold_gram_tl, has_company_list: P.has_company_list };
+// Keep the map page light: full sector/market breakdowns live on the province pages.
+const light = P.provinces.map(({ structure, history, ...rest }) => rest);
+const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth_defaults, gold_gram_tl: P.gold_gram_tl, has_company_list: P.has_company_list };
 ---
 <Base title="İller: ekonomik harita" description="81 ilin ekonomik profili harita üzerinde: nüfus, gelir, ihracat, ücretli çalışan, şirketler, borsa şirketleri, mevduat ve tahmini hane serveti." sample={P.sample}>
   <h1>İller</h1>
@@ -239,6 +241,22 @@ const payload = { indicators: P.indicators, provinces: P.provinces, defaults: P.
         dl.append(dt, dd);
       }
       box.appendChild(dl);
+    }
+    const sm = p.summary || {};
+    const lines: [string, string[] | undefined][] = [["Uzmanlaştığı sektörler", sm.specialization], ["Öne çıkan ihracat sektörleri", sm.top_exports], ["Başlıca ihracat pazarları", sm.top_markets]];
+    if (lines.some(([, v]) => v && v.length)) {
+      const sh = document.createElement("h3"); sh.className = "pc-group"; sh.textContent = "Ekonomik yapı ve ihracat";
+      box.appendChild(sh);
+      const dl2 = document.createElement("dl"); dl2.className = "pc-list";
+      for (const [label, v] of lines) {
+        if (!v || !v.length) continue;
+        const dt = document.createElement("dt"); dt.textContent = label;
+        const dd = document.createElement("dd"); dd.textContent = v.join(", ");
+        dl2.append(dt, dd);
+      }
+      box.appendChild(dl2);
+      const more = document.createElement("a"); more.href = provinceUrl(pl, p.name) + "#yapi"; more.className = "small"; more.textContent = "Sektör ve pazar dağılımları →";
+      box.appendChild(more);
     }
     const ch = document.createElement("h3"); ch.className = "pc-group"; ch.textContent = "Borsa şirketleri (merkezi bu ilde)";
     box.appendChild(ch);

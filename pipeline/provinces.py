@@ -66,6 +66,13 @@ INDICATORS = {
     "income_gini": ("Gelir Gini katsayısı", "katsayı", "Gelir", "TÜİK Gelir ve Yaşam Koşulları — İBBS-2 bölge değeri ile atanır", "observed"),
     "cars": ("Kayıtlı otomobil", "adet", "Gelir", "TÜİK motorlu kara taşıtları", "observed"),
     "cars_per_1000": ("1.000 kişiye otomobil", "adet", "Gelir", "otomobil / nüfus × 1.000", "derived"),
+    "gva_share_agri": ("Tarımın GSYH payı", "%", "Ekonomik yapı", "sektörel GSYH / toplam", "derived"),
+    "gva_share_industry": ("Sanayinin GSYH payı", "%", "Ekonomik yapı", "sektörel GSYH / toplam", "derived"),
+    "gva_share_services": ("Hizmetlerin GSYH payı", "%", "Ekonomik yapı", "sektörel GSYH / toplam (inşaat hariç)", "derived"),
+    "jobs_share_industry": ("Sanayide çalışanların payı", "%", "Ekonomik yapı", "SGK sektörel sigortalı / toplam", "derived"),
+    "export_hhi": ("İhracatın sektörel yoğunlaşması (HHI)", "katsayı", "Dış ticaret", "Σ (sektör payı)²: 1 = tek sektör", "derived"),
+    "top_market_share": ("En büyük ihracat pazarının payı", "%", "Dış ticaret", "en büyük ülke / il ihracatı", "derived"),
+    "exports_growth_5y": ("İhracat, 5 yıllık değişim ($)", "%", "Dış ticaret", "son yıl / 5 yıl önce − 1", "derived"),
     "sege_score": ("SEGE gelişmişlik skoru", "skor", "Gelişmişlik", "Sanayi ve Teknoloji Bakanlığı, SEGE", "observed"),
     "wealth_per_household": ("Tahmini hane serveti (hane başına)", "TL", "Model tahmini", "Model: konut + mevduat (varsayımlar değiştirilebilir)", "estimate"),
     "wealth_total_bn": ("Tahmini toplam hane serveti", "milyar TL", "Model tahmini", "Model: konut + mevduat", "estimate"),
@@ -77,6 +84,25 @@ INDICATORS = {
     "gold_per_household_g": ("Hane başına tahmini altın", "gram", "Model tahmini", "Model", "estimate"),
 }
 OBSERVED = [k for k, v in INDICATORS.items() if v[4] == "observed"]
+
+# Sector lists used for SAMPLE data and display order (real files may use any category names).
+EXPORT_SECTORS = ["Otomotiv", "Kimyevi maddeler", "Hazır giyim ve konfeksiyon", "Elektrik-elektronik", "Çelik", "Makine",
+                  "Tekstil ve hammaddeleri", "Demir ve demir dışı metaller", "Mobilya, kâğıt ve orman ürünleri",
+                  "Hububat, bakliyat, yağlı tohumlar", "Yaş meyve ve sebze", "Fındık ve mamulleri", "Madencilik",
+                  "Mücevher", "Savunma ve havacılık", "İklimlendirme", "Deri ve deri mamulleri", "Su ürünleri ve hayvansal mamuller"]
+GVA_SECTORS = ["Tarım, ormancılık ve balıkçılık", "Sanayi", "İnşaat", "Ticaret, ulaştırma, konaklama", "Bilgi ve iletişim",
+               "Finans ve sigorta", "Gayrimenkul", "Mesleki ve idari hizmetler", "Kamu, eğitim, sağlık", "Diğer hizmetler"]
+AGRI, INDUSTRY, CONSTRUCTION = GVA_SECTORS[0], GVA_SECTORS[1], GVA_SECTORS[2]
+SAMPLE_MARKETS = ["Almanya", "ABD", "Birleşik Krallık", "Irak", "İtalya", "Fransa", "İspanya", "Rusya", "BAE", "Hollanda", "İsrail", "Romanya"]
+INDUSTRIAL = {41: 2.2, 16: 1.9, 45: 1.8, 59: 1.9, 54: 1.6, 38: 1.5, 27: 1.6, 20: 1.4, 42: 1.3, 11: 1.6, 81: 1.4, 26: 1.3, 34: 1.0, 35: 1.1}
+
+# Breakdown files: data/manual/iller/<file> with columns plaka;yil;kategori;deger
+BREAKDOWNS = {
+    "gva": ("gsyh_sektor.csv", "milyon TL", "GSYH'nin sektörlere dağılımı", "TÜİK il bazında GSYH, iktisadi faaliyet kollarına göre"),
+    "jobs": ("istihdam_sektor.csv", "kişi", "Sigortalı çalışanların sektörlere dağılımı", "SGK, 4/a sigortalılar, ekonomik faaliyete göre"),
+    "exports_sector": ("ihracat_sektor.csv", "milyon $", "İhracatın sektörlere dağılımı", "TİM / TÜİK il bazında sektörel ihracat"),
+    "exports_country": ("ihracat_ulke.csv", "milyon $", "İhracat pazarları", "TİM / TÜİK il bazında ülkelere göre ihracat"),
+}
 
 # Default model assumptions (illustrative; users change them on the page).
 WEALTH_DEFAULTS = {"ownership_rate": 0.57, "dwelling_m2": 110.0, "household_deposit_share": 0.55, "household_size": 3.2,
@@ -110,6 +136,52 @@ def parse_province_csv(text: str) -> dict[int, tuple[str, float]]:
         if plaka not in out or year >= out[plaka][0]:
             out[plaka] = (year, value)
     return out
+
+
+def parse_province_history(text: str) -> dict[int, dict[str, float]]:
+    """plaka;yil;deger -> {plaka: {year: value}} (all years)."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return {}
+    delim = ";" if ";" in lines[0] else ("\t" if "\t" in lines[0] else ",")
+    out: dict[int, dict[str, float]] = {}
+    for i, row in enumerate(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim)):
+        if len(row) < 3:
+            continue
+        try:
+            plaka = int(row[0].strip())
+        except ValueError:
+            if i == 0:
+                continue
+            raise
+        v = parse_number(row[2])
+        if not math.isnan(v):
+            out.setdefault(plaka, {})[row[1].strip()] = v
+    return out
+
+
+def parse_breakdown_csv(text: str) -> dict[int, tuple[str, dict[str, float]]]:
+    """plaka;yil;kategori;deger -> {plaka: (latest year, {category: value})}."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return {}
+    delim = ";" if ";" in lines[0] else ("\t" if "\t" in lines[0] else ",")
+    raw: dict[int, dict[str, dict[str, float]]] = {}
+    for i, row in enumerate(csv.reader(io.StringIO("\n".join(lines)), delimiter=delim)):
+        if len(row) < 4:
+            continue
+        try:
+            plaka = int(row[0].strip())
+        except ValueError:
+            if i == 0:
+                continue
+            raise ValueError(f"satır {i + 1}: plaka okunamadı: {row[0]!r}")
+        v = parse_number(row[3])
+        if math.isnan(v):
+            continue
+        cats = raw.setdefault(plaka, {}).setdefault(row[1].strip(), {})
+        cats[row[2].strip()] = cats.get(row[2].strip(), 0.0) + v
+    return {p: (max(years), years[max(years)]) for p, years in raw.items()}
 
 
 def _noise(plaka: int, k: int) -> float:
@@ -152,6 +224,44 @@ def sample_provinces() -> dict[str, dict[int, tuple[str, float]]]:
     return out
 
 
+def sample_breakdowns(base: dict[str, dict[int, tuple[str, float]]]) -> dict[str, dict[int, tuple[str, dict[str, float]]]]:
+    """SYNTHETIC sector/market splits consistent with the sample totals. NOT real."""
+    out = {k: {} for k in BREAKDOWNS}
+    for p in range(1, 82):
+        ind = INDUSTRIAL.get(p, 0.6 + 0.5 * _noise(p, 20))
+        dev = min(1.0, base["gdp_mn_tl"][p][1] / base["population"][p][1] * 1e6 / 600_000)
+        gva_w = {AGRI: 0.04 + 0.25 * (1 - dev) * _noise(p, 21), INDUSTRY: 0.12 * ind + 0.05 * _noise(p, 22),
+                 CONSTRUCTION: 0.05 + 0.03 * _noise(p, 23)}
+        for k, sec in enumerate(GVA_SECTORS[3:]):
+            gva_w[sec] = (0.04 + 0.08 * _noise(p, 30 + k)) * (1.3 if sec == "Kamu, eğitim, sağlık" and dev < 0.6 else 1.0) \
+                         * (2.5 if p == 34 and sec in ("Finans ve sigorta", "Bilgi ve iletişim") else 1.0)
+        tot = sum(gva_w.values())
+        gdp = base["gdp_mn_tl"][p][1]
+        out["gva"][p] = ("2024", {k: round(gdp * w / tot, 2) for k, w in gva_w.items()})
+        jobs = base["insured_employees"][p][1]
+        jw = {k: w * (1.15 if k == INDUSTRY else 1.0) * (0.3 if k == AGRI else 1.0) for k, w in gva_w.items()}
+        jt = sum(jw.values())
+        out["jobs"][p] = ("2024", {k: round(jobs * w / jt) for k, w in jw.items()})
+        exp = base["exports_mn_usd"][p][1]
+        ew = {sec: _noise(p, 50 + k) ** 3 for k, sec in enumerate(EXPORT_SECTORS)}
+        ew[EXPORT_SECTORS[int(_noise(p, 49) * len(EXPORT_SECTORS))]] += 2.0 * ind
+        et = sum(ew.values())
+        out["exports_sector"][p] = ("2024", {k: round(exp * w / et, 2) for k, w in ew.items() if exp * w / et >= 0.5})
+        mw = {m: math.exp(-k / 3.0) * (0.5 + _noise(p, 70 + k)) for k, m in enumerate(SAMPLE_MARKETS)}
+        mt = sum(mw.values())
+        out["exports_country"][p] = ("2024", {k: round(exp * w / mt, 2) for k, w in mw.items()})
+    return out
+
+
+def sample_export_history(base) -> dict[int, dict[str, float]]:
+    out = {}
+    for p in range(1, 82):
+        last = base["exports_mn_usd"][p][1]
+        g = 0.02 + 0.10 * _noise(p, 90)
+        out[p] = {str(y): round(last / (1 + g) ** (2024 - y) * (1 + 0.06 * math.sin(p + y)), 2) for y in range(2017, 2025)}
+    return out
+
+
 def _avg_fx(usdtry: dict[str, float], year: str) -> float | None:
     vals = [v for m, v in usdtry.items() if m.startswith(year + "-")]
     return sum(vals) / len(vals) if len(vals) == 12 else None
@@ -191,6 +301,32 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
             data[k], sample_flag[k] = synthetic[k], True
         else:
             data[k], sample_flag[k] = {}, False
+
+    breakdowns, bd_sample = {}, {}
+    synthetic_bd = sample_breakdowns(synthetic) if allow_sample and all(sample_flag.get(k) for k in ("gdp_mn_tl", "population", "insured_employees", "exports_mn_usd")) else {}
+    for key, (fname, *_rest) in BREAKDOWNS.items():
+        path = directory / fname
+        if path.exists():
+            breakdowns[key], bd_sample[key] = parse_breakdown_csv(path.read_text(encoding="utf-8-sig")), False
+        elif synthetic_bd:
+            breakdowns[key], bd_sample[key] = synthetic_bd[key], True
+        else:
+            breakdowns[key], bd_sample[key] = {}, False
+    hist_path = directory / "exports_mn_usd.csv"
+    if hist_path.exists():
+        exp_hist, exp_hist_sample = parse_province_history(hist_path.read_text(encoding="utf-8-sig")), False
+    elif allow_sample and sample_flag.get("exports_mn_usd"):
+        exp_hist, exp_hist_sample = sample_export_history(synthetic), True
+    else:
+        exp_hist, exp_hist_sample = {}, False
+    # National shares for location quotients.
+    national = {}
+    for key in ("gva", "jobs"):
+        tot: dict[str, float] = {}
+        for _p, (_y, cats) in breakdowns[key].items():
+            for c, v in cats.items():
+                tot[c] = tot.get(c, 0.0) + v
+        national[key] = e.shares(tot) if tot and sum(tot.values()) > 0 else {}
 
     bist_path = directory / "bist_sirketler.csv"
     bist = parse_bist_list(bist_path.read_text(encoding="utf-8-sig")) if bist_path.exists() else {}
@@ -244,8 +380,43 @@ def build_provinces(usdtry: dict[str, float], allow_sample: bool, directory: Pat
                 d("wealth_gini", ineq["wealth_gini"], v["income_gini"][0], "income_gini")
                 d("top10_share", 100 * ineq["top10_share"], v["income_gini"][0], "income_gini")
                 d("wealth_median_hh", w["per_household"] * ineq["median_to_mean"], v["deposits_mn_tl"][0], *deps, "income_gini")
+        structure, summary = {}, {}
+        for key, (_f, unit, title, source) in BREAKDOWNS.items():
+            if p not in breakdowns[key]:
+                continue
+            year, cats = breakdowns[key][p]
+            if sum(cats.values()) <= 0:
+                continue
+            sh = e.shares(cats)
+            lq = e.location_quotients(sh, national[key]) if key in national and national[key] else {}
+            items = sorted(({"name": c, "value": v, "share": sh[c], **({"lq": lq[c]} if c in lq else {})}
+                            for c, v in cats.items()), key=lambda x: -x["value"])
+            structure[key] = {"title": title, "unit": unit, "source": source, "year": year, "sample": bd_sample[key], "items": items}
+            smp = bd_sample[key]
+            if key == "gva":
+                d2 = lambda k, val: out.__setitem__(k, {"value": val, "year": year, "sample": smp})
+                d2("gva_share_agri", 100 * sh.get(AGRI, 0.0))
+                d2("gva_share_industry", 100 * sh.get(INDUSTRY, 0.0))
+                d2("gva_share_services", 100 * sum(v for c, v in sh.items() if c not in (AGRI, INDUSTRY, CONSTRUCTION)))
+                summary["specialization"] = [x["name"] for x in sorted(items, key=lambda x: -x.get("lq", 0))[:2] if x.get("lq", 0) > 1]
+            elif key == "jobs":
+                out["jobs_share_industry"] = {"value": 100 * sh.get(INDUSTRY, 0.0), "year": year, "sample": smp}
+            elif key == "exports_sector":
+                out["export_hhi"] = {"value": e.hhi(sh), "year": year, "sample": smp}
+                summary["top_exports"] = [x["name"] for x in items[:3]]
+            elif key == "exports_country":
+                out["top_market_share"] = {"value": 100 * items[0]["share"], "year": year, "sample": smp}
+                summary["top_markets"] = [x["name"] for x in items[:3]]
+        history = {}
+        if p in exp_hist and len(exp_hist[p]) > 1:
+            hist = sorted(exp_hist[p].items())
+            history["exports_mn_usd"] = {"points": hist, "sample": exp_hist_sample}
+            last_y = int(hist[-1][0])
+            base5 = exp_hist[p].get(str(last_y - 5))
+            if base5:
+                out["exports_growth_5y"] = {"value": 100 * (hist[-1][1] / base5 - 1), "year": hist[-1][0], "sample": exp_hist_sample}
         provinces.append({"plaka": p, "name": NAMES[p - 1], "region": REGION_OF[p], "values": out,
-                          "companies": bist.get(p, [])})
+                          "companies": bist.get(p, []), "structure": structure, "summary": summary, "history": history})
 
     # Household gold: national total (assumption) split by households x wealth^beta.
     with_w = [x for x in provinces if "wealth_per_household" in x["values"]]

@@ -79,6 +79,12 @@ Sütunlar `plaka;yil;deger` (plaka 1–81). Göstergeler: `population`, `househo
 `deposits_mn_tl`, `loans_mn_tl`, `m2_price_tl`, `rent_m2_tl`, `house_sales`, `avg_wage_tl`, `income_gini`,
 `cars`, `sege_score` (ayrıntı: `pipeline/provinces.py`). Gelir Gini'si bölge değeridir; bölgedeki her ile aynı yazılır.
 
+Dağılımlar (sütunlar `plaka;yil;kategori;deger`, her il için en son yıl kullanılır):
+`iller/gsyh_sektor.csv` (TÜİK il bazında GSYH, iktisadi faaliyet kolu, milyon TL), `iller/istihdam_sektor.csv`
+(SGK 4/a, ekonomik faaliyet, kişi), `iller/ihracat_sektor.csv` (TİM/TÜİK sektör, milyon $), `iller/ihracat_ulke.csv`
+(ülke, milyon $). İhracatın yıllık geçmişi için `iller/exports_mn_usd.csv` dosyasına birden çok yıl yazılabilir.
+Kategori adları serbesttir; sanayi/tarım/inşaat payları için "Tarım, ormancılık ve balıkçılık", "Sanayi", "İnşaat" adları kullanılmalıdır.
+
 Borsa şirketleri listesi: `iller/bist_sirketler.csv` — `plaka;kod;unvan;sektor` (KAP'taki merkez adresine göre).
 Liste varsa il bazında şirket sayısı bu listeden sayılır.
 Aynı il için birden çok yıl varsa en son yıl kullanılır.

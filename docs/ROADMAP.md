@@ -29,7 +29,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ⬜ | Ex-ante reel faiz | Anket beklentisi + faiz |
 
 | ✅ | **Türkiye profili** (factbook tarzı): göstergeler, dış ticaret (12 ay, partner, ürün), benzer ülkeler içinde sıra, öne çıkan iller | TÜİK, EVDS, Dünya Bankası; dağılımlar elle |
-| 🟡 | **İller ekonomik haritası**: 81 il, 36 gösterge (gelir, ihracat, çalışan, ücret, şirketler + BIST listesi, mevduat/kredi, konut fiyatı/kira/getiri/erişilebilirlik, otomobil, Gini, SEGE), il kartı, 81 il künye sayfası (`/il/…`), tablo, CSV | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
+| 🟡 | **İller ekonomik haritası**: 81 il, 43 gösterge + sektörel GSYH/istihdam/ihracat ve ihracat pazarı dağılımları, uzmanlaşma (LQ), ihracat yoğunlaşması (HHI), ihracat geçmişi; (gelir, ihracat, çalışan, ücret, şirketler + BIST listesi, mevduat/kredi, konut fiyatı/kira/getiri/erişilebilirlik, otomobil, Gini, SEGE), il kartı, 81 il künye sayfası (`/il/…`), tablo, CSV | il verileri elle (TÜİK, SGK, TOBB, KAP, BDDK) — şu an örnek |
 | 🟡 | **Tahmin/simülasyon**: il bazında hane serveti, medyan servet, servet Gini'si ve en zengin %10 payı (log-normal), yastık altı altın dağılımı — varsayımlar canlı değiştirilebilir | sonraki: senaryo motoru (faiz/kur/enflasyon şoklarının hane bütçesine etkisi), il bazında projeksiyon |
 
 | ⬜ | İl karşılaştırma (iki il yan yana), il bazında zaman serileri (yıllar içinde değişim) | il verisinin yıllık geçmişi |
