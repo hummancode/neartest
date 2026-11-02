@@ -40,3 +40,5 @@
   grafiği (nominal / USD / reel, 1-3-5-10 yıl, log ölçek gerekirse, crosshair + ipucu, klavye ile
   gezinme, doğrudan uç etiketleri; palet doğrulayıcıdan geçti). Yollar Python'da `index_paths` ile
   hesaplanıyor (önce test; son değerler Reel Tablo ile birebir). Ana sayfa kartları detaya bağlandı.
+- 2026-11-02 — MVP 3/4: Hesaplayıcılar için paylaşılabilir bağlantı ("Bağlantıyı kopyala"): girdiler URL'nin
+  `#` kısmında (sunucuya gitmez); açılışta geri yüklenir, bozuk/negatif değerler güvenle yok sayılır.

@@ -79,7 +79,8 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
 
     <div class="actions">
       <button class="btn" type="button" id="download">Kartı indir (PNG)</button>
-      <span class="muted small">1200×1500, paylaşıma uygun.</span>
+      <button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button>
+      <span class="muted small">Kart 1200×1500. Bağlantı girdilerinizi adresin # kısmında taşır; bu kısım sunucuya gönderilmez.</span>
     </div>
   </section>
 
@@ -104,6 +105,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
 <script>
   import { valueToday, SeriesError } from "../lib/engine.ts";
   import { parseAmount, drawCard, downloadCanvas, type CardData } from "../lib/card.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
 
   const data = JSON.parse(document.getElementById("levels-data")!.textContent!);
   const S = data.series as Record<string, Record<string, number>>;
@@ -125,6 +127,17 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
   const btn = $<HTMLButtonElement>("download");
 
   let current: CardData | null = null;
+
+  // Restore inputs from a shared link (#a=1000&t=2015-01).
+  {
+    const h = readHash();
+    const a = h.get("a"), t = h.get("t");
+    if (a && parseAmount(a) !== null) amountEl.value = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(parseAmount(a)!);
+    if (t && /^\d{4}-\d{2}$/.test(t) && [...yearEl.options].some((o) => o.value === t.slice(0, 4))) {
+      yearEl.value = t.slice(0, 4);
+      monthEl.value = t.slice(5);
+    }
+  }
 
   function fail(msg: string) {
     errEl.textContent = msg;
@@ -153,6 +166,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
     errEl.hidden = true;
     resEl.classList.remove("stale");
     btn.disabled = false;
+    writeHash({ a: String(amount), t: then });
 
     const usdThen = amount / S.usdtry[then];
     const gramThen = amount / S.gold_gram_tl[then];
@@ -215,6 +229,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
     }
   });
 
+  document.getElementById("copy-link")!.addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
   update();
 </script>
 

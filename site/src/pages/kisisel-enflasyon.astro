@@ -87,7 +87,8 @@ const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, en
 
   <div class="actions">
     <button class="btn" type="button" id="download">Kartı indir (PNG)</button>
-    <span class="muted small">1200×1500, paylaşıma uygun.</span>
+    <button class="btn btn-ghost" type="button" id="copy-link">Bağlantıyı kopyala</button>
+    <span class="muted small">Kart 1200×1500. Bağlantı harcama dağılımınızı adresin # kısmında taşır; bu kısım sunucuya gönderilmez.</span>
   </div>
 
   <h2>Nasıl hesaplanıyor?</h2>
@@ -111,6 +112,7 @@ const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, en
 <script>
   import { personalInflation, inflationContributions, normalizeShares, SeriesError } from "../lib/engine.ts";
   import { parseAmount, drawPersonalCard, downloadCanvas, type PersonalCardData } from "../lib/card.ts";
+  import { readHash, writeHash, copyLink } from "../lib/share.ts";
 
   const data = JSON.parse(document.getElementById("groups-data")!.textContent!);
   const changes: Record<string, number> = {};
@@ -131,6 +133,18 @@ const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, en
   const btn = document.getElementById("download") as HTMLButtonElement;
   const $ = (id: string) => document.getElementById(id)!;
   let card: PersonalCardData | null = null;
+
+  // Restore a shared spending split (#s=food:7200,housing:4500).
+  {
+    const raw = readHash().get("s");
+    if (raw) {
+      const given = Object.fromEntries(raw.split(",").map((p) => p.split(":")).filter((p) => p.length === 2));
+      for (const el of inputs) {
+        const v = Number(given[el.dataset.group!] ?? 0);
+        el.value = Number.isFinite(v) && v >= 0 ? new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(v) : "0";
+      }
+    }
+  }
 
   function setInvalid(msg: string) {
     errEl.textContent = msg;
@@ -165,6 +179,7 @@ const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, en
     }
     errEl.hidden = true;
     btn.disabled = false;
+    writeHash({ s: Object.entries(amounts).filter(([, v]) => v > 0).map(([k, v]) => `${k}:${v}`).join(",") });
     const total = Object.values(amounts).reduce((a, b) => a + b, 0);
     for (const el of inputs) {
       const id = el.dataset.group!;
@@ -222,6 +237,7 @@ const payload = { ...g, site_name: SITE_NAME, disclaimer: DISCLAIMER, period, en
       btn.disabled = false;
     }
   });
+  document.getElementById("copy-link")!.addEventListener("click", (e) => copyLink(e.currentTarget as HTMLButtonElement));
   update();
 </script>
 
