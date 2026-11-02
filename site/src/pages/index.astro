@@ -1,4 +1,5 @@
 ---
+import { NAV } from "../lib/nav.ts";
 import Base from "../layouts/Base.astro";
 import Sparkline from "../components/Sparkline.astro";
 import { tablo, YEARS, type Row } from "../lib/data.ts";
@@ -74,35 +75,23 @@ function sparkLabel(row: Row) {
   </div>
 
   <h2>Platform</h2>
-  <div class="tools">
-    {[
-      ["/turkiye", "Türkiye profili", "Ekonominin künyesi: göstergeler, dış ticaret, benzer ülkeler, iller."],
-      ["/iller", "İller: ekonomik harita", "81 il: gelir, ihracat, çalışan, şirketler, mevduat, tahmini servet."],
-      ["/makro", "Makro Pano", "Büyüme, enflasyon, işsizlik, cari denge, rezerv, faiz, CDS — tek sayfada."],
-      ["/iliskiler", "İlişkiler", "CDS ile borsa, faiz ile kur: göstergeler birlikte nasıl hareket etti?"],
-      ["/grafik", "Grafik", "Otomobili gram altınla, konutu dolarla, altını borsayla ölçün."],
-      ["/borsa", "Borsa", "Endeks ve hisselerin reel, dolar ve altın bazında getirisi; izleme listesi."],
-      ["/kredi", "Kredinin gerçek maliyeti", "KKDF, BSMV ve masraflarla gerçek yıllık maliyet."],
-      ["/taksit", "Taksitli mi, peşin mi?", "“Faizsiz taksit”in gizli faizi ve bugünkü değeri."],
-      ["/maas", "Reel maaş takibi", "Zamlarınız enflasyonu, doları, altını yendi mi?"],
-      ["/olaylar", "Olay penceresi", "Faiz kararları etrafında piyasalar ortalama ne yaptı?"],
-      ["/ulkeler", "Ülke karşılaştırması", "Türkiye ve benzer ekonomiler: enflasyon, büyüme, gelir, işsizlik."],
-      ["/kart", "Kredi kartı", "Yalnızca asgari ödeme yaparsanız borç kaç ayda biter? Nakit avansın maliyeti."],
-      ["/yapilandirma", "Kredi yapılandırma", "Krediyi kapatıp yenisine geçmek gerçekten kârlı mı?"],
-      ["/mevduat", "Mevduat getirisi", "Stopaj sonrası net ve reel getiri; enflasyonu yeniyor mu?"],
-      ["/birikim", "Birikim hedefi", "Bugünkü parayla hedefe ulaşmak için ayda ne biriktirmeli?"],
-      ["/portfoy", "Portföyüm", "Kendi alımlarınızın gerçek getirisi. Veriler tarayıcınızda kalır."],
-      ["/konut", "Konut", "Şehirlerde konutun reel getirisi; kirala mı, satın al mı?"],
-      ["/reel-faiz", "Reel Faiz", "Mevduat ve kredi faizi enflasyonun üstünde mi?"],
-      ["/nominal-illuzyon", "Nominal İllüzyon", "Geçmişteki bir tutar bugün neye denk geliyor?"],
-      ["/kisisel-enflasyon", "Kişisel Enflasyon", "Kendi sepetinizle son 12 ayın enflasyonu."],
-    ].map(([href, title, text]) => (
-      <a class="card tool" href={href}>
-        <span class="tool-title">{title} →</span>
-        <span class="muted small">{text}</span>
-      </a>
-    ))}
-  </div>
+  <p class="muted small">Aradığınızı hızlıca bulmak için <strong>Ara</strong> düğmesini (veya <kbd>Ctrl</kbd> + <kbd>K</kbd>) kullanın: sayfalar, 81 il, 973 ilçe ve göstergeler.</p>
+  {NAV.map((g) => {
+    const items = g.items.filter((i) => i.href !== "/");
+    return items.length > 0 && (
+      <section class="dir">
+        <h3 class="dir-title">{g.label}</h3>
+        <div class="tools">
+          {items.map((i) => (
+            <a class="card tool" href={i.href}>
+              <span class="tool-title">{i.label} →</span>
+              <span class="muted small">{i.desc}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    );
+  })}
 
   <h2>Kaynaklar</h2>
   <div class="card scroll-x">
@@ -182,6 +171,9 @@ function sparkLabel(row: Row) {
   @media (min-width: 980px) { .tools { grid-template-columns: repeat(3, 1fr); } }
   .tool { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
   .tool:hover { border-color: var(--ink-2); }
+  .dir { margin-top: 18px; }
+  .dir-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px; }
+  kbd { font: inherit; font-size: 0.8em; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
   .tool-title { font-family: var(--font-head); font-size: 1.35rem; }
   .cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
   .cta h3 { margin: 0 0 4px; }

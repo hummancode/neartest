@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import { SITE_NAME, DISCLAIMER, CF_ANALYTICS_TOKEN, SITE_URL } from "../config.ts";
+import { NAV } from "../lib/nav.ts";
+import Search from "../components/Search.astro";
 
 interface Props {
   title: string;
@@ -12,38 +14,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const canonical = SITE_URL ? `${SITE_URL}${path === "/" ? "/" : `${path}/`}` : null;
 const ogImage = SITE_URL ? `${SITE_URL}/og.png` : "/og.png";
 const fullTitle = `${title} · ${SITE_NAME}`;
-const groups = [
-  { label: "Piyasalar", items: [
-    { href: "/", label: "Reel Tablo" },
-    { href: "/grafik", label: "Grafik: X'in Y cinsinden fiyatı" },
-    { href: "/borsa", label: "Borsa" },
-  ] },
-  { label: "Makro", items: [
-    { href: "/turkiye", label: "Türkiye profili" },
-    { href: "/makro", label: "Makro Pano" },
-    { href: "/iliskiler", label: "İlişkiler" },
-    { href: "/reel-faiz", label: "Reel Faiz" },
-    { href: "/olaylar", label: "Olay penceresi" },
-    { href: "/ulkeler", label: "Ülke karşılaştırması" },
-    { href: "/iller", label: "İller: ekonomik harita" },
-    { href: "/nufus", label: "Nüfus: il ve ilçeler" },
-  ] },
-  { label: "Borç", items: [
-    { href: "/kredi", label: "Kredinin gerçek maliyeti" },
-    { href: "/kart", label: "Kredi kartı: asgari ödeme, nakit avans" },
-    { href: "/yapilandirma", label: "Kredi yapılandırma" },
-    { href: "/taksit", label: "Taksitli mi, peşin mi?" },
-  ] },
-  { label: "Hesapla", items: [
-    { href: "/portfoy", label: "Portföyüm" },
-    { href: "/mevduat", label: "Mevduat: net ve reel getiri" },
-    { href: "/birikim", label: "Birikim hedefi" },
-    { href: "/maas", label: "Reel maaş takibi" },
-    { href: "/konut", label: "Konut: kirala mı, satın al mı?" },
-    { href: "/nominal-illuzyon", label: "Nominal illüzyon ve erime hızı" },
-    { href: "/kisisel-enflasyon", label: "Kişisel enflasyon" },
-  ] },
-];
+const groups = NAV;
 const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === path);
 ---
 <!doctype html>
@@ -79,6 +50,7 @@ const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === p
     <header class="site-header">
       <div class="wrap">
         <a class="brand" href="/">{SITE_NAME}</a>
+        <Search />
         <button class="menu-toggle" type="button" id="menu-toggle" aria-expanded="false" aria-controls="site-nav">Menü</button>
         <nav class="site-nav" id="site-nav" aria-label="Ana menü">
           {groups.map((g) => (
@@ -103,6 +75,14 @@ const inGroup = (g: (typeof groups)[number]) => g.items.some((i) => i.href === p
       <div class="wrap">
         <p><strong>{DISCLAIMER}</strong> Bu site hesaplar, karşılaştırır ve varsayımlarını gösterir; karar sizindir.</p>
         <p>Hesaplayıcılar tarayıcınızda çalışır; girdiğiniz hiçbir bilgi bir sunucuya gönderilmez.</p>
+        <nav class="foot-map" aria-label="Site haritası">
+          {NAV.map((g) => (
+            <div>
+              <p class="foot-h">{g.label}</p>
+              <ul>{g.items.map((i) => <li><a href={i.href}>{i.label}</a></li>)}</ul>
+            </div>
+          ))}
+        </nav>
         <nav class="foot-nav" aria-label="Alt menü">
           <a href="/metodoloji">Metodoloji</a>
           <a href="/veri">Veri durumu</a>
