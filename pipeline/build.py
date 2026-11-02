@@ -717,8 +717,23 @@ def write_bigmac() -> str:
     if raw is None:
         return "Big Mac: indirme yok, mevcut dosya korundu" if OUT_BIGMAC.exists() else "Big Mac: veri yok"
     out = build_bigmac(*raw)
+    out["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     write_if_changed(OUT_BIGMAC, out)
     return f"Big Mac: {out['latest_date']} ({out['mismatches']} uyuşmazlık)"
+
+
+OUT_LONGRUN = ROOT / "site" / "data" / "uzun_donem.json"
+
+
+def write_longrun() -> str:
+    from pipeline.longrun import build_longrun, load_raw
+    raw = load_raw()
+    if raw is None:
+        return "Uzun dönem: indirme yok, mevcut dosya korundu" if OUT_LONGRUN.exists() else "Uzun dönem: veri yok"
+    out = build_longrun(*raw)
+    out["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    write_if_changed(OUT_LONGRUN, out)
+    return f"Uzun dönem: {out['summary']['first']}–{out['summary']['last']}"
 
 
 def main() -> int:
@@ -743,6 +758,7 @@ def main() -> int:
     write_if_changed(OUT_TRADE, trade)
     write_if_changed(OUT_DISTRICTS, districts)
     print(write_bigmac())
+    print(write_longrun())
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0

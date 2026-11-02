@@ -35,6 +35,10 @@ jobs:
         run: python -m pipeline.bigmac
         continue-on-error: true
 
+      - name: fetch long-run GDP per capita (Maddison Project via OWID)
+        run: python -m pipeline.longrun
+        continue-on-error: true
+
       # Until every series has a verified source, missing ones are filled with flagged sample data.
       - run: python -m pipeline.build --sample
       - run: python -m pipeline.params          # regulated rates registry -> site/data/mevzuat.json

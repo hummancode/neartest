@@ -1,0 +1,144 @@
+---
+import Base from "../layouts/Base.astro";
+import raw from "../../data/uzun_donem.json";
+import { DISCLAIMER } from "../config.ts";
+import { fmtPct } from "../lib/popviz.ts";
+
+const L = raw as unknown as {
+  source: string; citation: string; url: string; license: string; license_verified: boolean; unit: string; retrieved_at: string | null;
+  series: Record<string, { name: string; points: [number, number][] }>; ratios: Record<string, [number, number][]>;
+  decades: { from: number; to: number; annual_pct: number }[];
+  summary: { first: number; last: number; first_value: number; last_value: number; multiple: number; annual_pct: number; doubling_years: number | null };
+};
+const S = L.summary;
+const nf = (d: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const weu = (L.ratios.WEU ?? []).filter(([y]) => y % 10 === 0 || y === S.last);
+const weu1950 = weu.find(([y]) => y === 1950), weuLast = weu.find(([y]) => y === S.last);
+const usaLast = L.ratios.USA?.at(-1);
+// Comparison: countries with annual data 1950–last.
+const annual = Object.entries(L.series).filter(([, v]) => v.points.filter(([y]) => y >= 1950).length === S.last - 1950 + 1).map(([k, v]) => ({ k, name: v.name }));
+---
+<Base title="Uzun dönem: 100 yılda kişi başı gelir" description="Türkiye'nin 1923'ten bu yana reel kişi başı geliri; on yıllara göre büyüme, Batı Avrupa ve ABD'ye göre konumu, diğer ülkelerle karşılaştırma. Maddison Project verisi.">
+  <h1>Uzun dönem: kişi başı gelir</h1>
+  <p class="lead">Enflasyon ve kurdan arındırılmış, ülkeler arası karşılaştırılabilir kişi başı gelir: Türkiye, {S.first}–{S.last}.</p>
+  <p class="muted small">Gerçek veri · {L.source} · Birim: {L.unit} · Lisans: {L.license}{!L.license_verified && <span class="tag">lisans doğrulanacak</span>}{L.retrieved_at && ` · indirildi: ${L.retrieved_at}`}</p>
+
+  <div class="keys">
+    <div class="card k"><span class="k-label">Kişi başı gelir, {S.first}</span><span class="k-value">{nf(0).format(S.first_value)} $</span><span class="muted small">2011 fiyatlarıyla</span></div>
+    <div class="card k"><span class="k-label">Kişi başı gelir, {S.last}</span><span class="k-value">{nf(0).format(S.last_value)} $</span><span class="muted small">×{nf(1).format(S.multiple)}</span></div>
+    <div class="card k"><span class="k-label">Yıllık ortalama reel büyüme</span><span class="k-value">{fmtPct(S.annual_pct)}</span><span class="muted small">{S.doubling_years && `yaklaşık ${nf(0).format(S.doubling_years)} yılda bir ikiye katlandı`}</span></div>
+    {weu1950 && weuLast && <div class="card k"><span class="k-label">Batı Avrupa ortalamasına oranı</span><span class="k-value">%{nf(1).format(weuLast[1])}</span><span class="muted small">1950: %{nf(1).format(weu1950[1])}</span></div>}
+    {usaLast && <div class="card k"><span class="k-label">ABD'ye oranı</span><span class="k-value">%{nf(1).format(usaLast[1])}</span><span class="muted small">{usaLast[0]}</span></div>}
+  </div>
+
+  <section>
+    <h2>Türkiye, {S.first}–{S.last}</h2>
+    <div class="card"><div id="c-tr" class="chart-box"></div><p class="muted small">Logaritmik ölçek: eşit yükseklik eşit yüzde değişim demektir. 1914–1922 için veri yok.</p></div>
+  </section>
+
+  <section>
+    <h2>On yıllara göre büyüme</h2>
+    <p class="muted small">Her dönemde kişi başı reel gelirin yıllık ortalama (bileşik) değişimi.</p>
+    <div class="card"><div id="dec"></div></div>
+  </section>
+
+  <section>
+    <h2>Diğer ülkelerle, 1950–{S.last}</h2>
+    <div class="card">
+      <div class="cmp-pick">
+        <label for="add" class="small">Ülke ekle</label>
+        <select id="add"><option value="">— seçin —</option>{annual.sort((a, b) => a.name.localeCompare(b.name, "tr")).map((c) => <option value={c.k}>{c.name}</option>)}</select>
+        <div id="chips" class="chips"></div>
+      </div>
+      <div id="c-cmp" class="chart-box"></div>
+      <p class="muted small">En fazla 5 ülke. Logaritmik ölçek.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Yakınsama: Türkiye'nin geliri, zengin ekonomilere oranla</h2>
+    <div class="card"><div id="c-ratio" class="chart-box"></div><p class="muted small">Türkiye kişi başı geliri / ABD kişi başı geliri × 100.</p></div>
+    {weu.length > 0 && (
+      <div class="card scroll-x">
+        <table class="data">
+          <caption class="muted small">Türkiye / Batı Avrupa ortalaması (%)</caption>
+          <thead><tr>{weu.map(([y]) => <th scope="col">{y}</th>)}</tr></thead>
+          <tbody><tr>{weu.map(([, v]) => <td>%{nf(1).format(v)}</td>)}</tr></tbody>
+        </table>
+      </div>
+    )}
+  </section>
+
+  <section>
+    <h2>Kaynak ve sınırlar</h2>
+    <ul class="muted small">
+      <li>{L.citation} <a href={L.url} rel="noopener">Veri tabanı sayfası</a>. Dosya Our World in Data'nın veri deposundan alınır.</li>
+      <li>Değerler 2011 ABD doları cinsinden, satın alma gücü farkları hesaba katılarak hesaplanmış reel kişi başı GSYH'dir; cari dolar GSYH'si (Ülke karşılaştırması sayfası) ile aynı ölçü değildir.</li>
+      <li>Erken dönem değerleri tarihsel tahminlerdir ve belirsizlikleri yüksektir. Bu sürüm 2018'de biter; daha yeni sürüm (2023) çıkınca güncellenecektir.</li>
+      <li>Lisans: Maddison Project verisini CC BY 4.0 ile yayımladığını belirtir; bu sitenin veri hattı lisans metnini otomatik doğrulayamadığı için "doğrulanacak" olarak işaretlidir.</li>
+      <li>Hesaplar: yıllık ortalama büyüme = (son / ilk)<sup>1/yıl</sup> − 1; ikiye katlanma süresi = ln 2 / ln(1 + büyüme). <a href="/metodoloji#uzun-donem">Metodoloji</a></li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="l-data" set:html={JSON.stringify({ series: L.series, usa: L.ratios.USA ?? [], decades: L.decades, last: S.last })}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { renderDivBars, fmtPct } from "../lib/popviz.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  const D = JSON.parse(document.getElementById("l-data")!.textContent!) as { series: Record<string, { name: string; points: [number, number][] }>; usa: [number, number][]; decades: { from: number; to: number; annual_pct: number }[]; last: number };
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  function auto(id: string, draw: (box: HTMLElement) => void) {
+    const box = document.getElementById(id)!;
+    let w = 0;
+    new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(box); } }).observe(box);
+    return () => draw(box);
+  }
+  const tr = D.series.TUR.points.filter(([y]) => y >= 1923);
+  auto("c-tr", (box) => renderChart(box, { months: tr.map(([y]) => `${y}-12`), series: [{ key: "tr", label: "Türkiye", color: "var(--series-1)", values: tr.map(([, v]) => v) }] },
+    { baseline: null, allowLog: true, format: (v) => `${nf0.format(v)} $` }));
+  renderDivBars(document.getElementById("dec")!, D.decades.map((d) => ({ label: `${d.from}–${d.to}`, value: d.annual_pct })), { format: (v) => fmtPct(v), edges: [0.1, 2, 4], label: "On yıllara göre yıllık ortalama reel büyüme" });
+  auto("c-ratio", (box) => renderChart(box, { months: D.usa.map(([y]) => `${y}-12`), series: [{ key: "r", label: "ABD'ye oranı", color: "var(--series-1)", values: D.usa.map(([, v]) => v) }] },
+    { baseline: null, allowLog: false, format: (v) => `%${nf1.format(v)}` }));
+
+  const COLORS = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)", "var(--cat-4)", "var(--cat-5)"];
+  const h = readHash();
+  let sel = (h.get("ulke") ?? "TUR,GRC,KOR,POL,ESP").split(",").filter((k) => D.series[k]).slice(0, 5);
+  const redraw = auto("c-cmp", (box) => {
+    const yrs = Array.from({ length: D.last - 1950 + 1 }, (_, i) => 1950 + i);
+    renderChart(box, { months: yrs.map((y) => `${y}-12`), series: sel.map((k, i) => {
+      const m = new Map(D.series[k].points);
+      return { key: k, label: D.series[k].name, color: COLORS[i], values: yrs.map((y) => m.get(y) as number) };
+    }) }, { baseline: null, allowLog: true, format: (v) => `${nf0.format(v)} $` });
+  });
+  function chips() {
+    document.getElementById("chips")!.replaceChildren(...sel.map((k, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip";
+      const sw = document.createElement("span"); sw.className = "chip-sw"; sw.style.background = COLORS[i];
+      b.append(sw, document.createTextNode(`${D.series[k].name} ✕`));
+      b.setAttribute("aria-label", `${D.series[k].name} grafikten çıkar`);
+      b.addEventListener("click", () => { sel = sel.filter((x) => x !== k); update(); });
+      return b;
+    }));
+  }
+  function update() { writeHash({ ulke: sel.join(",") }); chips(); redraw(); }
+  (document.getElementById("add") as HTMLSelectElement).addEventListener("change", (e) => {
+    const s = e.target as HTMLSelectElement;
+    if (s.value && !sel.includes(s.value) && sel.length < 5) { sel.push(s.value); update(); }
+    s.value = "";
+  });
+  chips();
+</script>
+<style is:global>
+  .keys { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .keys { grid-template-columns: repeat(5, 1fr); } }
+  .k { display: flex; flex-direction: column; gap: 2px; padding: 12px; min-width: 0; }
+  .k-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
+  .k-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; overflow-wrap: anywhere; }
+  .cmp-pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .chip-sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .card + .card { margin-top: 12px; }
+</style>

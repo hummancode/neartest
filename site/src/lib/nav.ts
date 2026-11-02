@@ -14,6 +14,7 @@ export const NAV: NavGroup[] = [
     { href: "/iliskiler", label: "İlişkiler", desc: "CDS ile borsa, faiz ile kur: göstergeler birlikte nasıl hareket etti?", keywords: "korelasyon" },
     { href: "/reel-faiz", label: "Reel Faiz", desc: "Mevduat ve kredi faizi enflasyonun üstünde mi?" },
     { href: "/olaylar", label: "Olay penceresi", desc: "Faiz kararları etrafında piyasalar ortalama ne yaptı?", keywords: "ppk karar" },
+    { href: "/uzun-donem", label: "Uzun dönem: 100 yılda gelir", desc: "1923'ten bugüne reel kişi başı gelir; on yıllara göre büyüme, zengin ülkelere yakınsama (gerçek veri).", keywords: "maddison tarih gsyh büyüme" },
     { href: "/big-mac", label: "Big Mac endeksi", desc: "Aynı hamburger her ülkede kaç dolar? TL'nin satın alma gücüne kaba bir bakış (gerçek veri).", keywords: "satın alma gücü ppp kur hamburger" },
     { href: "/ulkeler", label: "Ülke karşılaştırması", desc: "Türkiye ve benzer ekonomiler: enflasyon, büyüme, gelir, işsizlik.", keywords: "dünya bankası" },
   ] },

@@ -149,4 +149,8 @@
   yayımlanan değerle karşılaştırıldı: 0 uyuşmazlık. 2005 öncesi eski TL yeni TL'ye çevrildi. Yeni `/big-mac`
   sayfası: Türkiye fiyatı, ima edilen kur, Big Mac TL fiyatı ve doların endeksli seyri, dolar fiyatı (TR/ABD/Euro),
   TL'nin yıllar içindeki konumu, 54 ülke sıralaması (ham/gelire göre düzeltilmiş), CSV indirme, metodoloji.
+- 2026-11-02 — **Uzun dönem kişi başı gelir (gerçek veri)**: Maddison Project 2020, Our World in Data deposundan
+  (`pipeline/longrun.py`, günlük iş akışında). Yeni `/uzun-donem`: Türkiye 1923–2018 (×19, yıllık %3,2), on yıllara
+  göre büyüme, 1950'den beri 20 ülkeyle karşılaştırma, ABD ve Batı Avrupa'ya yakınsama. Lisans (CC BY 4.0 beyanı)
+  doğrulanana kadar sayfada "lisans doğrulanacak" etiketi.
 
