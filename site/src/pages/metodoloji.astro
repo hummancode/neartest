@@ -13,7 +13,7 @@ import { DISCLAIMER } from "../config.ts";
       (<code>reel/engine.py</code>) yapılır; tarayıcıdaki hesaplayıcılar aynı formüllerin
       aynı test vakalarıyla doğrulanmış TypeScript kopyasını kullanır.
     </p>
-    <p class="muted small">Güncel veri bitiş ayı: {monthLabel(tablo.end_month)}.</p>
+    <p class="muted small">Güncel veri bitiş ayı: {monthLabel(tablo.end_month)}. Her serinin kaynağı ve güncelliği: <a href="/veri">Veri durumu</a>.</p>
 
     <nav class="toc card" aria-label="İçindekiler">
       <ol>
@@ -114,7 +114,8 @@ import { DISCLAIMER } from "../config.ts";
     </ul>
     <p>
       “Bugün”, veri bitiş ayıdır. Hesap tarayıcınızda yapılır; girdiğiniz tutar ve tarih hiçbir yere gönderilmez.
-      Asgari ücret karşılığı, seri henüz eklenmediği için gösterilmiyor.
+      <strong>Asgari ücret ile:</strong> seviye, o ay geçerli net asgari ücrettir (değiştiği aylar arasında son değer
+      geçerli sayılır). Seri resmî kaynaktan elle girilir; girilmemişse bu satır gösterilmez.
     </p>
 
     <h2 id="kisisel">9. Kişisel enflasyon</h2>

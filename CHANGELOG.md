@@ -30,3 +30,9 @@
   404, `_headers`, robots.txt, alt menü. Kaynak tablosunda her serinin son veri ayı. `npm run check`
   (bağımlılıksız derleme sonrası kontrol) workflow'a eklendi. Tüm sayfalar 320/1280 px, açık/koyu
   temada konsol hatası ve taşma olmadan test edildi. README yeniden yazıldı (Cloudflare adımları).
+- 2026-11-02 — MVP 1/4: Gerçek veri için API'siz yol: `data/manual/<seri>.csv` (+ `.meta.json`), EVDS web
+  dışa aktarım biçimleri (`;`, `2024-1`, ondalık virgül, günlük→aylık ortalama) destekleniyor; öncelik
+  raw (API) → manual → örnek. Faiz serileri yüzde→ondalık ölçekleniyor (EVDS'den gelecek veride
+  100 kat hata önlendi). `/veri` sayfası (her serinin kökeni, kodu, aralığı) ve `durum.json`.
+  Asgari ücret (isteğe bağlı, asla örneklenmez, değişim aylarından ileri doldurma) illüzyon
+  makinesine ve karta bağlandı.

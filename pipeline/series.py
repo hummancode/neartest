@@ -33,6 +33,7 @@ SERIES = {
         "code": None,
         "verified": False,
         "unit": "% yıllık",
+        "scale": 0.01,   # EVDS/CSV give percent (45.5); the engine wants 0.455
     },
     "credit_rate": {
         "label": "TL kredi faizi (ağırlıklı ortalama, yıllık)",
@@ -40,6 +41,7 @@ SERIES = {
         "code": None,             # which loan type (consumer / commercial) is still to be decided
         "verified": False,
         "unit": "% yıllık",
+        "scale": 0.01,
     },
     "gold_gram_tl": {
         "label": "Gram altın",
@@ -117,3 +119,15 @@ CPI_WEIGHTS_SOURCE = {
 }
 
 ALL_SERIES = SERIES | CPI_GROUP_SERIES
+
+# Series used only when real data exists (data/raw or data/manual). Never sampled:
+# the site shows them as missing instead of inventing numbers.
+OPTIONAL_SERIES = {
+    "min_wage_net": {
+        "label": "Net asgari ücret (aylık, bekâr işçi)",
+        "source": "ÇSGB / Resmî Gazete (elle girilir: data/manual/min_wage_net.csv)",
+        "code": None,
+        "verified": False,
+        "unit": "TL",
+    },
+}

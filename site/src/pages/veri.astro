@@ -1,0 +1,87 @@
+---
+import Base from "../layouts/Base.astro";
+import { status } from "../lib/status.ts";
+import { monthLabel } from "../lib/format.ts";
+
+const s = status;
+const main = s.rows.filter((r) => !r.name.startsWith("cpi_") || r.name === "cpi_tr");
+const groups = s.rows.filter((r) => r.name.startsWith("cpi_") && r.name !== "cpi_tr");
+const ml = (m: string | null) => (m ? monthLabel(m) : "—");
+---
+<Base title="Veri Durumu" description="Sitedeki her veri serisinin kaynağı, kodu, doğrulama durumu ve tarih aralığı." sample={s.sample}>
+  <h1>Veri durumu</h1>
+  <p class="lead">Sitedeki her rakamın hangi seriden geldiği, serinin kaynağı ve güncelliği.</p>
+
+  <div class="counts">
+    <div class="card c"><span class="n">{s.counts.evds}</span><span class="muted small">EVDS API</span></div>
+    <div class="card c"><span class="n">{s.counts.manual}</span><span class="muted small">Elle yüklendi</span></div>
+    <div class={`card c ${s.counts.sample ? "warn" : ""}`}><span class="n">{s.counts.sample}</span><span class="muted small">Örnek (sentetik)</span></div>
+    <div class="card c"><span class="n">{s.counts.missing}</span><span class="muted small">Eksik</span></div>
+  </div>
+  <p class="muted small">Ortak veri bitiş ayı: <strong>{monthLabel(s.end_month)}</strong>. Örnek veri gerçek değildir; kullanılan her sayfada kırmızı bant görünür.</p>
+
+  <h2>Ana seriler</h2>
+  <div class="card scroll-x">
+    <table class="data status">
+      <thead><tr><th scope="col">Seri</th><th scope="col">Durum</th><th scope="col">Kaynak</th><th scope="col">Kod</th><th scope="col">Doğrulandı</th><th scope="col">Aralık</th><th scope="col">Kullanıldığı yer</th></tr></thead>
+      <tbody>
+        {main.map((r) => (
+          <tr>
+            <th scope="row">{r.label}</th>
+            <td><span class={`badge ${r.origin}`}>{r.origin_label}</span></td>
+            <td>{r.source}</td>
+            <td><code>{r.code ?? "—"}</code></td>
+            <td>{r.verified ? "Evet" : "Hayır"}</td>
+            <td>{r.months ? `${ml(r.first_month)} – ${ml(r.last_month)}` : "—"}</td>
+            <td class="muted">{r.used_by}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>TÜFE ana harcama grupları</h2>
+  <div class="card scroll-x">
+    <table class="data status">
+      <thead><tr><th scope="col">Grup</th><th scope="col">Durum</th><th scope="col">Kod</th><th scope="col">Doğrulandı</th><th scope="col">Aralık</th></tr></thead>
+      <tbody>
+        {groups.map((r) => (
+          <tr>
+            <th scope="row">{r.label.replace("TÜFE: ", "")}</th>
+            <td><span class={`badge ${r.origin}`}>{r.origin_label}</span></td>
+            <td><code>{r.code ?? "—"}</code></td>
+            <td>{r.verified ? "Evet" : "Hayır"}</td>
+            <td>{r.months ? `${ml(r.first_month)} – ${ml(r.last_month)}` : "—"}</td>
+          </tr>
+        ))}
+        <tr>
+          <th scope="row">{s.weights.label}</th>
+          <td><span class={`badge ${s.weights.sample ? "sample" : "manual"}`}>{s.weights.sample ? "ÖRNEK (sentetik)" : "Elle yüklendi"}</span></td>
+          <td>—</td>
+          <td>{s.weights.verified ? "Evet" : "Hayır"}</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">
+    Veriler her gün otomatik güncellenir. Yöntem ve varsayımlar: <a href="/metodoloji">Metodoloji</a>.
+    Son üretim: <time datetime={s.generated_at}>{s.generated_at.replace("T", " ").replace("+00:00", " UTC")}</time>.
+  </p>
+</Base>
+
+<style>
+  .counts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0 8px; }
+  @media (min-width: 720px) { .counts { grid-template-columns: repeat(4, 1fr); } }
+  .c { display: flex; flex-direction: column; }
+  .n { font-family: var(--font-head); font-size: 2.6rem; line-height: 1.1; }
+  .c.warn .n { color: var(--warn-bg); }
+  .scroll-x { overflow-x: auto; padding: 4px 8px; }
+  .status { min-width: 760px; font-size: 0.88rem; }
+  .status th, .status td { text-align: left; vertical-align: top; }
+  .status tbody th { font-weight: 600; }
+  .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .badge.sample { color: var(--warn-bg); }
+  .badge.missing { color: var(--muted); }
+  .badge.evds, .badge.manual { color: var(--ink); }
+</style>

@@ -166,21 +166,22 @@ export async function drawCard(d: CardData): Promise<HTMLCanvasElement> {
   const { c, ctx, y: y0 } = await frame(d.sample, "Nominal illüzyon");
   let y = y0 + 10;
   y = bigLine(ctx, up(d.thenLabel), y, 100);
-  y = bigLine(ctx, up(d.amount), y, 220);
+  y = bigLine(ctx, up(d.amount), y, d.rows.length > 3 ? 170 : 220);
 
-  y += 80;
+  y += d.rows.length > 3 ? 64 : 80;
   ctx.fillStyle = MUTED;
   ctx.font = `400 38px ${BODY}`;
   ctx.fillText(`bugün (${d.endLabel}) şuna denk geliyor:`, PAD, y);
 
   y += 40;
+  const many = d.rows.length > 3;
   for (const row of d.rows) {
     rule(ctx, y + 20);
-    y += 82;
+    y += many ? 70 : 82;
     ctx.fillStyle = MUTED;
-    ctx.font = `600 34px ${BODY}`;
+    ctx.font = `600 ${many ? 30 : 34}px ${BODY}`;
     ctx.fillText(row.label, PAD, y);
-    y = bigLine(ctx, up(row.value), y, 110);
+    y = bigLine(ctx, up(row.value), y, many ? 84 : 110);
   }
   footer(ctx, d.sample, d.sources, d.endLabel, d.disclaimer, d.siteName);
   return c;

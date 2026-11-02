@@ -13,10 +13,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pipeline import sample
 import csv
 
-from pipeline.series import ALL_SERIES, ASSETS, CPI_GROUPS, CPI_WEIGHTS_SOURCE, SERIES
+from pipeline import manual, sample
+from pipeline.series import ALL_SERIES, ASSETS, CPI_GROUPS, CPI_WEIGHTS_SOURCE, OPTIONAL_SERIES, SERIES
 from reel import engine as e
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -25,27 +25,62 @@ OUT = ROOT / "site" / "data" / "reel_tablo.json"
 OUT_LEVELS = ROOT / "site" / "data" / "seviyeler.json"
 OUT_GROUPS = ROOT / "site" / "data" / "tufe_gruplari.json"
 OUT_RATES = ROOT / "site" / "data" / "reel_faiz.json"
+OUT_STATUS = ROOT / "site" / "data" / "durum.json"
 WEIGHTS_CSV = ROOT / "data" / "manual" / "tufe_agirliklari.csv"
 
 # Series the in-browser "nominal illusion" calculator needs, as raw monthly levels.
 LEVEL_SERIES = ("cpi_tr", "usdtry", "gold_gram_tl")
 
 
+# Effective metadata per series (series.py, overridden by data/manual/<name>.meta.json)
+# and where each series came from: "evds" (data/raw), "manual" (data/manual), "sample".
+META: dict[str, dict] = {k: dict(v) for k, v in (ALL_SERIES | OPTIONAL_SERIES).items()}
+ORIGIN: dict[str, str] = {}
+
+ORIGIN_LABEL = {"evds": "TCMB EVDS API", "manual": "Elle yüklendi", "sample": "ÖRNEK (sentetik)", "missing": "Yok"}
+
+
+def _real_series(name: str) -> tuple[dict, str, dict] | None:
+    """Real data for `name` from data/raw (API fetch) or data/manual (CSV), scaled."""
+    scale = META[name].get("scale", 1.0)
+    path = RAW / f"{name}.json"
+    if path.exists():
+        raw = json.loads(path.read_text())
+        return {m: v * scale for m, v in raw.items()}, "evds", {}
+    loaded = manual.load(name)
+    if loaded:
+        series, meta = loaded
+        return {m: v * scale for m, v in series.items()}, "manual", meta
+    return None
+
+
 def load_series(allow_sample: bool) -> tuple[dict, dict]:
-    """Return (series_by_name, is_sample_by_name)."""
+    """Return (series_by_name, is_sample_by_name). Optional series appear only if real."""
     synthetic = sample.build_sample() if allow_sample else {}
     data, is_sample = {}, {}
-    for name in ALL_SERIES:
-        path = RAW / f"{name}.json"
-        if path.exists():
-            data[name] = json.loads(path.read_text())
+    for name in ALL_SERIES | OPTIONAL_SERIES:
+        real = _real_series(name)
+        if real:
+            data[name], ORIGIN[name], override = real
+            META[name].update({k: override[k] for k in ("source", "code", "verified", "label") if k in override})
             is_sample[name] = False
+        elif name in OPTIONAL_SERIES:
+            ORIGIN[name] = "missing"
         elif allow_sample:
             data[name] = synthetic[name]
             is_sample[name] = True
+            ORIGIN[name] = "sample"
         else:
-            raise SystemExit(f"Eksik seri: {name} ({path}). Örnek veri için --sample kullan.")
+            raise SystemExit(f"Eksik seri: {name} (data/raw/{name}.json veya data/manual/{name}.csv). "
+                             "Örnek veri için --sample kullan.")
     return data, is_sample
+
+
+def src(name: str, is_sample: dict) -> dict:
+    """Source block shown on the site for one series."""
+    m = META[name]
+    return {"label": m["label"], "source": m["source"], "code": m["code"], "verified": bool(m["verified"]),
+            "sample": bool(is_sample.get(name, False))}
 
 
 def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
@@ -57,11 +92,11 @@ def asset_tl_series(asset: dict, data: dict) -> dict[str, float]:
     return raw
 
 
-def build(allow_sample: bool) -> tuple[dict, dict, dict, dict]:
+def build(allow_sample: bool) -> tuple[dict, dict, dict, dict, dict]:
     data, is_sample = load_series(allow_sample)
     cpi, usdtry = data["cpi_tr"], data["usdtry"]
     # Common end month: the latest month every input has.
-    end = min(e.last_month(s) for s in data.values())
+    end = min(e.last_month(s) for n, s in data.items() if n not in OPTIONAL_SERIES)
     weights, weights_sample = load_weights(allow_sample)
 
     rows = []
@@ -84,8 +119,7 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict, dict]:
         "end_month": end,
         "sample": any(r["sample"] for r in rows),
         "sources": {
-            name: {k: SERIES[name][k] for k in ("label", "source", "code", "verified")}
-            | {"sample": is_sample[name], "last_month": e.last_month(data[name])}
+            name: src(name, is_sample) | {"last_month": e.last_month(data[name])}
             for name in SERIES
         },
         "notes": [
@@ -103,7 +137,9 @@ def build(allow_sample: bool) -> tuple[dict, dict, dict, dict]:
     groups["generated_at"] = tablo["generated_at"]
     rates = build_real_rates(data, is_sample, end)
     rates["generated_at"] = tablo["generated_at"]
-    return tablo, levels, groups, rates
+    status = build_status(data, weights_sample, end)
+    status["generated_at"] = tablo["generated_at"]
+    return tablo, levels, groups, rates, status
 
 
 def load_weights(allow_sample: bool) -> tuple[dict[str, float], bool]:
@@ -145,12 +181,12 @@ def build_cpi_groups(data: dict, is_sample: dict, end: str, weights: dict, weigh
         "sample": weights_sample or is_sample["cpi_tr"] or any(is_sample[n] for n in group_names),
         "weights_sample": weights_sample,
         "sources": {
-            "cpi_tr": {k: SERIES["cpi_tr"][k] for k in ("label", "source", "code", "verified")} | {"sample": is_sample["cpi_tr"]},
+            "cpi_tr": src("cpi_tr", is_sample),
             "groups": {
                 "label": "TÜFE ana harcama grupları",
-                "source": ALL_SERIES[group_names[0]]["source"],
-                "codes": {n: ALL_SERIES[n]["code"] for n in group_names},
-                "verified": all(ALL_SERIES[n]["verified"] for n in group_names),
+                "source": META[group_names[0]]["source"],
+                "codes": {n: META[n]["code"] for n in group_names},
+                "verified": all(META[n]["verified"] for n in group_names),
                 "sample": any(is_sample[n] for n in group_names),
             },
             "weights": CPI_WEIGHTS_SOURCE | {"sample": weights_sample},
@@ -191,9 +227,46 @@ def build_real_rates(data: dict, is_sample: dict, end: str, months: int = 36) ->
         "sample": any(is_sample[n] for n in used),
         "ex_ante": None,   # needs TCMB Market Participants Survey expectations; not added yet
         "sources": {
-            n: {k: SERIES[n][k] for k in ("label", "source", "code", "verified")} | {"sample": is_sample[n]}
-            for n in used
+            n: src(n, is_sample) for n in used
         },
+        "rows": rows,
+    }
+
+
+USED_BY = {
+    "cpi_tr": "Tüm reel hesaplar", "usdtry": "USD getirisi, nominal illüzyon", "eurtry": "Reel Tablo",
+    "deposit_rate": "Reel Tablo, reel faiz", "credit_rate": "Reel Tablo, reel faiz",
+    "gold_gram_tl": "Reel Tablo, nominal illüzyon", "bist100": "Reel Tablo", "sp500_usd": "Reel Tablo",
+    "min_wage_net": "Nominal illüzyon",
+}
+
+
+def build_status(data: dict, weights_sample: bool, end: str) -> dict:
+    """Where every series comes from, for the /veri page."""
+    rows = []
+    for name in ALL_SERIES | OPTIONAL_SERIES:
+        m, origin = META[name], ORIGIN.get(name, "missing")
+        s = data.get(name, {})
+        months = sorted(s, key=e._month_index)
+        rows.append({
+            "name": name,
+            "label": m["label"],
+            "source": m["source"],
+            "code": m["code"],
+            "verified": bool(m["verified"]),
+            "origin": origin,
+            "origin_label": ORIGIN_LABEL[origin],
+            "first_month": months[0] if months else None,
+            "last_month": months[-1] if months else None,
+            "months": len(months),
+            "used_by": USED_BY.get(name, "Kişisel enflasyon"),
+        })
+    counts = {k: sum(r["origin"] == k for r in rows) for k in ORIGIN_LABEL}
+    return {
+        "end_month": end,
+        "sample": counts["sample"] > 0 or weights_sample,
+        "counts": counts,
+        "weights": CPI_WEIGHTS_SOURCE | {"sample": weights_sample},
         "rows": rows,
     }
 
@@ -205,20 +278,38 @@ def build_levels(data: dict, is_sample: dict, end: str) -> dict:
     where every series has a value.
     """
     end_idx = e._month_index(end)
+    names = [*LEVEL_SERIES]
     series = {
         name: {m: data[name][m] for m in sorted(data[name], key=e._month_index) if e._month_index(m) <= end_idx}
-        for name in LEVEL_SERIES
+        for name in names
     }
+    missing = []
+    if "min_wage_net" in data:
+        # Listed only in the months it changed; it applies until the next change.
+        series["min_wage_net"] = forward_fill(data["min_wage_net"], end)
+        names.append("min_wage_net")
+    else:
+        missing.append("min_wage_net")
     return {
         "end_month": end,
-        "sample": any(is_sample[n] for n in LEVEL_SERIES),
-        "sources": {
-            n: {k: SERIES[n][k] for k in ("label", "source", "code", "verified")} | {"sample": is_sample[n]}
-            for n in LEVEL_SERIES
-        },
-        "missing": ["asgari_ucret"],   # minimum wage series not added yet
+        "sample": any(is_sample.get(n, False) for n in names),
+        "sources": {n: src(n, is_sample) for n in names},
+        "missing": missing,
         "series": series,
     }
+
+
+def forward_fill(series: dict[str, float], end: str) -> dict[str, float]:
+    """Monthly series from the first listed month to `end`, carrying the last value forward."""
+    months = sorted(series, key=e._month_index)
+    if not months or e._month_index(months[0]) > e._month_index(end):
+        return {}
+    out, m, value = {}, months[0], series[months[0]]
+    while e._month_index(m) <= e._month_index(end):
+        value = series.get(m, value)
+        out[m] = value
+        m = e.shift_month(m, 1)
+    return out
 
 
 def write_if_changed(path: Path, result: dict) -> None:
@@ -243,14 +334,15 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
     args = p.parse_args()
-    result, levels, groups, rates = build(args.sample)
+    result, levels, groups, rates, status = build(args.sample)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(OUT, result)
     write_if_changed(OUT_LEVELS, levels)
     write_if_changed(OUT_GROUPS, groups)
     write_if_changed(OUT_RATES, rates)
+    write_if_changed(OUT_STATUS, status)
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
-    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
+    print(f"yazıldı: {OUT.relative_to(ROOT)}, {OUT_LEVELS.relative_to(ROOT)}, {OUT_GROUPS.relative_to(ROOT)}, {OUT_RATES.relative_to(ROOT)}, {OUT_STATUS.relative_to(ROOT)}  bitiş ayı: {result['end_month']}{flag}")
     return 0
 
 

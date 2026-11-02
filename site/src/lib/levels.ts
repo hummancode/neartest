@@ -14,7 +14,7 @@ export interface Levels {
   sample: boolean;
   sources: Record<string, LevelSource>;
   missing: string[];
-  series: Record<"cpi_tr" | "usdtry" | "gold_gram_tl", Record<string, number>>;
+  series: Record<"cpi_tr" | "usdtry" | "gold_gram_tl", Record<string, number>> & { min_wage_net?: Record<string, number> };
 }
 
 export const levels = raw as unknown as Levels;

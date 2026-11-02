@@ -15,11 +15,11 @@ def test_levels_cut_at_common_end_month():
     assert list(out["series"]["cpi_tr"]) == ["2024-01", "2024-02"]
     assert out["sample"] is True
     assert out["sources"]["gold_gram_tl"]["sample"] is True
-    assert "asgari_ucret" in out["missing"]
+    assert "min_wage_net" in out["missing"]
 
 
 def test_sample_build_flags_everything_as_sample():
-    tablo, levels, groups, _ = build.build(allow_sample=True)
+    tablo, levels, groups, _, _ = build.build(allow_sample=True)
     if not build.RAW.exists():
         assert tablo["sample"] is True and levels["sample"] is True
     assert tablo["end_month"] == levels["end_month"]
@@ -38,7 +38,7 @@ def test_generated_at_kept_when_content_unchanged(tmp_path):
 
 
 def test_cpi_groups_output():
-    tablo, levels, groups, _ = build.build(allow_sample=True)
+    tablo, levels, groups, _, _ = build.build(allow_sample=True)
     assert len(groups["groups"]) == 12
     assert groups["end_month"] == tablo["end_month"]
     if not build.WEIGHTS_CSV.exists():
@@ -77,3 +77,45 @@ def test_sources_carry_last_month():
     tablo, *_ = build.build(allow_sample=True)
     for src in tablo["sources"].values():
         assert len(src["last_month"]) == 7 and src["last_month"][4] == "-"
+
+
+def test_forward_fill_minimum_wage():
+    out = build.forward_fill({"2024-01": 17000.0, "2024-04": 20000.0}, "2024-05")
+    assert out == {"2024-01": 17000.0, "2024-02": 17000.0, "2024-03": 17000.0,
+                   "2024-04": 20000.0, "2024-05": 20000.0}
+
+
+def test_levels_include_min_wage_when_present():
+    data = {
+        "cpi_tr": {"2024-01": 1.0, "2024-02": 2.0},
+        "usdtry": {"2024-01": 30.0, "2024-02": 31.0},
+        "gold_gram_tl": {"2024-01": 2000.0, "2024-02": 2100.0},
+        "min_wage_net": {"2024-01": 17002.12},
+    }
+    out = build.build_levels(data, {n: False for n in data}, "2024-02")
+    assert out["series"]["min_wage_net"] == {"2024-01": 17002.12, "2024-02": 17002.12}
+    assert out["missing"] == []
+
+
+def test_manual_csv_is_used_and_scaled(tmp_path, monkeypatch):
+    # A rate series given in percent in a manual CSV must arrive as a decimal.
+    (tmp_path / "deposit_rate.csv").write_text("Tarih;TP_X\n2024-1;45,5\n2024-2;46\n", encoding="utf-8")
+    (tmp_path / "deposit_rate.meta.json").write_text('{"source": "TCMB EVDS (web)", "code": "TP.TEST"}', encoding="utf-8")
+    monkeypatch.setattr(build, "RAW", tmp_path / "no-raw")
+    monkeypatch.setattr(build.manual, "MANUAL", tmp_path)
+    monkeypatch.setattr(build, "META", {k: dict(v) for k, v in build.META.items()})
+    monkeypatch.setattr(build, "ORIGIN", {})
+    data, is_sample = build.load_series(allow_sample=True)
+    assert abs(data["deposit_rate"]["2024-01"] - 0.455) < 1e-12
+    assert is_sample["deposit_rate"] is False and is_sample["cpi_tr"] is True
+    assert build.ORIGIN["deposit_rate"] == "manual"
+    assert build.src("deposit_rate", is_sample)["code"] == "TP.TEST"
+    assert "min_wage_net" not in data and build.ORIGIN["min_wage_net"] == "missing"
+
+
+def test_status_lists_every_series_with_origin():
+    *_, status = build.build(allow_sample=True)
+    names = {r["name"] for r in status["rows"]}
+    assert {"cpi_tr", "deposit_rate", "cpi_food", "min_wage_net"} <= names
+    assert all(r["origin"] in ("evds", "manual", "sample", "missing") for r in status["rows"])
+    assert sum(status["counts"].values()) == len(status["rows"])

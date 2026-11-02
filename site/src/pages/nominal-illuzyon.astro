@@ -21,7 +21,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
   <h1>Nominal illüzyon makinesi</h1>
   <p class="lead">
     Geçmişteki bir TL tutarı bugün neye denk geliyor? Bir ay ve tutar seçin; bugünkü karşılığını
-    TÜFE, dolar ve gram altın cinsinden görün.
+    TÜFE, dolar, gram altın{levels.series.min_wage_net ? " ve asgari ücret" : ""} cinsinden görün.
   </p>
   <p class="privacy small">
     🔒 Hesap tamamen tarayıcınızda yapılır. Girdiğiniz tutar ve tarih hiçbir sunucuya gönderilmez, kaydedilmez.
@@ -70,10 +70,10 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
         <p class="r-value" id="r-gold"></p>
         <p class="muted small" id="r-gold-note"></p>
       </div>
-      <div class="card r missing">
+      <div class={`card r ${levels.series.min_wage_net ? "" : "missing"}`}>
         <h2 class="r-label">Asgari ücret ile</h2>
-        <p class="r-value muted">—</p>
-        <p class="muted small">Asgari ücret serisi henüz eklenmedi.</p>
+        <p class="r-value" id="r-mw">—</p>
+        <p class="muted small" id="r-mw-note">{levels.series.min_wage_net ? "" : "Asgari ücret serisi henüz eklenmedi."}</p>
       </div>
     </div>
 
@@ -86,7 +86,8 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
   <h2>Nasıl hesaplanıyor?</h2>
   <p class="formula card">Bugünkü karşılık = Tutar × Seviye<sub>bugün</sub> / Seviye<sub>o ay</sub></p>
   <p>
-    Seviye; TÜFE için endeks, dolar için USD/TRY kuru, altın için gram altının TL fiyatıdır (aylık ortalama).
+    Seviye; TÜFE için endeks, dolar için USD/TRY kuru, altın için gram altının TL fiyatı (aylık ortalama),
+    asgari ücret için o ay geçerli net asgari ücrettir.
     Ayrıntılar: <a href="/metodoloji#illuzyon">Metodoloji</a>.
   </p>
   <h3>Kaynaklar</h3>
@@ -164,6 +165,21 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
     $("r-gold").textContent = tlFmt(gold);
     $("r-gold-note").textContent = `O gün ${n2(gramThen)} gram ediyordu (gram ${n2(S.gold_gram_tl[then])} → ${n2(S.gold_gram_tl[END])} TL).`;
 
+    const mwRows: { label: string; value: string }[] = [];
+    const MW = S.min_wage_net;
+    if (MW) {
+      if (then in MW && END in MW) {
+        const mw = valueToday(amount, MW[then], MW[END]);
+        const ratio = amount / MW[then];
+        $("r-mw").textContent = tlFmt(mw);
+        $("r-mw-note").textContent = `O gün ${times(ratio)} aylık net asgari ücret ediyordu (${n2(MW[then])} → ${n2(MW[END])} TL).`;
+        mwRows.push({ label: "Asgari ücret ile", value: tlFmt(mw) });
+      } else {
+        $("r-mw").textContent = "—";
+        $("r-mw-note").textContent = "Bu ay için asgari ücret verisi yok.";
+      }
+    }
+
     current = {
       siteName: data.site_name,
       disclaimer: data.disclaimer,
@@ -175,6 +191,7 @@ const payload = { ...levels, site_name: SITE_NAME, disclaimer: DISCLAIMER };
         { label: "TÜFE ile", value: tlFmt(cpi) },
         { label: "Dolar ile", value: tlFmt(usd) },
         { label: "Gram altın ile", value: tlFmt(gold) },
+        ...mwRows,
       ],
       sources: Object.values(data.sources as Record<string, { label: string; source: string; sample: boolean }>)
         .map((s) => `${s.label}: ${s.source}${s.sample ? " (örnek)" : ""}`),
