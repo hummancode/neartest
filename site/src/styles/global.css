@@ -178,7 +178,7 @@ table { border-collapse: collapse; width: 100%; }
 
 /* Scroll containers must be positioned so absolutely positioned children (e.g. screen-reader-only
    labels inside tables) are clipped by them instead of widening the page. */
-.scroll-x { position: relative; }
+.scroll-x { position: relative; overflow-x: auto; }
 
 /* Shared calculator form fields */
 .form-grid { display: grid; gap: 12px; }
@@ -302,3 +302,6 @@ table { border-collapse: collapse; width: 100%; }
 .foot-map a { color: var(--ink-2); font-size: 0.85rem; text-decoration: none; }
 .foot-map a:hover { text-decoration: underline; }
 .foot-h { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
+/* Default data-status tags (pages may refine). */
+.tag { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--warn-bg); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+.tag.est { color: var(--accent); }

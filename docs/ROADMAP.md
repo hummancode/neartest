@@ -34,7 +34,8 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 
 | 🟡 | **Nüfus: il ve ilçeler** — yıllara göre nüfus, artış hızları, büyüyen/küçülen il ve ilçeler, ilçe haritası, endeksli il karşılaştırması | TÜİK ADNKS il/ilçe tabloları elle (şu an örnek); ilçe sınırları gerçek (OSM/geoBoundaries) |
 | ⬜ | Nüfus ayrıntısı: yaş yapısı, medyan yaş, iç göç (iller arası göç matrisi), doğurganlık | TÜİK ADNKS ve göç istatistikleri |
-| ⬜ | İl karşılaştırma (iki il yan yana), diğer göstergeler için il bazında zaman serileri | il verisinin yıllık geçmişi |
+| ✅ | İl karşılaştırma (2–3 il yan yana) | mevcut il verisi |
+| ⬜ | Diğer göstergeler için il bazında zaman serileri | il verisinin yıllık geçmişi |
 | ⬜ | Senaryo motoru: faiz/kur/enflasyon şoklarının hane bütçesine, kredi taksitlerine, il servetine etkisi | varsayım tabanlı |
 
 ## 3. Hane ve kişisel karar araçları
@@ -56,6 +57,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 |---|---|---|
 | ✅ | Mevzuat takibi: tarihli oran kaydı, kaynak/durum, haftalık kontrol issue'su, hesaplayıcı varsayılanları | resmî metin doğrulaması insan tarafından |
 | ✅ | Paylaşılabilir bağlantı ve PNG kartlar | — |
+| ✅ | Site içi arama (sayfa, il, ilçe, gösterge) | statik dizin |
 | ✅ | Veri setlerinin CSV/JSON indirilmesi (`/indir/…`, Veri durumu sayfasında) | — |
 | ⬜ | Haftalık bülten taslağının otomatik üretimi (yalnızca rakamlar) | elle onaylanır |
 | ⬜ | E-posta uyarıları ("reel mevduat faizi pozitife döndü") | sunucu gerektirir — sonraki faz |

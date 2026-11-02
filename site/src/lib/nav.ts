@@ -18,6 +18,7 @@ export const NAV: NavGroup[] = [
   ] },
   { label: "İller", items: [
     { href: "/iller", label: "İller: ekonomik harita", desc: "81 il: gelir, ihracat, çalışan, şirketler, mevduat, konut, tahmini servet.", keywords: "harita şehir" },
+    { href: "/karsilastir", label: "İlleri karşılaştır", desc: "İki veya üç il yan yana: tüm göstergeler, sıralar, nüfus seyri, sektör yapısı.", keywords: "karşılaştırma kıyas" },
     { href: "/nufus", label: "Nüfus: il ve ilçeler", desc: "Hangi il ve ilçe büyüyor, hangisi küçülüyor? Yıllara göre nüfus.", keywords: "nüfus ilçe göç" },
   ] },
   { label: "Borç", items: [

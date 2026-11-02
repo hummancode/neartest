@@ -1,0 +1,200 @@
+---
+import Base from "../layouts/Base.astro";
+import { provinces } from "../lib/provinces.ts";
+import { provinceUrl } from "../lib/slug.ts";
+import { DISCLAIMER } from "../config.ts";
+
+const P = provinces;
+const inds = P.indicators.filter((i) => P.provinces.some((p) => p.values[i.id]));
+const groups = [...new Set(inds.map((i) => i.group))];
+const sig = (v: number) => (v === 0 ? 0 : Number(v.toPrecision(5)));
+// Compact payload: per province only numbers; rank among 81 (1 = largest) precomputed at build.
+const rankOf: Record<string, Record<number, number>> = {};
+for (const i of inds) {
+  const xs = P.provinces.filter((p) => p.values[i.id]).map((p) => p.values[i.id].value);
+  rankOf[i.id] = Object.fromEntries(P.provinces.filter((p) => p.values[i.id]).map((p) => [p.plaka, xs.filter((x) => x > p.values[i.id].value).length + 1]));
+}
+const natTot: Record<string, number> = {};
+for (const x of P.provinces) for (const it of x.structure?.gva?.items ?? []) natTot[it.name] = (natTot[it.name] ?? 0) + it.value;
+const topCats = Object.entries(natTot).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+const fold = (items: { name: string; value: number }[]) => {
+  const out: Record<string, number> = {};
+  for (const it of items) { const k = topCats.includes(it.name) ? it.name : "Diğer"; out[k] = sig((out[k] ?? 0) + it.value); }
+  return out;
+};
+const data = {
+  inds: inds.map((i) => ({ id: i.id, label: i.label, unit: i.unit, group: i.group, kind: i.kind, n: Object.keys(rankOf[i.id]).length,
+    sample: P.provinces.some((p) => p.values[i.id]?.sample), year: P.provinces.find((p) => p.values[i.id])?.values[i.id].year })),
+  provs: P.provinces.map((p) => ({ plaka: p.plaka, name: p.name, region: p.region, url: provinceUrl(p.plaka, p.name),
+    v: Object.fromEntries(inds.filter((i) => p.values[i.id]).map((i) => [i.id, sig(p.values[i.id].value)])),
+    r: Object.fromEntries(inds.filter((i) => p.values[i.id]).map((i) => [i.id, rankOf[i.id][p.plaka]])),
+    pop: p.history.population?.points ?? [], gva: p.structure?.gva ? fold(p.structure.gva.items) : null })),
+  cats: [...topCats, "Diğer"],
+  national: fold(Object.entries(natTot).map(([name, value]) => ({ name, value }))),
+};
+const sorted = [...P.provinces].sort((a, b) => a.name.localeCompare(b.name, "tr"));
+---
+<Base title="İlleri karşılaştır" description="İki veya üç ili yan yana karşılaştırın: nüfus, gelir, ihracat, istihdam, konut, finans ve sektör yapısı; 81 il içindeki sıraları." sample={P.sample}>
+  <p class="muted small crumb"><a href="/iller">İller</a> / Karşılaştır</p>
+  <h1>İlleri karşılaştır</h1>
+  <p class="lead">İki veya üç il seçin; tüm göstergeler, 81 il içindeki sıraları ve nüfus seyri yan yana.</p>
+
+  <div class="card pick">
+    {["a", "b", "c"].map((k, i) => (
+      <div class="field">
+        <label for={`sel-${k}`}>{i + 1}. il{i === 2 && " (isteğe bağlı)"}</label>
+        <select id={`sel-${k}`} data-slot={i}>
+          {i === 2 && <option value="">—</option>}
+          {sorted.map((p) => <option value={p.plaka}>{p.name}</option>)}
+        </select>
+      </div>
+    ))}
+    <button type="button" class="btn btn-ghost" id="swap">Yer değiştir ⇄</button>
+  </div>
+
+  <div class="heads" id="heads"></div>
+
+  <section>
+    <h2>Nüfus seyri</h2>
+    <div class="seg" role="group" aria-label="Grafik türü">
+      <button type="button" data-v="index" aria-pressed="true">Endeks (ilk yıl = 100)</button>
+      <button type="button" data-v="abs" aria-pressed="false">Kişi</button>
+    </div>
+    <div class="card"><div id="pop-chart" class="chart-box"></div></div>
+  </section>
+
+  <section>
+    <h2>Göstergeler</h2>
+    <p class="muted small">Sıra: 81 il içinde büyükten küçüğe (1 = en yüksek değer). "Yüksek" her göstergede iyi anlamına gelmez; çubuk yalnızca seçilen iller arasında büyüklüğü gösterir.</p>
+    <label class="small"><input type="checkbox" id="only-diff" /> Yalnızca belirgin farkları göster (sıra farkı ≥ 20)</label>
+    <div id="tables"></div>
+  </section>
+
+  <section>
+    <h2>Ekonomik yapı (GSYH'nin sektörlere dağılımı)</h2>
+    <div class="card"><div id="mix"></div></div>
+  </section>
+
+  <p class="muted small">Kaynaklar ve yöntem her göstergenin il künyesinde ve <a href="/metodoloji#iller">Metodoloji</a> sayfasında. Model tahminleri resmî istatistik değildir.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="c-data" set:html={JSON.stringify(data)}></script>
+</Base>
+<script>
+  import { renderChart } from "../lib/chart.ts";
+  import { renderStacked100 } from "../lib/charts2.ts";
+  import { formatP } from "../lib/provinces.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+
+  type Ind = { id: string; label: string; unit: string; group: string; kind: string; n: number; sample: boolean; year?: string };
+  type Prov = { plaka: number; name: string; region: string; url: string; v: Record<string, number>; r: Record<string, number>; pop: [string, number][]; gva: Record<string, number> | null };
+  const D = JSON.parse(document.getElementById("c-data")!.textContent!) as { inds: Ind[]; provs: Prov[]; cats: string[]; national: Record<string, number> };
+  const COLORS = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)"];
+  const sels = ["a", "b", "c"].map((k) => document.getElementById(`sel-${k}`) as HTMLSelectElement);
+  const h = readHash();
+  const init = (h.get("il") ?? "34,6,35").split(",").map(Number);
+  sels.forEach((s, i) => { if (init[i] && D.provs[init[i] - 1]) s.value = String(init[i]); else if (i < 2) s.value = String([34, 6][i]); });
+  let view = "index";
+  const chosen = () => sels.map((s) => Number(s.value)).filter((x, i, a) => x && a.indexOf(x) === i).map((x) => D.provs[x - 1]);
+  const nf = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+
+  function heads(ps: Prov[]) {
+    document.getElementById("heads")!.replaceChildren(...ps.map((p, i) => {
+      const c = document.createElement("a"); c.className = "card head"; c.href = p.url;
+      const sw = document.createElement("span"); sw.className = "h-sw"; sw.style.background = COLORS[i];
+      const t = document.createElement("strong"); t.className = "h-name"; t.textContent = p.name;
+      const s = document.createElement("span"); s.className = "muted small";
+      s.textContent = `${p.region}${p.v.population != null ? ` · ${nf.format(p.v.population)} kişi` : ""} · künye →`;
+      c.append(sw, t, s); return c;
+    }));
+  }
+  function popChart(ps: Prov[]) {
+    const box = document.getElementById("pop-chart")!;
+    const withH = ps.filter((p) => p.pop.length > 1);
+    if (!withH.length) { box.textContent = "Nüfus geçmişi yok."; return; }
+    const yrs = withH[0].pop.map(([y]) => y).filter((y) => withH.every((p) => p.pop.some(([yy]) => yy === y)));
+    const val = (p: Prov, y: string) => p.pop.find(([yy]) => yy === y)![1];
+    renderChart(box, { months: yrs.map((y) => `${y}-12`), series: withH.map((p) => ({ key: String(p.plaka), label: p.name, color: COLORS[ps.indexOf(p)],
+      values: yrs.map((y) => (view === "index" ? (100 * val(p, y)) / val(p, yrs[0]) : val(p, y))) })) },
+      view === "index" ? { baseline: 100, allowLog: false, format: (v) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(v) }
+                       : { baseline: null, allowLog: true, format: (v) => `${nf.format(v)} kişi` });
+  }
+  function tables(ps: Prov[]) {
+    const onlyDiff = (document.getElementById("only-diff") as HTMLInputElement).checked;
+    const root = document.getElementById("tables")!;
+    root.replaceChildren();
+    for (const g of [...new Set(D.inds.map((i) => i.group))]) {
+      const rows = D.inds.filter((i) => i.group === g && ps.some((p) => p.v[i.id] != null)).filter((i) => {
+        if (!onlyDiff) return true;
+        const rs = ps.map((p) => p.r[i.id]).filter((x) => x != null);
+        return rs.length > 1 && Math.max(...rs) - Math.min(...rs) >= 20;
+      });
+      if (!rows.length) continue;
+      const h3 = document.createElement("h3"); h3.textContent = g;
+      const wrap = document.createElement("div"); wrap.className = "card scroll-x";
+      const tbl = document.createElement("table"); tbl.className = "data cmp";
+      const thead = tbl.createTHead().insertRow();
+      const th0 = document.createElement("th"); th0.scope = "col"; th0.textContent = "Gösterge"; thead.appendChild(th0);
+      ps.forEach((p, i) => { const th = document.createElement("th"); th.scope = "col"; const sw = document.createElement("span"); sw.className = "h-sw"; sw.style.background = COLORS[i]; th.append(sw, p.name); thead.appendChild(th); });
+      const tb = tbl.createTBody();
+      for (const ind of rows) {
+        const tr = tb.insertRow();
+        const th = document.createElement("th"); th.scope = "row";
+        th.textContent = ind.label;
+        if (ind.kind === "estimate") { const t = document.createElement("span"); t.className = "tag est"; t.textContent = "tahmin"; th.appendChild(t); }
+        if (ind.sample) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "örnek"; th.appendChild(t); }
+        tr.appendChild(th);
+        const vals = ps.map((p) => p.v[ind.id]);
+        const max = Math.max(...vals.filter((x) => x != null).map(Math.abs), 1e-12);
+        ps.forEach((p, i) => {
+          const td = tr.insertCell();
+          const v = p.v[ind.id];
+          if (v == null) { td.textContent = "—"; return; }
+          const val = document.createElement("strong"); val.textContent = formatP(ind.unit, v);
+          const bar = document.createElement("span"); bar.className = "cbar"; bar.style.width = `${Math.max(2, (100 * Math.abs(v)) / max)}%`; bar.style.background = COLORS[i];
+          const rk = document.createElement("span"); rk.className = "muted small"; rk.textContent = `${p.r[ind.id]}/${ind.n}. sıra`;
+          td.append(val, bar, rk);
+        });
+      }
+      wrap.appendChild(tbl);
+      root.append(h3, wrap);
+    }
+    if (!root.children.length) root.textContent = "Bu iller arasında belirgin sıra farkı yok.";
+  }
+  function mix(ps: Prov[]) {
+    const rows = [...ps.filter((p) => p.gva).map((p) => ({ label: p.name, parts: p.gva!, emphasis: false })), { label: "Türkiye", parts: D.national, emphasis: false }];
+    renderStacked100(document.getElementById("mix")!, rows, D.cats);
+  }
+  function draw() {
+    const ps = chosen();
+    writeHash({ il: ps.map((p) => p.plaka).join(",") });
+    heads(ps); popChart(ps); tables(ps); mix(ps);
+  }
+  sels.forEach((s) => s.addEventListener("change", draw));
+  document.getElementById("only-diff")!.addEventListener("change", () => tables(chosen()));
+  document.getElementById("swap")!.addEventListener("click", () => { const a = sels[0].value; sels[0].value = sels[1].value; sels[1].value = a; draw(); });
+  document.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) => b.addEventListener("click", () => {
+    view = b.dataset.v!;
+    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    popChart(chosen());
+  }));
+  let w = 0;
+  const box = document.getElementById("pop-chart")!;
+  new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; popChart(chosen()); } }).observe(box);
+  draw();
+</script>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .pick { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .pick .field { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1; }
+  .heads { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin: 14px 0; }
+  .head { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--ink); }
+  .h-name { font-family: var(--font-head); font-size: 1.5rem; font-weight: 400; }
+  .h-sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 5px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+  table.cmp th[scope="row"] { font-weight: 500; min-width: 180px; }
+  table.cmp td { min-width: 120px; vertical-align: top; }
+  table.cmp td strong { display: block; font-variant-numeric: tabular-nums; }
+  .cbar { display: block; height: 4px; border-radius: 2px; margin: 4px 0 2px; }
+</style>

@@ -229,7 +229,7 @@ const DEFAULT_VIEW: Record<string, string> = { gva: "donut", jobs: "donut", expo
       <p class="others">{neighbors.map((x) => <a href={provinceUrl(x.plaka, x.name)}>{x.name}</a>)}</p>
     </>
   )}
-  <p><a class="btn btn-ghost" href={`/iller#il=${plaka}`}>Haritada gör ve varsayımları değiştir →</a></p>
+  <p><a class="btn btn-ghost" href={`/iller#il=${plaka}`}>Haritada gör ve varsayımları değiştir →</a> <a class="btn btn-ghost" href={`/karsilastir#il=${plaka},${plaka === 34 ? 6 : 34}`}>Başka bir ille karşılaştır →</a></p>
   <p class="muted small">Model tahminleri varsayılan varsayımlarla hesaplanmıştır (ev sahipliği %{Math.round(P.wealth_defaults.ownership_rate * 100)}, konut {P.wealth_defaults.dwelling_m2} m², mevduatın hanelere ait payı %{Math.round(P.wealth_defaults.household_deposit_share * 100)}, servet dağınıklığı {P.wealth_defaults.inequality_multiplier}×, Türkiye yastık altı altın {new Intl.NumberFormat("tr-TR").format(P.wealth_defaults.gold_total_tonnes)} ton). Resmî istatistik değildir. Yöntem: <a href="/metodoloji#iller">Metodoloji</a>.</p>
   <p><strong>{DISCLAIMER}</strong></p>
   <script type="application/json" id="pop-data" set:html={JSON.stringify({ name: p.name, plaka, hist: popHist?.points ?? [], districts: dList, shapes: dShapes ?? null })}></script>

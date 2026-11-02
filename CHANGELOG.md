@@ -136,3 +136,9 @@
   ilçe tablosu ve seçilen ilçenin grafiği. İller haritasında nüfus göstergeleri sapma renkleriyle. CSV indirme
   (`ilceler.csv`, `nufus_iller.csv`). Motor: `growth_windows` (önce test). Grafiklerde büyük eksen
   değerleri kısaltıldı (15 mn, 250 bin).
+- 2026-11-02 — Arayüz: site içi arama (Ctrl/⌘ K veya "/"; sayfalar, 81 il, 973 ilçe, göstergeler; Türkçe karakter
+  duyarsız; dizin yalnızca açılınca yüklenir), menü/ana sayfa/alt bilgi tek kaynaktan (`site/src/lib/nav.ts`),
+  ana sayfada kategorili dizin, alt bilgide site haritası. Yeni `/karsilastir`: 2–3 il yan yana (tüm göstergeler,
+  81 il içindeki sıra, nüfus seyri endeks/kişi, GSYH sektör yapısı), il künyesinden bağlantı. Düzeltmeler:
+  `.scroll-x` artık her sayfada yatay kayar, "örnek/tahmin" etiketlerine ortak stil.
+
