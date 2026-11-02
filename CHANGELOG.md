@@ -88,3 +88,6 @@
   `deposit_net`, `breakeven_gross_rate`, `required_saving`, `half_life_years` (önce test; TS; 71 ortak
   vaka). Menüye "Borç" grubu. Hata düzeltmesi: JS ile üretilen öğelere sayfa stilleri uygulanmıyordu
   (Astro kapsamlı stil) → sayfa stilleri genel yapıldı; ülke sıralama çubukları, kredi gider işaretleri vb. düzeldi.
+- 2026-11-02 — EVDS hazırlığı: `pipeline/fetch.py` artık kaynağında "EVDS" geçen 28 seriyi çekiyor (önce yalnızca
+  "TCMB EVDS" yazanlar), çeyreklik/yıllık serileri kendi sıklığında istiyor, EVDS'nin çeyrek/yarıyıl/yıl
+  tarih biçimlerini ayrıştırıyor (test), tek seri hatası diğerlerini durdurmuyor. `docs/EVDS.md` kontrol listesi.

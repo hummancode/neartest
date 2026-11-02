@@ -22,6 +22,7 @@ jobs:
       - name: fetch from EVDS
         if: ${{ env.EVDS_API_KEY != '' }}
         run: python -m pipeline.fetch
+        continue-on-error: true   # a failing series falls back to manual/sample data, flagged on the site
       - name: no API key
         if: ${{ env.EVDS_API_KEY == '' }}
         run: echo "::warning::EVDS_API_KEY secret yok; yalnızca örnek veri kullanılacak."
