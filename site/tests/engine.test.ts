@@ -49,6 +49,7 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   wealth_inequality: e.wealthInequality,
   gold_allocation: e.goldAllocation,
   housing_affordability: e.housingAffordability,
+  lorenz_lognormal: e.lorenzLognormal,
 };
 
 function expand(arg: any): any {

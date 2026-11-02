@@ -993,3 +993,12 @@ def location_quotients(local: dict[str, float], national: dict[str, float]) -> d
 def hhi(share_values: dict[str, float]) -> float:
     """Herfindahl–Hirschman index of shares (1 = one sector only, 1/n = n equal sectors)."""
     return sum(s * s for s in share_values.values())
+
+
+def lorenz_lognormal(p: float, sigma: float) -> float:
+    """Lorenz curve of a lognormal distribution: L(p) = Phi(Phi^-1(p) - sigma)."""
+    if p <= 0:
+        return 0.0
+    if p >= 1:
+        return 1.0
+    return normal_cdf(normal_ppf(p) - sigma)

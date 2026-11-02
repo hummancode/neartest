@@ -685,3 +685,11 @@ def test_hhi():
     assert close(e.hhi({"a": 1.0}), 1.0)                     # one sector: fully concentrated
     assert close(e.hhi({"a": 0.5, "b": 0.5}), 0.5)
     assert close(e.hhi({k: 0.1 for k in "abcdefghij"}), 0.1)  # ten equal sectors
+
+
+def test_lorenz_lognormal():
+    # sigma -> 0: perfect equality, L(p) = p
+    assert close(e.lorenz_lognormal(0.3, 1e-12), 0.3, tol=1e-9)
+    # L(0.5) for sigma = 1 is Phi(0 - 1) = Phi(-1) = 0.158655...
+    assert close(e.lorenz_lognormal(0.5, 1.0), 0.15865525393145707, tol=1e-9)
+    assert e.lorenz_lognormal(0.0, 1.0) == 0.0 and e.lorenz_lognormal(1.0, 1.0) == 1.0

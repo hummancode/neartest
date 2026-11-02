@@ -119,3 +119,11 @@
   sayfasında dağılım çubukları ve ihracat grafiği; Türkiye profilinde illerin toplamından ulusal yapı ve her
   sektörde öne çıkan iller. Motor: `shares`, `location_quotients`, `hhi` (önce test). Veri elle
   (`iller/gsyh_sektor.csv`, `istihdam_sektor.csv`, `ihracat_sektor.csv`, `ihracat_ulke.csv`); şu an örnek.
+- 2026-11-02 — Grafik iyileştirmeleri ve Ar-Ge (`docs/GRAFIK-ARGE.md`): yeni bağımlılıksız grafik modülü
+  `charts2.ts` — halka (ilk 5 + Diğer, dilim üstü %, değerli lejant), ağaç haritası (squarified), %100 yığılmış
+  çubuk, dağılım grafiği (log eksen, seçili il vurgusu, korelasyon), Lorenz eğrisi. İl künyesinde her dağılım için
+  Halka/Ağaç/Çubuk seçimi, bölgedeki illerle sektör yapısı karşılaştırması, gelir ve tahmini servet Lorenz eğrisi;
+  harita kartında küçük halka; haritada iki göstergeli dağılım grafiği; Türkiye profilinde ulusal halka ve ağaç
+  haritası. 6 renkli kategorik palet doğrulayıcıdan geçti. Motor: `lorenz_lognormal` (önce test). Düzeltmeler:
+  `[hidden]` CSS ile ezilmesin (genel kural), grafik eksen stilleri yeni grafiklere uygulanıyor, mobilde lejant
+  ve segment etiketleri taşmıyor/çakışmıyor.

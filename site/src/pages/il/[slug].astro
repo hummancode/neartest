@@ -21,6 +21,21 @@ const key = ["population", "gdp_per_capita_tl", "exports_mn_usd", "avg_wage_tl",
 const ind = Object.fromEntries(P.indicators.map((i) => [i.id, i]));
 const neighbors = P.provinces.filter((x) => x.region === p.region && x.plaka !== plaka);
 const sample = Object.values(p.values).some((v) => v.sample);
+// Sector-mix comparison: provinces of the same region (or the 5 largest economies if the region is this province alone) + Türkiye.
+const natTot: Record<string, number> = {};
+for (const x of P.provinces) for (const it of x.structure?.gva?.items ?? []) natTot[it.name] = (natTot[it.name] ?? 0) + it.value;
+const topCats = Object.entries(natTot).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+const fold = (items: { name: string; value: number }[]) => {
+  const out: Record<string, number> = {};
+  for (const it of items) { const k = topCats.includes(it.name) ? it.name : "Diğer"; out[k] = (out[k] ?? 0) + it.value; }
+  return out;
+};
+const peers = (neighbors.length ? [p, ...neighbors] : [p, ...P.provinces.filter((x) => x.plaka !== plaka && x.values.gdp_mn_tl)
+  .sort((a, b) => b.values.gdp_mn_tl.value - a.values.gdp_mn_tl.value).slice(0, 5)]).filter((x) => x.structure?.gva);
+const mixRows = [...peers.map((x) => ({ label: x.name, parts: fold(x.structure.gva.items), emphasis: x.plaka === plaka })),
+  { label: "Türkiye", parts: fold(Object.entries(natTot).map(([name, value]) => ({ name, value }))), emphasis: false }];
+const mixCats = [...topCats, "Diğer"];
+const DEFAULT_VIEW: Record<string, string> = { gva: "donut", jobs: "donut", exports_sector: "treemap", exports_country: "donut" };
 ---
 <Base title={`${p.name} ekonomik künyesi`} description={`${p.name}: nüfus, gelir, ihracat, ücretli çalışan, şirketler, konut fiyatı ve kira, mevduat, tahmini servet — 81 il içindeki yeri.`} sample={sample}>
   <p class="muted small crumb"><a href="/iller">İller</a> / {p.region} / {p.name}</p>
@@ -92,8 +107,14 @@ const sample = Object.values(p.values).some((v) => v.sample);
           const mx = st.items[0]?.value || 1;
           const showLq = st.items.some((x) => x.lq != null);
           return (
-            <div class="card">
-              <h3 class="s-title">{st.title} ({st.year}){st.sample && <span class="tag">örnek</span>}</h3>
+            <div class="card struct" data-key={k} data-view={DEFAULT_VIEW[k]}>
+              <div class="s-head">
+                <h3 class="s-title">{st.title} ({st.year}){st.sample && <span class="tag">örnek</span>}</h3>
+                <div class="view-toggle" role="group" aria-label="Görünüm" hidden>
+                  {[["donut", "Halka"], ["treemap", "Ağaç"], ["bars", "Çubuk"]].map(([v, t]) => <button type="button" data-v={v} aria-pressed={v === DEFAULT_VIEW[k] ? "true" : "false"}>{t}</button>)}
+                </div>
+              </div>
+              <div class="viz"></div>
               <ol class="bars">
                 {st.items.slice(0, 12).map((x) => (
                   <li>
@@ -103,11 +124,32 @@ const sample = Object.values(p.values).some((v) => v.sample);
                   </li>
                 ))}
               </ol>
-              <p class="muted small">{st.source}{showLq ? " · LQ: ildeki pay / Türkiye'deki pay (1'in üstü: il bu sektörde ülke ortalamasından yoğun)" : ""}</p>
+              <p class="muted small">{st.source}{showLq ? " · LQ: ildeki pay / Türkiye'deki pay (1'in üstü: il bu sektörde ülke ortalamasından yoğun; çubuk görünümünde)" : ""}</p>
             </div>
           );
         })}
       </div>
+      {mixRows.length > 2 && (
+        <div class="card mix">
+          <h3 class="s-title">Sektör yapısı: {neighbors.length ? `${p.region} bölgesindeki iller` : "en büyük ekonomiler"} ve Türkiye</h3>
+          <div id="mix"></div>
+          <p class="muted small">GSYH'nin sektörlere dağılımı, her satır %100. Türkiye'nin en büyük 5 sektörü ayrı, kalanı “Diğer”.</p>
+        </div>
+      )}
+    </section>
+  )}
+
+  {p.values.income_gini && (
+    <section class="card lorenz-card">
+      <h2 class="s-title">Eşitsizlik: Lorenz eğrisi <span class="tag est">tahmin</span></h2>
+      <div class="lorenz-wrap">
+        <div id="lorenz"></div>
+        <div class="small">
+          <p>Eğri, hanelerin en yoksuldan başlayarak toplam gelirin (veya servetin) ne kadarını aldığını gösterir. Köşegenden uzaklaştıkça eşitsizlik artar.</p>
+          <p id="lorenz-note" class="muted"></p>
+        </div>
+      </div>
+      <p class="muted small">Gelir: TÜİK bölge Gini katsayısı ({p.values.income_gini.year}{p.values.income_gini.sample ? ", örnek" : ""}). Servet: log-normal model, dağınıklık {P.wealth_defaults.inequality_multiplier}× (varsayım; haritada değiştirilebilir).</p>
     </section>
   )}
 
@@ -126,9 +168,60 @@ const sample = Object.values(p.values).some((v) => v.sample);
   <p class="muted small">Model tahminleri varsayılan varsayımlarla hesaplanmıştır (ev sahipliği %{Math.round(P.wealth_defaults.ownership_rate * 100)}, konut {P.wealth_defaults.dwelling_m2} m², mevduatın hanelere ait payı %{Math.round(P.wealth_defaults.household_deposit_share * 100)}, servet dağınıklığı {P.wealth_defaults.inequality_multiplier}×, Türkiye yastık altı altın {new Intl.NumberFormat("tr-TR").format(P.wealth_defaults.gold_total_tonnes)} ton). Resmî istatistik değildir. Yöntem: <a href="/metodoloji#iller">Metodoloji</a>.</p>
   <p><strong>{DISCLAIMER}</strong></p>
   <script type="application/json" id="h-data" set:html={JSON.stringify(p.history.exports_mn_usd?.points ?? [])}></script>
+  <script type="application/json" id="s-data" set:html={JSON.stringify({ structure: p.structure, mix: { rows: mixRows, cats: mixCats },
+    gini: p.values.income_gini?.value ?? null, mult: P.wealth_defaults.inequality_multiplier })}></script>
 </Base>
 <script>
   import { renderChart } from "../../lib/chart.ts";
+  import { renderDonut, renderTreemap, renderStacked100, renderLorenz } from "../../lib/charts2.ts";
+  import { sigmaFromGini, lorenzLognormal, giniFromSigma } from "../../lib/engine.ts";
+
+  const S = JSON.parse(document.getElementById("s-data")!.textContent!);
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const fmtFor = (unit: string) => (v: number) => (unit === "kişi" ? `${nf0.format(v)} kişi` : `${nf0.format(v)} ${unit}`);
+  function drawStruct(card: HTMLElement) {
+    const st = S.structure[card.dataset.key!];
+    const view = card.dataset.view!;
+    const viz = card.querySelector<HTMLElement>(".viz")!;
+    const bars = card.querySelector<HTMLElement>(".bars")!;
+    bars.hidden = view !== "bars";
+    viz.hidden = view === "bars";
+    const items = st.items.map((x: any) => ({ name: x.name, value: x.value }));
+    if (view === "donut") renderDonut(viz, items, { format: fmtFor(st.unit), label: st.title });
+    else if (view === "treemap") renderTreemap(viz, items, { format: fmtFor(st.unit), label: st.title, height: 280 });
+    else viz.replaceChildren();
+  }
+  document.querySelectorAll<HTMLElement>(".struct").forEach((card) => {
+    const tg = card.querySelector<HTMLElement>(".view-toggle")!;
+    tg.hidden = false;
+    tg.querySelectorAll<HTMLButtonElement>("button").forEach((b) => b.addEventListener("click", () => {
+      card.dataset.view = b.dataset.v!;
+      tg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+      drawStruct(card);
+    }));
+    drawStruct(card);
+  });
+  const mix = document.getElementById("mix");
+  if (mix) renderStacked100(mix, S.mix.rows, S.mix.cats);
+  const lor = document.getElementById("lorenz");
+  if (lor && S.gini) {
+    const si = sigmaFromGini(S.gini), sw = si * S.mult;
+    renderLorenz(lor, [
+      { label: "Gelir", color: "var(--cat-1)", f: (q) => lorenzLognormal(q, si) },
+      { label: "Servet (tahmin)", color: "var(--cat-2)", f: (q) => lorenzLognormal(q, sw) },
+    ]);
+    const pc = (x: number) => `%${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(100 * x)}`;
+    document.getElementById("lorenz-note")!.textContent =
+      `En yoksul %50'nin payı: gelirde ${pc(lorenzLognormal(0.5, si))}, servette (tahmin) ${pc(lorenzLognormal(0.5, sw))}. Gini: gelir ${giniFromSigma(si).toFixed(2).replace(".", ",")}, servet ${giniFromSigma(sw).toFixed(2).replace(".", ",")}.`;
+  }
+  let lastW = 0;
+  new ResizeObserver(() => {
+    const w = document.body.clientWidth;
+    if (Math.abs(w - lastW) < 2) return;
+    lastW = w;
+    document.querySelectorAll<HTMLElement>(".struct").forEach((c) => c.dataset.view === "treemap" && drawStruct(c));
+    if (mix) renderStacked100(mix, S.mix.rows, S.mix.cats);
+  }).observe(document.body);
   const pts: [string, number][] = JSON.parse(document.getElementById("h-data")!.textContent!);
   const box = document.getElementById("exp-chart");
   if (box && pts.length > 1) {
@@ -171,5 +264,11 @@ const sample = Object.values(p.values).some((v) => v.sample);
   .b-bar span { display: block; height: 100%; background: var(--series-1); border-radius: 3px; }
   .b-val { color: var(--ink-2); white-space: nowrap; font-size: 0.78rem; }
   .lq.hi { color: var(--ink); font-weight: 700; }
+  .s-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+  .struct .viz { margin: 4px 0 8px; }
+  .struct[data-view="bars"] .viz { display: none; }
+  .mix, .lorenz-card { margin-top: 12px; }
+  .lorenz-wrap { display: grid; gap: 12px; align-items: center; }
+  @media (min-width: 720px) { .lorenz-wrap { grid-template-columns: auto 1fr; } }
   .others { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 </style>

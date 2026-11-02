@@ -6,7 +6,11 @@ import { DISCLAIMER } from "../config.ts";
 const P = provinces;
 const groups = [...new Set(P.indicators.map((i) => i.group))];
 // Keep the map page light: full sector/market breakdowns live on the province pages.
-const light = P.provinces.map(({ structure, history, ...rest }) => rest);
+const light = P.provinces.map(({ structure, history, ...rest }) => ({
+  ...rest,
+  gva_parts: (structure?.gva?.items ?? []).map((x) => ({ name: x.name, value: x.value })),
+  gva_sample: structure?.gva?.sample ?? false,
+}));
 const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth_defaults, gold_gram_tl: P.gold_gram_tl, has_company_list: P.has_company_list };
 ---
 <Base title="İller: ekonomik harita" description="81 ilin ekonomik profili harita üzerinde: nüfus, gelir, ihracat, ücretli çalışan, şirketler, borsa şirketleri, mevduat ve tahmini hane serveti." sample={P.sample}>
@@ -66,6 +70,18 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
     <p class="muted small">Dahil olmayanlar: ikinci konutlar, arsa, araç, yastık altı altın ve döviz, menkul kıymetler, borçlar. Mevduat bankanın şubesinin bulunduğu ile göre kaydedilir.</p>
   </section>
 
+  <section class="card scatter-card" aria-labelledby="sc-h">
+    <h2 class="c-title" id="sc-h">Dağılım grafiği: iki göstergeyi karşılaştır</h2>
+    <p class="muted small">Her nokta bir il. Seçili il turuncu; bir noktaya dokunmak ili seçer. Bölge filtresi burada da geçerlidir.</p>
+    <div class="form-grid three">
+      <div class="field"><label for="sx">Yatay eksen</label><select id="sx">{groups.map((g) => <optgroup label={g}>{P.indicators.filter((i) => i.group === g).map((i) => <option value={i.id} selected={i.id === "gdp_per_capita_tl"}>{i.label}</option>)}</optgroup>)}</select></div>
+      <div class="field"><label for="sy">Dikey eksen</label><select id="sy">{groups.map((g) => <optgroup label={g}>{P.indicators.filter((i) => i.group === g).map((i) => <option value={i.id} selected={i.id === "exports_gdp"}>{i.label}</option>)}</optgroup>)}</select></div>
+      <div class="field"><label>Ölçek</label><div class="checks"><label><input type="checkbox" id="slx" /> yatay log</label> <label><input type="checkbox" id="sly" /> dikey log</label></div></div>
+    </div>
+    <div id="scatter" class="chart-box"></div>
+    <p class="small" id="sc-stat"></p>
+  </section>
+
   <details class="card table-view">
     <summary>Tablo görünümü (81 il)</summary>
     <div class="scroll-x">
@@ -84,7 +100,8 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
 </Base>
 
 <script>
-  import { provinceWealth, wealthInequality, goldAllocation, SeriesError } from "../lib/engine.ts";
+  import { provinceWealth, wealthInequality, goldAllocation, pearson, SeriesError } from "../lib/engine.ts";
+  import { renderDonut, renderScatter } from "../lib/charts2.ts";
   import { formatP, ADDITIVE } from "../lib/provinces.ts";
   import { provinceUrl } from "../lib/slug.ts";
   import { readHash, writeHash } from "../lib/share.ts";
@@ -207,6 +224,7 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
       return tr;
     }));
     if (selected) card(selected);
+    scatter();
   }
 
   function card(pl: number) {
@@ -216,6 +234,12 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
     const sub = document.createElement("p"); sub.className = "muted small"; sub.textContent = `${p.region} · plaka ${String(pl).padStart(2, "0")}`;
     const link = document.createElement("a"); link.href = provinceUrl(pl, p.name); link.textContent = "İl künyesi →"; link.className = "small";
     box.append(h, sub, link);
+    if (p.gva_parts?.length) {
+      const gh0 = document.createElement("h3"); gh0.className = "pc-group"; gh0.textContent = "GSYH'nin sektörlere dağılımı" + (p.gva_sample ? " (örnek)" : "");
+      const dz = document.createElement("div"); dz.className = "mini-donut";
+      box.append(gh0, dz);
+      renderDonut(dz, p.gva_parts, { format: (v: number) => formatP("milyon TL", v), size: 150, legendValues: false, label: `${p.name} GSYH sektör dağılımı` });
+    }
     const groups = [...new Set(data.indicators.map((i: any) => i.group))] as string[];
     for (const g of groups) {
       const items = data.indicators.filter((i: any) => i.group === g && values[pl][i.id]);
@@ -278,6 +302,24 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
     }
   }
 
+  const sx = $<HTMLSelectElement>("sx"), sy = $<HTMLSelectElement>("sy"), slx = $<HTMLInputElement>("slx"), sly = $<HTMLInputElement>("sly");
+  function scatter() {
+    const X = IND[sx.value], Y = IND[sy.value], region = regSel.value;
+    const pts = provs.filter((p) => !region || p.region === region)
+      .filter((p) => values[p.plaka][X.id] && values[p.plaka][Y.id])
+      .map((p) => ({ id: p.plaka, label: p.name, x: values[p.plaka][X.id].value, y: values[p.plaka][Y.id].value }));
+    renderScatter($("scatter"), pts, { xLabel: X.label, yLabel: Y.label, fx: (v) => formatP(X.unit, v), fy: (v) => formatP(Y.unit, v),
+      logX: slx.checked, logY: sly.checked, selected, onSelect: (id) => select(id) });
+    let stat = `${pts.length} il`;
+    try {
+      const r = pearson(pts.map((q) => (slx.checked ? Math.log10(q.x) : q.x)), pts.map((q) => (sly.checked ? Math.log10(q.y) : q.y)));
+      const word = Math.abs(r) < 0.2 ? "zayıf" : Math.abs(r) < 0.5 ? "orta" : "güçlü";
+      stat += ` · korelasyon ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2, minimumFractionDigits: 2, signDisplay: "exceptZero" }).format(r)} (${word}${Math.abs(r) >= 0.2 ? (r > 0 ? ", aynı yönde" : ", ters yönde") : ""})`;
+    } catch (e) { if (!(e instanceof SeriesError)) throw e; }
+    const anyS = pts.length && (provs.some((p) => values[p.plaka][X.id]?.sample || values[p.plaka][Y.id]?.sample));
+    $("sc-stat").textContent = stat + (anyS ? " · ÖRNEK VERİ" : "") + ". Korelasyon nedensellik değildir.";
+  }
+
   function select(pl: number) {
     selected = pl;
     draw();
@@ -318,6 +360,9 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
   if (il >= 1 && il <= 81) selected = il;
   recomputeWealth();
   [indSel, regSel].forEach((s) => s.addEventListener("change", draw));
+  [sx, sy, slx, sly].forEach((s) => s.addEventListener("change", scatter));
+  let lastScW = 0;
+  new ResizeObserver(() => { const w = $("scatter").clientWidth; if (Math.abs(w - lastScW) > 2) { lastScW = w; scatter(); } }).observe($("scatter"));
   [...Object.values(sliders), hsSel].forEach((s) => s.addEventListener("input", () => { recomputeWealth(); draw(); }));
   $("sim-reset").addEventListener("click", () => { setDefaults(); recomputeWealth(); draw(); });
   draw();
@@ -364,6 +409,10 @@ const payload = { indicators: P.indicators, provinces: light, defaults: P.wealth
   .sim-h { font-family: var(--font-body); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 6px; }
   .companies { padding-left: 1.1em; margin: 4px 0; font-size: 0.85rem; }
   .table-view { margin-top: 12px; }
+  .scatter-card { margin-top: 12px; }
+  .checks { display: flex; gap: 14px; padding-top: 8px; font-size: 0.88rem; }
+  .checks label { display: inline-flex; gap: 4px; align-items: center; font-weight: 400; }
+  .mini-donut .donut-legend { min-width: 0; font-size: 0.75rem; }
   .table-view summary { cursor: pointer; font-weight: 600; }
   .scroll-x { overflow-x: auto; margin-top: 8px; }
   #ptable { font-size: 0.88rem; }

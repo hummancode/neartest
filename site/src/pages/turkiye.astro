@@ -58,7 +58,8 @@ function national(key: string) {
   return { items, sample, year };
 }
 const natGva = national("gva"), natExp = national("exports_sector");
-const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
+const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [],
+  natGva: natGva.items.map((x) => ({ name: x.name, value: x.v })), natExp: natExp.items.map((x) => ({ name: x.name, value: x.v })) };
 ---
 <Base title="Türkiye profili" description="Türkiye ekonomisi tek sayfada: büyüme, enflasyon, dış ticaret, partnerler, ürünler, benzer ülkeler içindeki yeri ve öne çıkan iller." sample={anySample}>
   <h1>Türkiye profili</h1>
@@ -138,6 +139,7 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
         {[[natGva, "GSYH'nin sektörlere dağılımı"], [natExp, "Sektörlere göre ihracat"]].map(([nat, title]: any) => (
           <section class="card">
             <h3>{title} ({nat.year}){nat.sample && <span class="tag">örnek</span>}</h3>
+            <div class="nat-viz" data-kind={nat === natGva ? "gva" : "exp"}></div>
             <ol class="bars">{nat.items.slice(0, 10).map((x: any) => (
               <li><span class="b-name" title={x.name}>{x.name}</span><span class="b-bar"><span style={`width:${(100 * x.v) / nat.items[0].v}%`}></span></span><span class="b-val">%{nf1.format(100 * x.share)}</span></li>
             ))}</ol>
@@ -192,6 +194,7 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
 <script>
   import { renderChart } from "../lib/chart.ts";
   import { formatValue } from "../lib/macro.ts";
+  import { renderDonut, renderTreemap } from "../lib/charts2.ts";
   const d = JSON.parse(document.getElementById("t-data")!.textContent!);
   const box = document.getElementById("trade-chart")!;
   function draw() {
@@ -203,8 +206,16 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
       { key: "i", label: "İthalat", color: "var(--series-2)", values: pts.map((p: [string, number]) => im[p[0]]) },
     ] }, { baseline: null, allowLog: false, format: (v) => formatValue("milyar $", v) });
   }
+  const nf = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  function nat() {
+    document.querySelectorAll<HTMLElement>(".nat-viz").forEach((el) => {
+      if (el.dataset.kind === "gva" && d.natGva.length) renderDonut(el, d.natGva, { format: (v) => `${nf.format(v / 1000)} milyar TL`, label: "Türkiye GSYH sektör dağılımı", legend: false });
+      if (el.dataset.kind === "exp" && d.natExp.length) renderTreemap(el, d.natExp, { format: (v) => `${nf.format(v)} milyon $`, label: "Sektörlere göre ihracat", height: 240 });
+    });
+  }
+  nat();
   let w = 0;
-  new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(); } }).observe(box);
+  new ResizeObserver(() => { if (Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; draw(); nat(); } }).observe(box);
 </script>
 <style is:global>
   .glance { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
@@ -242,6 +253,7 @@ const payload = { exp: exp?.points ?? [], imp: imp?.points ?? [] };
   .scroll-x { overflow-x: auto; }
   .toplist { padding-left: 1.3em; margin: 0; }
   .leaders { margin-top: 8px; }
+  .nat-viz { margin-bottom: 10px; }
   .leaders summary { cursor: pointer; }
   .leaders ul { padding-left: 1.1em; }
   .toplist li { margin: 4px 0; }

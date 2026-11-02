@@ -674,3 +674,10 @@ export function housingAffordability(p: { m2_price: number; rent_m2: number; mon
   return { price, rent, gross_yield: (12 * rent) / price, amortization_years: price / (12 * rent),
     price_to_annual_wage: price / (12 * p.monthly_wage), rent_to_wage: rent / p.monthly_wage };
 }
+
+/** Lorenz curve of a lognormal distribution: L(p) = Phi(Phi^-1(p) - sigma). */
+export function lorenzLognormal(p: number, sigma: number): number {
+  if (p <= 0) return 0.0;
+  if (p >= 1) return 1.0;
+  return normalCdf(normalPpf(p) - sigma);
+}

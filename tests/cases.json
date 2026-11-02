@@ -1561,6 +1561,17 @@
     "rent_to_wage": 0.4,
     "price_to_annual_wage": 6.666666666666667
    }
+  },
+  {
+   "name": "lorenz_lognormal sigma 1 at median",
+   "fn": "lorenz_lognormal",
+   "args": [
+    0.5,
+    1.0
+   ],
+   "expect": 0.15865525393145707,
+   "tol": 1e-09,
+   "note": "Phi(-1)"
   }
  ]
 }
