@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-02",
+ "as_of": "2026-11-03",
  "params": [
   {
    "id": "kkdf_tuketici",
@@ -647,6 +647,540 @@
    "last_checked": "2026-11-02",
    "stale": false,
    "check_every_days": 31
+  },
+  {
+   "id": "gv_tarife_ucret",
+   "label": "Gelir vergisi tarifesi — ücret gelirleri",
+   "unit": "tarife",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": [
+     [
+      158000,
+      0.15
+     ],
+     [
+      330000,
+      0.2
+     ],
+     [
+      1200000,
+      0.27
+     ],
+     [
+      4300000,
+      0.35
+     ],
+     [
+      null,
+      0.4
+     ]
+    ],
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. GVK 103. madde, ücretliler için üçüncü dilim farklıdır."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": [
+      [
+       158000,
+       0.15
+      ],
+      [
+       330000,
+       0.2
+      ],
+      [
+       1200000,
+       0.27
+      ],
+      [
+       4300000,
+       0.35
+      ],
+      [
+       null,
+       0.4
+      ]
+     ],
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. GVK 103. madde, ücretliler için üçüncü dilim farklıdır."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "gv_tarife_diger",
+   "label": "Gelir vergisi tarifesi — ücret dışı gelirler",
+   "unit": "tarife",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/kira"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": [
+     [
+      158000,
+      0.15
+     ],
+     [
+      330000,
+      0.2
+     ],
+     [
+      800000,
+      0.27
+     ],
+     [
+      4300000,
+      0.35
+     ],
+     [
+      null,
+      0.4
+     ]
+    ],
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": [
+      [
+       158000,
+       0.15
+      ],
+      [
+       330000,
+       0.2
+      ],
+      [
+       800000,
+       0.27
+      ],
+      [
+       4300000,
+       0.35
+      ],
+      [
+       null,
+       0.4
+      ]
+     ],
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "sgk_isci",
+   "label": "SGK primi — işçi payı",
+   "unit": "%",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "SGK",
+     "url": "https://www.sgk.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 14,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.sgk.gov.tr"
+    },
+    "note": "Malullük-yaşlılık-ölüm %9 + genel sağlık %5."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 14,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.sgk.gov.tr"
+     },
+     "note": "Malullük-yaşlılık-ölüm %9 + genel sağlık %5."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 180
+  },
+  {
+   "id": "issizlik_isci",
+   "label": "İşsizlik sigortası — işçi payı",
+   "unit": "%",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "SGK",
+     "url": "https://www.sgk.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 1,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.sgk.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 1,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.sgk.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 180
+  },
+  {
+   "id": "damga_ucret",
+   "label": "Damga vergisi — ücret",
+   "unit": "binde",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 7.59,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 7.59,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 180
+  },
+  {
+   "id": "asgari_ucret_brut",
+   "label": "Asgari ücret (brüt, aylık)",
+   "unit": "TL",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "Çalışma ve Sosyal Güvenlik Bakanlığı",
+     "url": "https://www.csgb.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 26005.5,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.csgb.gov.tr"
+    },
+    "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. Asgari ücret gelir ve damga vergisi istisnası için kullanılır."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 26005.5,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.csgb.gov.tr"
+     },
+     "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. Asgari ücret gelir ve damga vergisi istisnası için kullanılır."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "sgk_tavan",
+   "label": "SGK prime esas kazanç üst sınırı (aylık)",
+   "unit": "TL",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/maas"
+   ],
+   "official_sources": [
+    {
+     "title": "SGK",
+     "url": "https://www.sgk.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 195041.4,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.sgk.gov.tr"
+    },
+    "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. Brüt asgari ücretin 7,5 katı."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 195041.4,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.sgk.gov.tr"
+     },
+     "note": "2025 değeri. 2026 için güncel değer henüz kaydedilmedi; resmî metinden girilmeli. Brüt asgari ücretin 7,5 katı."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "kira_istisna_mesken",
+   "label": "Konut kira geliri istisnası (yıllık)",
+   "unit": "TL",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/kira"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 47000,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "2025 yılı gelirleri için. Şartları var (ör. ücret dışı beyan, toplam gelir sınırı); istisnanın uygulanıp uygulanmadığını kullanıcı seçer."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 47000,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "2025 yılı gelirleri için. Şartları var (ör. ücret dışı beyan, toplam gelir sınırı); istisnanın uygulanıp uygulanmadığını kullanıcı seçer."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 180
+  },
+  {
+   "id": "kira_goturu_gider",
+   "label": "Kira geliri götürü gider oranı",
+   "unit": "%",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/kira"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "Götürü gider yöntemi seçilirse; seçim iki yıl değiştirilemez (doğrulanmalı)."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 15,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (2025 değeri, eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "Götürü gider yöntemi seçilirse; seçim iki yıl değiştirilemez (doğrulanmalı)."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
   }
  ]
 }

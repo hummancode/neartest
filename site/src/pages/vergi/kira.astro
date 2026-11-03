@@ -1,0 +1,144 @@
+---
+import Base from "../../layouts/Base.astro";
+import { paramInfo, formatTariff, type Tariff } from "../../lib/params.ts";
+import { DISCLAIMER } from "../../config.ts";
+
+const t = paramInfo("gv_tarife_diger"), ex = paramInfo("kira_istisna_mesken"), lump = paramInfo("kira_goturu_gider");
+const payload = { tariff: t?.value ?? null, exemption: ex?.value ?? null, lump: lump?.value ?? null };
+const unverified = [t, ex, lump].some((x) => x?.status !== "verified");
+---
+<Base title="Kira geliri vergisi hesaplayıcı" description="Konut kira gelirinin yıllık gelir vergisi: istisna, götürü veya gerçek gider yöntemi, artan oranlı tarife. Basitleştirilmiş hesap, tarayıcıda çalışır.">
+  <p class="muted small crumb"><a href="/vergi">Vergi</a> / Kira geliri</p>
+  <h1>Kira geliri vergisi</h1>
+  <p class="lead">Konut kiranızdan yıllık ne kadar gelir vergisi çıkar? İstisna, gider yöntemi ve tarife ile basitleştirilmiş hesap.</p>
+  {unverified && <p class="card warn-note"><strong>Değerleri kontrol edin.</strong> Varsayılan istisna tutarı, götürü gider oranı ve tarife {[t?.year, ex?.year].filter(Boolean).join(", ")} yılına ait ve resmî metinden doğrulanmadı (<a href="/mevzuat">Mevzuat</a>). Beyan edeceğiniz yılın değerlerini girin.</p>}
+
+  <form class="card calc" novalidate onsubmit="return false">
+    <div class="grid">
+      <div class="field"><label for="rent">Aylık kira (TL)</label><input id="rent" inputmode="decimal" value="25.000" /></div>
+      <div class="field"><label for="months">Kiranın alındığı ay sayısı</label><input id="months" inputmode="numeric" value="12" /></div>
+      <div class="field check"><label><input type="checkbox" id="use-ex" checked /> İstisna uygulanıyor <span class="muted small">(şartları sağlıyorsanız)</span></label></div>
+      <div class="field"><label for="ex">İstisna tutarı (TL) <span class="tag">{ex?.statusLabel} · {ex?.year}</span></label><input id="ex" inputmode="decimal" value={ex ? new Intl.NumberFormat("tr-TR").format(ex.value as number) : ""} /></div>
+      <div class="field"><label for="method">Gider yöntemi</label><select id="method"><option value="lump">Götürü gider</option><option value="actual">Gerçek gider</option></select></div>
+      <div class="field" id="lump-f"><label for="lump">Götürü gider oranı (%) <span class="tag">{lump?.statusLabel} · {lump?.year}</span></label><input id="lump" inputmode="decimal" value={String(lump?.value ?? "")} /></div>
+      <div class="field" id="actual-f" hidden><label for="actual">Yıllık gerçek giderler (TL)</label><input id="actual" inputmode="decimal" placeholder="ör. emlak vergisi, aidat değil, faiz, amortisman…" /></div>
+    </div>
+    <details class="assume">
+      <summary>Gelir vergisi tarifesi (ücret dışı gelirler) <span class="tag">{t?.statusLabel} · {t?.year}</span></summary>
+      <div id="tariff-rows"></div>
+      <p class="muted small">{t && formatTariff(t.value as Tariff)}</p>
+    </details>
+    <p class="error" id="err" role="alert" hidden></p>
+  </form>
+
+  <section class="summary" aria-live="polite">
+    <div class="card stat"><p class="s-label">Yıllık kira</p><p class="s-value" id="s-rent"></p><p class="muted small" id="s-rent-sub"></p></div>
+    <div class="card stat"><p class="s-label">Vergiye tabi kazanç (matrah)</p><p class="s-value" id="s-base"></p><p class="muted small" id="s-base-sub"></p></div>
+    <div class="card stat"><p class="s-label">Gelir vergisi</p><p class="s-value" id="s-tax"></p><p class="muted small" id="s-tax-sub"></p></div>
+    <div class="card stat"><p class="s-label">Kiranın yüzde kaçı vergi?</p><p class="s-value" id="s-eff"></p><p class="muted small">efektif oran</p></div>
+  </section>
+
+  <section class="card">
+    <h2>Hesap adımları</h2>
+    <ol id="steps" class="steps"></ol>
+  </section>
+
+  <section>
+    <h2>Bilmeniz gerekenler</h2>
+    <ul class="muted small">
+      <li><strong>Basitleştirilmiş hesaptır.</strong> Başka gelirleriniz (ör. ücret) varsa beyan ve istisna şartları değişebilir; kira dışı gelirlerle birlikte beyan edilen kazançta vergi farklı çıkar. Stopaj, geçmiş yıl zararları, mahsuplar ve iş yeri kirası kapsam dışıdır.</li>
+      <li>Konut kira istisnası, tutarın altındaki kira gelirini vergiden muaf tutar; ancak bazı durumlarda (ör. belirli tutarı aşan ücret, ticari kazanç beyanı) uygulanmaz. Durumunuzu Gelir İdaresi rehberlerinden veya bir mali müşavirden doğrulayın.</li>
+      <li>Gerçek gider yönteminde yalnızca istisna dışında kalan kısma isabet eden giderler indirilebilir (giderler × vergiye tabi kira / toplam kira).</li>
+      <li>Hesap tarayıcınızda yapılır; tutarlar hiçbir yere gönderilmez. Formül: <a href="/metodoloji#vergi">Metodoloji</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="k-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { rentalIncomeTax, type Brackets } from "../../lib/engine.ts";
+  import { parseAmount } from "../../lib/card.ts";
+  import { readHash, writeHash } from "../../lib/share.ts";
+  const REG = JSON.parse(document.getElementById("k-data")!.textContent!) as { tariff: Brackets; exemption: number; lump: number };
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t && Number.isFinite(x) ? x : null; };
+
+  $<HTMLDivElement>("tariff-rows").replaceChildren(...REG.tariff.map(([u, r], i) => {
+    const row = document.createElement("div"); row.className = "t-row";
+    const up = document.createElement("input"); up.inputMode = "decimal"; up.className = "t-up"; up.value = u === null ? "" : nf0.format(u); up.disabled = u === null; up.placeholder = u === null ? "üzeri" : "";
+    up.setAttribute("aria-label", `${i + 1}. dilim üst sınırı (TL)`);
+    const rt = document.createElement("input"); rt.inputMode = "decimal"; rt.className = "t-rate"; rt.value = nf1.format(r * 100); rt.setAttribute("aria-label", `${i + 1}. dilim oranı (%)`);
+    const l1 = document.createElement("span"); l1.textContent = u === null ? "Kalan matrah:" : `${i + 1}. dilim: TL'ye kadar`;
+    const l2 = document.createElement("span"); l2.textContent = "%";
+    row.append(l1, up, rt, l2); return row;
+  }));
+  function readTariff(): Brackets | null {
+    const out: Brackets = [];
+    for (const r of document.querySelectorAll<HTMLDivElement>(".t-row")) {
+      const up = r.querySelector<HTMLInputElement>(".t-up")!, rt = num(r.querySelector<HTMLInputElement>(".t-rate")!.value);
+      if (rt == null) return null;
+      if (up.disabled) out.push([null, rt / 100]); else { const u = parseAmount(up.value); if (u == null) return null; out.push([u, rt / 100]); }
+    }
+    return out;
+  }
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const rent = parseAmount($("rent").value), months = Math.round(num($("months").value) ?? NaN);
+    const method = $<HTMLSelectElement>("method").value as "lump" | "actual";
+    $("lump-f").hidden = method !== "lump"; $("actual-f").hidden = method !== "actual";
+    const exemption = $("use-ex").checked ? parseAmount($("ex").value) ?? 0 : 0;
+    const lump = num($("lump").value), actual = method === "actual" ? parseAmount($("actual").value) ?? 0 : 0;
+    const br = readTariff();
+    if (rent == null) return fail("Aylık kirayı TL olarak girin.");
+    if (!(months >= 1 && months <= 12)) return fail("Ay sayısı 1–12 arasında olmalı.");
+    if (lump == null || !br) return fail("Oranları kontrol edin.");
+    const annual = rent * months;
+    let r;
+    try { r = rentalIncomeTax({ annual_rent: annual, exemption, method, actual_expenses: actual, brackets: br, lump_rate: lump / 100 }); }
+    catch { return fail("Tarife geçersiz: dilim sınırları artan olmalı."); }
+    writeHash({ k: String(Math.round(rent)), a: String(months), i: $("use-ex").checked ? "1" : "0", y: method });
+    $("s-rent").textContent = tl(annual); $("s-rent-sub").textContent = `${tl(rent)} × ${months} ay`;
+    $("s-base").textContent = tl(r.base); $("s-base-sub").textContent = `istisna sonrası ${tl(r.taxable_rent)} − gider ${tl(r.expense)}`;
+    $("s-tax").textContent = tl(r.tax); $("s-tax-sub").textContent = `aylık ortalama ${tl(r.tax / 12)}`;
+    $("s-eff").textContent = `%${nf1.format(100 * r.effective_rate)}`;
+    const steps = [
+      `Yıllık kira: ${tl(rent)} × ${months} = ${tl(annual)}`,
+      exemption ? `İstisna düşülür: ${tl(annual)} − ${tl(exemption)} = ${tl(r.taxable_rent)}` : `İstisna uygulanmıyor: ${tl(r.taxable_rent)}`,
+      method === "lump" ? `Götürü gider: ${tl(r.taxable_rent)} × %${nf1.format(lump)} = ${tl(r.expense)}` : `Gerçek gider (istisna dışı paya düşen): ${tl(actual)} × ${tl(r.taxable_rent)} / ${tl(annual)} = ${tl(r.expense)}`,
+      `Matrah: ${tl(r.taxable_rent)} − ${tl(r.expense)} = ${tl(r.base)}`,
+      `Artan oranlı tarifeye göre gelir vergisi: ${tl(r.tax)}`,
+    ];
+    $<HTMLOListElement>("steps").replaceChildren(...steps.map((s) => { const li = document.createElement("li"); li.textContent = s; return li; }));
+  }
+  const h = readHash();
+  if (h.get("k")) $("rent").value = nf0.format(Number(h.get("k")));
+  if (h.get("a")) $("months").value = h.get("a")!;
+  if (h.get("i") === "0") $("use-ex").checked = false;
+  if (h.get("y") === "actual") $<HTMLSelectElement>("method").value = "actual";
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  for (const id of ["use-ex", "method"]) $(id).addEventListener("change", run);
+  run();
+</script>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  .calc .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .calc .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .calc .grid { grid-template-columns: repeat(4, 1fr); } }
+  .field.check { display: flex; align-items: flex-end; }
+  .assume { margin-top: 12px; }
+  .assume summary { cursor: pointer; font-weight: 600; }
+  .t-row { display: grid; grid-template-columns: minmax(110px, auto) minmax(0, 160px) minmax(0, 70px) auto; gap: 6px; align-items: center; margin: 4px 0; font-size: 0.85rem; }
+  .t-row input { min-width: 0; }
+  .summary { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .summary { grid-template-columns: repeat(4, 1fr); } }
+  .stat { padding: 12px; }
+  .s-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); margin: 0; }
+  .s-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; margin: 2px 0; overflow-wrap: anywhere; }
+  .steps li { margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

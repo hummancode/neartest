@@ -55,3 +55,11 @@ def test_unknown_effective_date_is_allowed_for_candidates():
 
 def test_real_registry_is_valid():
     P.validate(P.load())
+
+
+def test_tariff_values_validated():
+    from pipeline.params import _valid_value
+    assert _valid_value(15) and _valid_value([[100, 0.1], [None, 0.2]])
+    assert not _valid_value([[100, 0.1], [50, 0.2], [None, 0.3]])     # thresholds must increase
+    assert not _valid_value([[100, 0.1], [200, 0.2]])                 # last bracket must be open-ended
+    assert not _valid_value(True) and not _valid_value("15")

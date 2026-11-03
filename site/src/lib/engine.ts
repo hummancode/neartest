@@ -705,3 +705,78 @@ export function netWorthTimeline(items: NetWorthItem[]): NetWorthRow[] {
     return { date: d, assets, liabilities, net: assets - liabilities, by_kind };
   });
 }
+
+// --- taxes (ports of reel.engine; rates come from the registry) ---
+export type Brackets = [number | null, number][];
+function checkBrackets(br: Brackets) {
+  if (!br.length || br[br.length - 1][0] !== null) throw new SeriesError("last bracket must be open-ended (upper = null)");
+  const ups = br.slice(0, -1).map((b) => b[0]);
+  if (ups.some((u) => u === null || (u as number) <= 0) || ups.some((u, i) => i > 0 && (u as number) <= (ups[i - 1] as number)))
+    throw new SeriesError("bracket thresholds must be positive and increasing");
+}
+
+export function progressiveTax(base: number, br: Brackets): number {
+  checkBrackets(br);
+  if (base <= 0) return 0;
+  let tax = 0, lower = 0;
+  for (const [upper, rate] of br) {
+    const top = upper === null ? base : Math.min(base, upper);
+    if (top > lower) tax += (top - lower) * rate;
+    if (upper === null || base <= upper) break;
+    lower = upper;
+  }
+  return tax;
+}
+
+export interface PayrollParams { gross: number[]; sgk_rate: number; unemp_rate: number; stamp_rate: number; brackets: Brackets; sgk_ceiling?: number | null; min_wage_gross?: number | null }
+export interface PayrollRow { month: number; gross: number; sgk: number; unemp: number; tax_base: number; cum_base: number; income_tax: number; stamp: number; tax_exemption: number; stamp_exemption: number; net: number }
+
+export function payrollYear(p: PayrollParams) {
+  const br = p.brackets;
+  checkBrackets(br);
+  const cap = p.sgk_ceiling, mw = p.min_wage_gross, ins = p.sgk_rate + p.unemp_rate;
+  const rows: PayrollRow[] = [];
+  let cum = 0, mwCum = 0;
+  p.gross.forEach((gross, i) => {
+    const sgkBase = cap ? Math.min(gross, cap) : gross;
+    const sgk = sgkBase * p.sgk_rate, unemp = sgkBase * p.unemp_rate;
+    const base = gross - sgk - unemp;
+    const tax = progressiveTax(cum + base, br) - progressiveTax(cum, br);
+    cum += base;
+    const stamp = gross * p.stamp_rate;
+    let exTax = 0, exStamp = 0;
+    if (mw) {
+      const mwBase = mw * (1 - ins);
+      exTax = progressiveTax(mwCum + mwBase, br) - progressiveTax(mwCum, br);
+      mwCum += mwBase;
+      exStamp = mw * p.stamp_rate;
+    }
+    const taxNet = Math.max(0, tax - exTax), stampNet = Math.max(0, stamp - exStamp);
+    rows.push({ month: i + 1, gross, sgk, unemp, tax_base: base, cum_base: cum, income_tax: taxNet, stamp: stampNet,
+      tax_exemption: tax - taxNet, stamp_exemption: stamp - stampNet, net: gross - sgk - unemp - taxNet - stampNet });
+  });
+  const keys = ["gross", "sgk", "unemp", "income_tax", "stamp", "net"] as const;
+  const totals = Object.fromEntries(keys.map((k) => [k, rows.reduce((s, r) => s + r[k], 0)])) as Record<(typeof keys)[number], number>;
+  return { rows, totals, avg_net: rows.length ? totals.net / rows.length : 0 };
+}
+
+export function grossForNet(targetNet: number, p: Omit<PayrollParams, "gross">, month = 1): number {
+  if (targetNet <= 0) throw new SeriesError("target net must be positive");
+  const netOf = (g: number) => payrollYear({ ...p, gross: Array(month).fill(g) }).rows[month - 1].net;
+  let lo = targetNet, hi = targetNet * 3;
+  while (netOf(hi) < targetNet) hi *= 2;
+  for (let k = 0; k < 200 && hi - lo >= 1e-9; k++) {
+    const mid = (lo + hi) / 2;
+    if (netOf(mid) < targetNet) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+export function rentalIncomeTax(p: { annual_rent: number; exemption: number; method: "lump" | "actual"; actual_expenses: number; brackets: Brackets; lump_rate: number }) {
+  if (p.method !== "lump" && p.method !== "actual") throw new SeriesError("method must be 'lump' or 'actual'");
+  const taxable = Math.max(0, p.annual_rent - Math.max(0, p.exemption));
+  const expense = p.method === "lump" ? p.lump_rate * taxable : p.annual_rent > 0 ? p.actual_expenses * (taxable / p.annual_rent) : 0;
+  const base = Math.max(0, taxable - expense);
+  const tax = progressiveTax(base, p.brackets);
+  return { taxable_rent: taxable, expense, base, tax, effective_rate: p.annual_rent > 0 ? tax / p.annual_rent : 0 };
+}

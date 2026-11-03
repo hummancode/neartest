@@ -1677,6 +1677,188 @@
     ]
    ],
    "raises": true
+  },
+  {
+   "name": "progressive_tax three brackets",
+   "fn": "progressive_tax",
+   "args": [
+    500,
+    [
+     [
+      100,
+      0.1
+     ],
+     [
+      300,
+      0.2
+     ],
+     [
+      null,
+      0.3
+     ]
+    ]
+   ],
+   "expect": 110.0,
+   "tol": 1e-09,
+   "note": "10 + 40 + 200×30 %"
+  },
+  {
+   "name": "progressive_tax rejects decreasing thresholds",
+   "fn": "progressive_tax",
+   "args": [
+    10,
+    [
+     [
+      100,
+      0.1
+     ],
+     [
+      50,
+      0.2
+     ],
+     [
+      null,
+      0.3
+     ]
+    ]
+   ],
+   "raises": true
+  },
+  {
+   "name": "payroll_year cumulative base",
+   "fn": "payroll_year",
+   "args": [
+    {
+     "gross": [
+      600,
+      600,
+      600
+     ],
+     "sgk_rate": 0.1,
+     "unemp_rate": 0.0,
+     "stamp_rate": 0.01,
+     "brackets": [
+      [
+       1000,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ]
+    }
+   ],
+   "expect": {
+    "totals": {
+     "gross": 1800.0,
+     "sgk": 180.0,
+     "unemp": 0.0,
+     "income_tax": 224.0,
+     "stamp": 18.0,
+     "net": 1378.0
+    }
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "tax 54+62+108; net 480+472+426"
+  },
+  {
+   "name": "payroll_year minimum wage exemption",
+   "fn": "payroll_year",
+   "args": [
+    {
+     "gross": [
+      600,
+      600,
+      600
+     ],
+     "sgk_rate": 0.1,
+     "unemp_rate": 0.0,
+     "stamp_rate": 0.01,
+     "brackets": [
+      [
+       1000,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ],
+     "min_wage_gross": 300
+    }
+   ],
+   "expect": {
+    "totals": {
+     "gross": 1800.0,
+     "sgk": 180.0,
+     "unemp": 0.0,
+     "income_tax": 143.0,
+     "stamp": 9.0,
+     "net": 1468.0
+    }
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "tax 27+35+81; stamp 3×3; net 510+502+456"
+  },
+  {
+   "name": "gross_for_net month 1",
+   "fn": "gross_for_net",
+   "args": [
+    480.0,
+    {
+     "sgk_rate": 0.1,
+     "unemp_rate": 0.0,
+     "stamp_rate": 0.01,
+     "brackets": [
+      [
+       1000,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ]
+    },
+    1
+   ],
+   "expect": 600.0,
+   "tol": 1e-06
+  },
+  {
+   "name": "rental_income_tax lump-sum",
+   "fn": "rental_income_tax",
+   "args": [
+    {
+     "annual_rent": 1000,
+     "exemption": 200,
+     "method": "lump",
+     "actual_expenses": 0,
+     "brackets": [
+      [
+       100,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ],
+     "lump_rate": 0.15
+    }
+   ],
+   "expect": {
+    "taxable_rent": 800.0,
+    "expense": 120.0,
+    "base": 680.0,
+    "tax": 126.0,
+    "effective_rate": 0.126
+   },
+   "tol": 1e-09,
+   "note": "800 − 15 % = 680; 10 + 580×20 %"
   }
  ]
 }

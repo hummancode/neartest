@@ -1,0 +1,225 @@
+---
+import Base from "../../layouts/Base.astro";
+import { paramInfo, formatTariff, type Tariff } from "../../lib/params.ts";
+import { DISCLAIMER } from "../../config.ts";
+
+const ids = ["gv_tarife_ucret", "sgk_isci", "issizlik_isci", "damga_ucret", "asgari_ucret_brut", "sgk_tavan"] as const;
+const info = Object.fromEntries(ids.map((id) => [id, paramInfo(id)]));
+const years = [...new Set(Object.values(info).map((x) => x?.year).filter(Boolean))];
+const allVerified = Object.values(info).every((x) => x?.status === "verified");
+const payload = Object.fromEntries(ids.map((id) => [id, info[id]?.value ?? null]));
+const tariff = info.gv_tarife_ucret?.value as Tariff | undefined;
+const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+---
+<Base title="Brüt–net maaş hesaplayıcı" description="Brüt maaştan net maaşa (ve tersine): SGK, işsizlik sigortası, kümülatif gelir vergisi, damga vergisi, asgari ücret istisnası; 12 ayın tablosu. Tarayıcıda çalışır.">
+  <p class="muted small crumb"><a href="/vergi">Vergi</a> / Maaş</p>
+  <h1>Brüt–net maaş</h1>
+  <p class="lead">Brüt maaşından elinde ne kalıyor, yıl içinde neden düşüyor? Kümülatif gelir vergisi matrahıyla 12 ayın tablosu.</p>
+  {!allVerified && (
+    <p class="card warn-note"><strong>Oranları kontrol edin.</strong> Varsayılan değerler {years.join(", ")} yılına ait ve resmî metinden henüz doğrulanmadı (durumları aşağıda ve <a href="/mevzuat">Mevzuat</a> sayfasında). Bu yılın tarifesi farklıysa "Varsayımlar" bölümünden güncelleyin.</p>
+  )}
+
+  <form class="card calc" novalidate onsubmit="return false">
+    <div class="grid">
+      <div class="field"><label for="mode">Hesap</label>
+        <select id="mode"><option value="g2n">Brütten nete</option><option value="n2g">Netten brüte (Ocak ayı)</option></select></div>
+      <div class="field"><label for="amount" id="amount-label">Aylık brüt maaş (TL)</label><input id="amount" inputmode="decimal" value="60.000" /></div>
+      <div class="field"><label for="raise-m">Yıl içi zam (isteğe bağlı)</label>
+        <div class="two"><select id="raise-m" aria-label="Zam ayı"><option value="0">zam yok</option>{MONTHS.slice(1).map((m, i) => <option value={i + 2}>{m} ayından itibaren</option>)}</select>
+        <input id="raise-p" inputmode="decimal" placeholder="%" aria-label="Zam oranı yüzde" /></div></div>
+      <div class="field check"><label><input type="checkbox" id="mw" checked /> Asgari ücret gelir ve damga vergisi istisnası</label></div>
+    </div>
+    <details class="assume">
+      <summary>Varsayımlar (oranlar ve tarife)</summary>
+      <p class="muted small">Değerler <a href="/mevzuat">mevzuat kaydından</a> gelir. Değiştirdiğiniz değerler yalnızca bu sayfada, bu ziyarette kullanılır.</p>
+      <div class="grid">
+        <div class="field"><label for="p-sgk">SGK işçi payı (%) <span class={`tag ${info.sgk_isci?.status === "verified" ? "ok" : ""}`}>{info.sgk_isci?.statusLabel} · {info.sgk_isci?.year}</span></label><input id="p-sgk" inputmode="decimal" value={String(payload.sgk_isci ?? "").replace(".", ",")} /></div>
+        <div class="field"><label for="p-un">İşsizlik işçi payı (%) <span class="tag">{info.issizlik_isci?.statusLabel} · {info.issizlik_isci?.year}</span></label><input id="p-un" inputmode="decimal" value={String(payload.issizlik_isci ?? "").replace(".", ",")} /></div>
+        <div class="field"><label for="p-st">Damga vergisi (binde) <span class="tag">{info.damga_ucret?.statusLabel} · {info.damga_ucret?.year}</span></label><input id="p-st" inputmode="decimal" value={String(payload.damga_ucret ?? "").replace(".", ",")} /></div>
+        <div class="field"><label for="p-mw">Brüt asgari ücret (TL) <span class="tag">{info.asgari_ucret_brut?.statusLabel} · {info.asgari_ucret_brut?.year}</span></label><input id="p-mw" inputmode="decimal" value={String(payload.asgari_ucret_brut ?? "").replace(".", ",")} /></div>
+        <div class="field"><label for="p-cap">SGK tavanı (TL/ay) <span class="tag">{info.sgk_tavan?.statusLabel} · {info.sgk_tavan?.year}</span></label><input id="p-cap" inputmode="decimal" value={String(payload.sgk_tavan ?? "").replace(".", ",")} /></div>
+      </div>
+      <fieldset class="tariff">
+        <legend>Gelir vergisi tarifesi (ücret, yıllık) <span class="tag">{info.gv_tarife_ucret?.statusLabel} · {info.gv_tarife_ucret?.year}</span></legend>
+        <div id="tariff-rows"></div>
+        <p class="muted small">{tariff && formatTariff(tariff)}</p>
+      </fieldset>
+      <button type="button" class="btn btn-ghost" id="reset">Kayıttaki değerlere dön</button>
+    </details>
+    <p class="error" id="err" role="alert" hidden></p>
+  </form>
+
+  <section class="summary" aria-live="polite">
+    <div class="card stat"><p class="s-label" id="s1-label">Ocak net</p><p class="s-value" id="s1"></p><p class="muted small" id="s1-sub"></p></div>
+    <div class="card stat"><p class="s-label">Yıllık ortalama net</p><p class="s-value" id="s2"></p><p class="muted small" id="s2-sub"></p></div>
+    <div class="card stat"><p class="s-label">Yıl boyu gelir + damga vergisi</p><p class="s-value" id="s3"></p><p class="muted small" id="s3-sub"></p></div>
+    <div class="card stat"><p class="s-label">Kesinti oranı (vergi + prim)</p><p class="s-value" id="s4"></p><p class="muted small">yıllık brüte göre</p></div>
+  </section>
+  <p class="card small" id="creep" hidden></p>
+
+  <section class="card">
+    <h2>Aylara göre net maaş</h2>
+    <div id="chart" class="chart-box"></div>
+  </section>
+
+  <section class="card">
+    <h2>12 aylık tablo</h2>
+    <div class="scroll-x">
+      <table class="data pay" id="table">
+        <thead><tr><th scope="col">Ay</th><th scope="col">Brüt</th><th scope="col">SGK</th><th scope="col">İşsizlik</th><th scope="col">Kümülatif matrah</th><th scope="col">Gelir vergisi</th><th scope="col">Damga</th><th scope="col">Net</th></tr></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nasıl hesaplanır?</h2>
+    <ul class="muted small">
+      <li>SGK ve işsizlik primi = min(brüt, SGK tavanı) × oran. Gelir vergisi matrahı = brüt − SGK − işsizlik.</li>
+      <li>Gelir vergisi <strong>kümülatiftir</strong>: her ay, yılbaşından o aya kadarki toplam matrahın vergisinden önceki ayların vergisi düşülür. Toplam matrah üst dilime geçtikçe aynı brütle net maaş azalır.</li>
+      <li>Asgari ücret istisnası: asgari ücretin kendisine düşen gelir vergisi (yine kümülatif) ve damga vergisi kadar tutar vergiden düşülür.</li>
+      <li>Kapsam dışı: işveren maliyeti, teşvikler, engellilik indirimi, ikramiye/prim gibi düzensiz ödemeler (zam alanıyla yaklaşık olarak girilebilir), kısmi çalışma, emekli çalışan (SGDP). Hesap bilgi amaçlıdır; bordronuz için işvereninize veya bir mali müşavire danışın.</li>
+      <li>Hesap tarayıcınızda yapılır; girdiğiniz maaş hiçbir yere gönderilmez. Formül ve testler: <a href="/metodoloji#vergi">Metodoloji</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="p-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { payrollYear, grossForNet, type Brackets, SeriesError } from "../../lib/engine.ts";
+  import { renderChart } from "../../lib/chart.ts";
+  import { parseAmount } from "../../lib/card.ts";
+  import { readHash, writeHash } from "../../lib/share.ts";
+
+  const REG = JSON.parse(document.getElementById("p-data")!.textContent!) as Record<string, any>;
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t && Number.isFinite(x) ? x : null; };
+
+  function tariffRows(t: Brackets) {
+    $<HTMLDivElement>("tariff-rows").replaceChildren(...t.map(([u, r], i) => {
+      const row = document.createElement("div"); row.className = "t-row";
+      const up = document.createElement("input"); up.inputMode = "decimal"; up.className = "t-up"; up.setAttribute("aria-label", `${i + 1}. dilim üst sınırı (TL)`);
+      up.value = u === null ? "" : nf0.format(u); up.disabled = u === null; up.placeholder = u === null ? "üzeri" : "";
+      const rt = document.createElement("input"); rt.inputMode = "decimal"; rt.className = "t-rate"; rt.setAttribute("aria-label", `${i + 1}. dilim oranı (%)`);
+      rt.value = nf1.format(r * 100);
+      const l1 = document.createElement("span"); l1.textContent = u === null ? "Kalan matrah:" : `${i + 1}. dilim: TL'ye kadar`;
+      const l2 = document.createElement("span"); l2.textContent = "%";
+      row.append(l1, up, rt, l2);
+      return row;
+    }));
+    document.querySelectorAll<HTMLInputElement>("#tariff-rows input").forEach((x) => x.addEventListener("input", run));
+  }
+  function readTariff(): Brackets | null {
+    const rows = [...document.querySelectorAll<HTMLDivElement>(".t-row")];
+    const out: Brackets = [];
+    for (const r of rows) {
+      const up = r.querySelector<HTMLInputElement>(".t-up")!, rt = num(r.querySelector<HTMLInputElement>(".t-rate")!.value);
+      if (rt == null) return null;
+      if (up.disabled) out.push([null, rt / 100]);
+      else { const u = parseAmount(up.value); if (u == null) return null; out.push([u, rt / 100]); }
+    }
+    return out;
+  }
+  function reset() {
+    $("p-sgk").value = nf1.format(REG.sgk_isci); $("p-un").value = nf1.format(REG.issizlik_isci); $("p-st").value = String(REG.damga_ucret).replace(".", ",");
+    $("p-mw").value = nf0.format(REG.asgari_ucret_brut); $("p-cap").value = nf0.format(REG.sgk_tavan);
+    tariffRows(REG.gv_tarife_ucret);
+    run();
+  }
+
+  function run() {
+    const err = $<HTMLParagraphElement>("err");
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    err.hidden = true;
+    const br = readTariff();
+    const sgk = num($("p-sgk").value), un = num($("p-un").value), st = num($("p-st").value), mwv = parseAmount($("p-mw").value), cap = parseAmount($("p-cap").value);
+    const amount = parseAmount($("amount").value);
+    if (!br || sgk == null || un == null || st == null) return fail("Varsayımlardaki oranları kontrol edin.");
+    if (amount == null) return fail("Tutarı TL olarak girin (ör. 60.000).");
+    const mode = $<HTMLSelectElement>("mode").value;
+    const base = { sgk_rate: sgk / 100, unemp_rate: un / 100, stamp_rate: st / 1000, brackets: br, sgk_ceiling: cap, min_wage_gross: $("mw").checked ? mwv : null };
+    let gross1: number;
+    try { gross1 = mode === "n2g" ? grossForNet(amount, base, 1) : amount; }
+    catch (e) { return fail(e instanceof SeriesError ? "Tarife geçersiz: dilim sınırları artan olmalı." : "Hesaplanamadı."); }
+    const rm = Number($<HTMLSelectElement>("raise-m").value), rp = num($("raise-p").value) ?? 0;
+    const gross = Array.from({ length: 12 }, (_, i) => (rm && i + 1 >= rm ? gross1 * (1 + rp / 100) : gross1));
+    let r;
+    try { r = payrollYear({ ...base, gross }); } catch { return fail("Tarife geçersiz: dilim sınırları artan olmalı."); }
+    writeHash({ m: mode, t: String(Math.round(amount)), z: rm ? `${rm}:${rp}` : "", a: $("mw").checked ? "1" : "0" });
+    const first = r.rows[0];
+    $("s1-label").textContent = mode === "n2g" ? "Gereken brüt (Ocak)" : "Ocak net";
+    $("s1").textContent = tl(mode === "n2g" ? gross1 : first.net);
+    $("s1-sub").textContent = mode === "n2g" ? `Ocak net ${tl(first.net)}` : `brüt ${tl(first.gross)}`;
+    $("s2").textContent = tl(r.avg_net);
+    const minRow = r.rows.reduce((a, b) => (b.net < a.net ? b : a));
+    $("s2-sub").textContent = `en düşük: ${MONTHS[minRow.month - 1]} ${tl(minRow.net)}`;
+    $("s3").textContent = tl(r.totals.income_tax + r.totals.stamp);
+    $("s3-sub").textContent = `gelir vergisi ${tl(r.totals.income_tax)} · damga ${tl(r.totals.stamp)}`;
+    $("s4").textContent = `%${nf1.format((100 * (r.totals.gross - r.totals.net)) / r.totals.gross)}`;
+    // bracket creep message: first month whose net is below January's at the same gross
+    const creep = r.rows.find((x, i) => i > 0 && x.gross === first.gross && x.net < first.net - 0.5);
+    const cp = $<HTMLParagraphElement>("creep");
+    if (creep) { cp.hidden = false; cp.textContent = `${MONTHS[creep.month - 1]} ayından itibaren net maaş düşüyor: yılbaşından beri biriken gelir vergisi matrahı (${tl(creep.cum_base)}) bir üst dilime geçti. Brüt aynı kalsa da yıl sonuna kadar net azalır, Ocak'ta yeniden yükselir.`; }
+    else cp.hidden = true;
+    const box = $<HTMLDivElement>("chart");
+    renderChart(box, { months: MONTHS.map((_, i) => `2026-${String(i + 1).padStart(2, "0")}`), series: [{ key: "net", label: "Net", color: "var(--cat-1)", values: r.rows.map((x) => x.net) }] },
+      { baseline: null, allowLog: false, format: tl, xLabels: MONTHS.map((m) => m.slice(0, 3)), tickEvery: box.clientWidth < 560 ? 3 : 1 });
+    const tb = document.querySelector("#table tbody")!;
+    tb.replaceChildren(...r.rows.map((x) => {
+      const tr = document.createElement("tr");
+      const cells = [MONTHS[x.month - 1], tl(x.gross), tl(x.sgk), tl(x.unemp), tl(x.cum_base), tl(x.income_tax), tl(x.stamp), tl(x.net)];
+      cells.forEach((c, i) => { const td = document.createElement(i ? "td" : "th"); if (!i) td.setAttribute("scope", "row"); td.textContent = c; tr.appendChild(td); });
+      return tr;
+    }));
+    const tf = document.querySelector("#table tfoot")!;
+    const t = r.totals;
+    const ft = document.createElement("tr");
+    ["Toplam", tl(t.gross), tl(t.sgk), tl(t.unemp), "", tl(t.income_tax), tl(t.stamp), tl(t.net)].forEach((c, i) => { const td = document.createElement(i ? "td" : "th"); if (!i) td.setAttribute("scope", "row"); td.textContent = c; ft.appendChild(td); });
+    tf.replaceChildren(ft);
+  }
+
+  const h = readHash();
+  if (h.get("m") === "n2g") $<HTMLSelectElement>("mode").value = "n2g";
+  if (h.get("t")) $("amount").value = nf0.format(Number(h.get("t")));
+  if (h.get("z")) { const [m, p] = h.get("z")!.split(":"); $<HTMLSelectElement>("raise-m").value = m; $("raise-p").value = p; }
+  if (h.get("a") === "0") $("mw").checked = false;
+  const syncLabel = () => { $("amount-label").textContent = $<HTMLSelectElement>("mode").value === "n2g" ? "Ocak ayı net maaş (TL)" : "Aylık brüt maaş (TL)"; };
+  $<HTMLSelectElement>("mode").addEventListener("change", () => { syncLabel(); run(); });
+  for (const id of ["amount", "raise-p", "p-sgk", "p-un", "p-st", "p-mw", "p-cap"]) $(id).addEventListener("input", run);
+  for (const id of ["raise-m", "mw"]) $(id).addEventListener("change", run);
+  $("reset").addEventListener("click", reset);
+  syncLabel();
+  tariffRows(REG.gv_tarife_ucret);
+  reset();
+  let w = 0;
+  new ResizeObserver(() => { const b = $<HTMLDivElement>("chart"); if (Math.abs(b.clientWidth - w) > 2) { w = b.clientWidth; run(); } }).observe($("chart"));
+</script>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  .calc .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .calc .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .calc .grid { grid-template-columns: repeat(4, 1fr); } }
+  .two { display: flex; gap: 6px; }
+  .two > * { min-width: 0; flex: 1; }
+  .field.check { display: flex; align-items: flex-end; }
+  .assume { margin-top: 12px; }
+  .assume summary { cursor: pointer; font-weight: 600; }
+  .tariff { border: 1px solid var(--line); border-radius: 8px; margin: 10px 0; padding: 8px 12px; }
+  .t-row { display: grid; grid-template-columns: minmax(110px, auto) minmax(0, 160px) minmax(0, 70px) auto; gap: 6px; align-items: center; margin: 4px 0; font-size: 0.85rem; }
+  .t-row input { min-width: 0; }
+  .tag.ok { color: var(--good-ink); }
+  .summary { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .summary { grid-template-columns: repeat(4, 1fr); } }
+  .stat { padding: 12px; }
+  .s-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); margin: 0; }
+  .s-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; margin: 2px 0; overflow-wrap: anywhere; }
+  table.pay td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.pay tfoot { font-weight: 700; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

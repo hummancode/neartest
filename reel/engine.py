@@ -1093,3 +1093,105 @@ def net_worth_timeline(items: list[dict]) -> list[dict]:
             by_kind[it["kind"]] = by_kind.get(it["kind"], 0.0) + sign * v
         out.append({"date": d, "assets": assets, "liabilities": liabilities, "net": assets - liabilities, "by_kind": by_kind})
     return out
+
+
+# --- taxes (rates come from the regulated-parameter registry; nothing hard-coded here) ---------
+
+def _check_brackets(brackets: list) -> None:
+    if not brackets or brackets[-1][0] is not None:
+        raise SeriesError("last bracket must be open-ended (upper = None)")
+    uppers = [b[0] for b in brackets[:-1]]
+    if any(u is None or u <= 0 for u in uppers) or uppers != sorted(set(uppers)):
+        raise SeriesError("bracket thresholds must be positive and increasing")
+
+
+def progressive_tax(base: float, brackets: list) -> float:
+    """Tax on `base` under a progressive schedule [[upper, rate], ..., [None, rate]] (uppers cumulative)."""
+    _check_brackets(brackets)
+    if base <= 0:
+        return 0.0
+    tax, lower = 0.0, 0.0
+    for upper, rate in brackets:
+        top = base if upper is None else min(base, upper)
+        if top > lower:
+            tax += (top - lower) * rate
+        if upper is None or base <= upper:
+            break
+        lower = upper
+    return tax
+
+
+def payroll_year(p: dict) -> dict:
+    """Monthly payroll for an employee (Turkish wage tax logic), month by month.
+
+    p: gross [monthly gross wages, Jan…], sgk_rate, unemp_rate, stamp_rate, brackets (annual, cumulative),
+       sgk_ceiling (monthly SGK base cap, optional), min_wage_gross (optional: minimum-wage income and stamp
+       tax exemption — the tax that the minimum wage itself would bear is deducted, cumulatively).
+    Income tax each month = T(cumulative base) − T(previous cumulative base); base = gross − SGK − unemployment.
+    """
+    br = p["brackets"]
+    _check_brackets(br)
+    cap = p.get("sgk_ceiling")
+    mw = p.get("min_wage_gross")
+    ins = p["sgk_rate"] + p["unemp_rate"]
+    rows, cum, mw_cum = [], 0.0, 0.0
+    for m, gross in enumerate(p["gross"], start=1):
+        sgk_base = min(gross, cap) if cap else gross
+        sgk, unemp = sgk_base * p["sgk_rate"], sgk_base * p["unemp_rate"]
+        base = gross - sgk - unemp
+        tax = progressive_tax(cum + base, br) - progressive_tax(cum, br)
+        cum += base
+        stamp = gross * p["stamp_rate"]
+        ex_tax = ex_stamp = 0.0
+        if mw:
+            mw_base = mw * (1 - ins)
+            ex_tax = progressive_tax(mw_cum + mw_base, br) - progressive_tax(mw_cum, br)
+            mw_cum += mw_base
+            ex_stamp = mw * p["stamp_rate"]
+        tax_net, stamp_net = max(0.0, tax - ex_tax), max(0.0, stamp - ex_stamp)
+        rows.append({"month": m, "gross": gross, "sgk": sgk, "unemp": unemp, "tax_base": base, "cum_base": cum,
+                     "income_tax": tax_net, "stamp": stamp_net, "tax_exemption": tax - tax_net, "stamp_exemption": stamp - stamp_net,
+                     "net": gross - sgk - unemp - tax_net - stamp_net})
+    keys = ("gross", "sgk", "unemp", "income_tax", "stamp", "net")
+    totals = {k: sum(r[k] for r in rows) for k in keys}
+    return {"rows": rows, "totals": totals, "avg_net": totals["net"] / len(rows) if rows else 0.0}
+
+
+def gross_for_net(target_net: float, p: dict, month: int = 1) -> float:
+    """Constant monthly gross whose net in `month` equals target_net (bisection on payroll_year)."""
+    if target_net <= 0:
+        raise SeriesError("target net must be positive")
+    net_of = lambda g: payroll_year({**p, "gross": [g] * month})["rows"][-1]["net"]
+    lo, hi = target_net, target_net * 3
+    while net_of(hi) < target_net:
+        hi *= 2
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if net_of(mid) < target_net:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-9:
+            break
+    return (lo + hi) / 2
+
+
+def rental_income_tax(*, annual_rent: float, exemption: float, method: str, actual_expenses: float, brackets: list,
+                      lump_rate: float) -> dict:
+    """Simplified residential rental income tax for one year.
+
+    taxable_rent = rent − exemption (if the exemption applies; the caller decides eligibility).
+    method "lump": expense = lump_rate × taxable rent (götürü gider); "actual": actual expenses × taxable/total rent.
+    tax = progressive_tax(taxable_rent − expense). Other income, prepaid withholding and declaration rules are ignored.
+    """
+    if method not in ("lump", "actual"):
+        raise SeriesError("method must be 'lump' or 'actual'")
+    taxable = max(0.0, annual_rent - max(0.0, exemption))
+    if method == "lump":
+        expense = lump_rate * taxable
+    else:
+        expense = actual_expenses * (taxable / annual_rent) if annual_rent > 0 else 0.0
+    base = max(0.0, taxable - expense)
+    tax = progressive_tax(base, brackets)
+    return {"taxable_rent": taxable, "expense": expense, "base": base, "tax": tax,
+            "effective_rate": tax / annual_rent if annual_rent > 0 else 0.0}

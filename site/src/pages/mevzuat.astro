@@ -1,8 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
-import { mevzuat, STATUS_LABEL } from "../lib/params.ts";
+import { mevzuat, STATUS_LABEL, formatTariff, type Tariff } from "../lib/params.ts";
 const groups = [...new Set(mevzuat.params.map((p) => p.group))];
-const fmt = (v: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(v);
+const show = (v: number | Tariff, unit: string) => (unit === "tarife" ? fmt(v) : `${fmt(v)} ${unit}`);
+const fmt = (v: number | Tariff) => (Array.isArray(v) ? formatTariff(v) : new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(v));
 const unverified = mevzuat.params.filter((p) => p.current?.status !== "verified").length;
 ---
 <Base title="Mevzuat takibi" description="Hesaplayıcılarda kullanılan düzenlenmiş oranlar: KKDF, BSMV, stopaj, kredi kartı azami faizleri; kaynak, yürürlük ve kontrol tarihiyle.">
@@ -24,9 +25,9 @@ const unverified = mevzuat.params.filter((p) => p.current?.status !== "verified"
           <tbody>
             {mevzuat.params.filter((p) => p.group === g).map((p) => (
               <>
-                <tr>
+                <tr id={p.id}>
                   <th scope="row">{p.label}</th>
-                  <td class="val">{p.current ? `${fmt(p.current.value)} ${p.unit}` : "—"}</td>
+                  <td class="val">{p.current ? show(p.current.value, p.unit) : "—"}</td>
                   <td><span class={`badge ${p.current?.status}`}>{p.current ? STATUS_LABEL[p.current.status] : "—"}</span>{p.stale && <span class="badge stale">kontrol zamanı</span>}</td>
                   <td>{p.current?.effective_from ?? "belirtilmedi"}</td>
                   <td>{p.last_checked ?? "—"}</td>
@@ -35,10 +36,10 @@ const unverified = mevzuat.params.filter((p) => p.current?.status !== "verified"
                 {(p.current?.note || p.history.length > 1 || p.upcoming) && (
                   <tr class="detail"><td colspan="6">
                     {p.current?.note && <p class="small">{p.current.note}</p>}
-                    {p.upcoming && <p class="small"><strong>Yaklaşan değişiklik:</strong> {fmt(p.upcoming.value)} {p.unit}, {p.upcoming.effective_from} itibarıyla.</p>}
+                    {p.upcoming && <p class="small"><strong>Yaklaşan değişiklik:</strong> {show(p.upcoming.value, p.unit)}, {p.upcoming.effective_from} itibarıyla.</p>}
                     {p.history.length > 1 && (
                       <details><summary class="small">Geçmiş ({p.history.length})</summary>
-                        <ul class="small">{p.history.map((h) => <li>{h.effective_from ?? "tarih belirtilmedi"}: {fmt(h.value)} {p.unit} — {STATUS_LABEL[h.status]}{h.source.title ? ` · ${h.source.title}` : ""}</li>)}</ul>
+                        <ul class="small">{p.history.map((h) => <li>{h.effective_from ?? "tarih belirtilmedi"}: {show(h.value, p.unit)} — {STATUS_LABEL[h.status]}{h.source.title ? ` · ${h.source.title}` : ""}</li>)}</ul>
                       </details>
                     )}
                   </td></tr>

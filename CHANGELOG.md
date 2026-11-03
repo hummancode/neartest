@@ -170,4 +170,9 @@
   satıldı/kapandı, JSON yedek + CSV, örnek kayıt. Konut için BIS/TCMB nominal endeksiyle tahmini güncel değer.
   Veriler yalnızca tarayıcıda. Motor: `net_worth_timeline` (Python + TS, ortak vakalar, önce test). "Pro (yakında)"
   bölümü: otomatik değerleme, uçtan uca şifreli eşitleme, PDF rapor — ödeme/kayıt yok.
+- 2026-11-03 — **Vergi hesaplayıcıları** (`/vergi`, `/vergi/maas`, `/vergi/kira`): brüt–net maaş (SGK/işsizlik tavanı,
+  kümülatif gelir vergisi, damga, asgari ücret istisnası, yıl içi zam, netten brüte, dilim geçişi uyarısı, 12 aylık tablo)
+  ve konut kira geliri vergisi (istisna, götürü/gerçek gider, adım adım hesap). Motor: `progressive_tax`, `payroll_year`,
+  `gross_for_net`, `rental_income_tax` (Python + TS, ortak vakalar, önce test). Mevzuat kaydı artan oranlı tarifeleri
+  kabul ediyor; 9 yeni parametre (2025 değerleri, durum "doğrulanmadı" — 2026 değerleri resmî metinden girilmeli).
 

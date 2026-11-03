@@ -36,6 +36,17 @@ def load(path: Path = REGISTRY) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _valid_value(v) -> bool:
+    """A number, or a progressive tariff [[upper, rate], ..., [null, rate]] with increasing uppers."""
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return True
+    if not isinstance(v, list) or not v or v[-1][0] is not None:
+        return False
+    ups = [b[0] for b in v[:-1]]
+    return (all(isinstance(b, list) and len(b) == 2 and isinstance(b[1], (int, float)) for b in v)
+            and all(isinstance(u, (int, float)) and u > 0 for u in ups) and ups == sorted(set(ups)))
+
+
 def validate(reg: dict) -> None:
     ids = set()
     for p in reg.get("params", []):
@@ -55,8 +66,8 @@ def validate(reg: dict) -> None:
                 v = h.get(dkey)
                 if v is not None and not ISO.match(v):
                     raise ParamError(f"{pid}: {dkey} YYYY-AA-GG olmalı, {v!r}")
-            if not isinstance(h.get("value"), (int, float)):
-                raise ParamError(f"{pid}: değer sayı olmalı")
+            if not _valid_value(h.get("value")):
+                raise ParamError(f"{pid}: değer sayı ya da [[üst sınır|null, oran], …] tarifesi olmalı")
             if h["status"] == "verified":
                 src = h.get("source") or {}
                 if not src.get("url") or not h.get("checked_by") or not h.get("checked_at"):

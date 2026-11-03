@@ -262,6 +262,15 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="vergi">Vergi hesaplayıcıları</h2>
+    <ul>
+      <li>Oranlar ve tarifeler <a href="/mevzuat">mevzuat kaydından</a> gelir; her birinin yürürlük tarihi ve doğrulama durumu sayfada gösterilir. Kullanıcı değiştirebilir.</li>
+      <li>Artan oranlı vergi: matrahın her dilime düşen kısmı o dilimin oranıyla vergilenir; dilim üst sınırları yıllık ve kümülatiftir.</li>
+      <li>Maaş: SGK ve işsizlik primi = min(brüt, SGK tavanı) × oran; gelir vergisi matrahı = brüt − primler; aylık gelir vergisi = T(yılbaşından bu aya toplam matrah) − T(önceki ayların toplamı). Asgari ücret istisnası: aynı yöntemle asgari ücretin matrahına düşen vergi ve asgari ücretin damga vergisi düşülür. Netten brüte: Ocak ayı için ikiye bölme (bisection) ile çözülür.</li>
+      <li>Kira: vergiye tabi kira = yıllık kira − istisna (uygulanıyorsa); götürü gider = oran × vergiye tabi kira; gerçek gider = giderler × vergiye tabi kira / toplam kira; vergi = tarife(matrah). Diğer gelirlerle birleştirme, stopaj ve mahsuplar kapsam dışıdır.</li>
+      <li>Fonksiyonlar Python ve TypeScript'te aynı elle hesaplanmış test vakalarıyla doğrulanır (<code>progressive_tax</code>, <code>payroll_year</code>, <code>gross_for_net</code>, <code>rental_income_tax</code>).</li>
+    </ul>
+
     <h2 id="emtia">Emtia fiyatları</h2>
     <ul>
       <li>Altın: Dünya Bankası Commodity Price Data (Pink Sheet), aylık ortalama, 1960'tan beri; Brent petrol ve Henry Hub doğal gaz: ABD Enerji Bilgi İdaresi (EIA), aylık. Dosyalar Datahub'ın GitHub kopyalarından (ODC-PDDL 1.0) günlük indirilir.</li>

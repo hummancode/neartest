@@ -49,6 +49,10 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   wealth_inequality: e.wealthInequality,
   gold_allocation: e.goldAllocation,
   net_worth_timeline: e.netWorthTimeline,
+  progressive_tax: e.progressiveTax,
+  payroll_year: e.payrollYear,
+  gross_for_net: e.grossForNet,
+  rental_income_tax: e.rentalIncomeTax,
   housing_affordability: e.housingAffordability,
   lorenz_lognormal: e.lorenzLognormal,
 };

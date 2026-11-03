@@ -781,3 +781,57 @@ def test_net_worth_timeline_unsorted_input_and_empty():
     assert e.net_worth_timeline([]) == []
     with pytest.raises(e.SeriesError):
         e.net_worth_timeline([{"id": "x", "side": "other", "kind": "?", "valuations": [["2025-01-01", 1.0]]}])
+
+
+# --- taxes -------------------------------------------------------------------------
+
+BR = [[1000, 0.10], [None, 0.20]]
+
+
+def test_progressive_tax_hand_computed():
+    b3 = [[100, 0.1], [300, 0.2], [None, 0.3]]
+    assert close(e.progressive_tax(50, b3), 5.0)          # 50 × 10 %
+    assert close(e.progressive_tax(250, b3), 40.0)        # 10 + 150 × 20 %
+    assert close(e.progressive_tax(500, b3), 110.0)       # 10 + 40 + 200 × 30 %
+    assert e.progressive_tax(-5, b3) == 0.0
+    with pytest.raises(e.SeriesError):
+        e.progressive_tax(10, [[100, 0.1], [50, 0.2], [None, 0.3]])   # thresholds must increase
+
+
+def test_payroll_cumulative_base_pushes_bracket():
+    # gross 600/month, SGK 10 %, no unemployment, stamp 1 %, brackets 1000 @10 %, above @20 %
+    p = {"gross": [600, 600, 600], "sgk_rate": 0.10, "unemp_rate": 0.0, "stamp_rate": 0.01, "brackets": BR}
+    r = e.payroll_year(p)
+    # m1: base 540 → tax 54; m2: cum 1080 → T=116 → 62; m3: cum 1620 → T=224 → 108
+    assert [round(x["income_tax"], 9) for x in r["rows"]] == [54.0, 62.0, 108.0]
+    assert [round(x["net"], 9) for x in r["rows"]] == [480.0, 472.0, 426.0]       # 600 − 60 − tax − 6
+    assert close(r["totals"]["net"], 1378.0, 1e-9)
+
+
+def test_payroll_minimum_wage_exemption_and_ceiling():
+    p = {"gross": [600, 600, 600], "sgk_rate": 0.10, "unemp_rate": 0.0, "stamp_rate": 0.01, "brackets": BR, "min_wage_gross": 300}
+    r = e.payroll_year(p)
+    # min-wage base 270/month: exemption = T(270k) − T(270(k−1)) = 27 each month (stays in 10 %)
+    assert [round(x["income_tax"], 9) for x in r["rows"]] == [27.0, 35.0, 81.0]
+    assert [round(x["stamp"], 9) for x in r["rows"]] == [3.0, 3.0, 3.0]            # 6 − 300 × 1 %
+    assert [round(x["net"], 9) for x in r["rows"]] == [510.0, 502.0, 456.0]
+    capped = e.payroll_year({**p, "sgk_ceiling": 500, "min_wage_gross": None})
+    assert close(capped["rows"][0]["sgk"], 50.0)                                   # 10 % of the 500 ceiling
+
+
+def test_gross_for_net_inverts_first_month():
+    p = {"sgk_rate": 0.10, "unemp_rate": 0.0, "stamp_rate": 0.01, "brackets": BR}
+    g = e.gross_for_net(480.0, p, month=1)
+    assert abs(g - 600.0) < 1e-6                                                  # see payroll test, month 1
+
+
+def test_rental_income_tax_lump_and_actual():
+    br = [[100, 0.1], [None, 0.2]]
+    # rent 1000, exemption 200 → 800 taxable rent; lump-sum 15 % → 680 base; tax = 10 + 580 × 20 % = 126
+    r = e.rental_income_tax(annual_rent=1000, exemption=200, method="lump", actual_expenses=0, brackets=br, lump_rate=0.15)
+    assert close(r["taxable_rent"], 800.0) and close(r["expense"], 120.0) and close(r["base"], 680.0) and close(r["tax"], 126.0)
+    assert close(r["effective_rate"], 0.126)
+    # actual expenses 300, only the taxable share (800/1000) is deductible → 240; base 560; tax 10 + 460 × 20 % = 102
+    a = e.rental_income_tax(annual_rent=1000, exemption=200, method="actual", actual_expenses=300, brackets=br, lump_rate=0.15)
+    assert close(a["expense"], 240.0) and close(a["tax"], 102.0)
+    assert e.rental_income_tax(annual_rent=150, exemption=200, method="lump", actual_expenses=0, brackets=br, lump_rate=0.15)["tax"] == 0.0

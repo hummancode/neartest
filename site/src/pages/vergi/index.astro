@@ -1,0 +1,34 @@
+---
+import Base from "../../layouts/Base.astro";
+import { mevzuat, STATUS_LABEL } from "../../lib/params.ts";
+import { DISCLAIMER } from "../../config.ts";
+const tax = mevzuat.params.filter((p) => p.group === "Vergi ve SGK" || p.group === "Kredi vergileri" || p.id.startsWith("stopaj"));
+const tools = [
+  { href: "/vergi/maas", t: "Brüt–net maaş", d: "SGK, işsizlik, kümülatif gelir vergisi, damga, asgari ücret istisnası; 12 ay. Netten brüte de." },
+  { href: "/vergi/kira", t: "Kira geliri vergisi", d: "Konut kira geliri: istisna, götürü/gerçek gider, artan oranlı tarife." },
+  { href: "/mevduat", t: "Mevduat stopajı", d: "Vadeye göre stopaj sonrası net ve reel getiri." },
+  { href: "/kredi", t: "Kredi vergileri (KKDF, BSMV)", d: "Kredinin gerçek maliyeti: vergiler ve masraflarla yıllık maliyet." },
+];
+---
+<Base title="Vergi hesaplayıcıları" description="Maaş, kira geliri, mevduat ve kredi vergilerini hesaplayın. Oranlar mevzuat kaydından, durumuyla birlikte; hesaplar tarayıcıda.">
+  <h1>Vergi hesaplayıcıları</h1>
+  <p class="lead">Vergi ve kesintileri adım adım, varsayımları açık hesaplayan araçlar. Oranlar tarihli bir mevzuat kaydından gelir ve her birinin doğrulama durumu görünür.</p>
+  <div class="tools">
+    {tools.map((x) => <a class="card tool" href={x.href}><span class="tool-title">{x.t} →</span><span class="muted small">{x.d}</span></a>)}
+  </div>
+  <h2>Kullanılan oranlar</h2>
+  <div class="card scroll-x">
+    <table class="data">
+      <thead><tr><th scope="col">Parametre</th><th scope="col">Geçerlilik</th><th scope="col">Durum</th></tr></thead>
+      <tbody>{tax.map((p) => <tr><th scope="row"><a href={`/mevzuat#${p.id}`}>{p.label}</a></th><td>{p.current?.effective_from ?? "—"}</td><td>{p.current ? STATUS_LABEL[p.current.status] : "—"}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p class="muted small">"Doğrulanmadı": değer ve resmî kaynak belirlendi ama resmî metin henüz okunmadı. Ayrıntı ve geçmiş: <a href="/mevzuat">Mevzuat takibi</a>. Hesaplar bilgi amaçlıdır; beyan ve bordro için Gelir İdaresi rehberleri ya da bir mali müşavir esas alınmalıdır.</p>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<style>
+  .tools { display: grid; gap: 12px; grid-template-columns: 1fr; margin: 12px 0 24px; }
+  @media (min-width: 720px) { .tools { grid-template-columns: repeat(2, 1fr); } }
+  .tool { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
+  .tool-title { font-family: var(--font-head); font-size: 1.35rem; }
+</style>
