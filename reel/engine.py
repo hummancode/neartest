@@ -1313,3 +1313,20 @@ def bes_projection(*, monthly: float, years: int, annual_return: float, annual_f
             "vested_state": vested, "tax": tax, "net_exit": net_exit,
             "real_net_exit": net_exit / (1.0 + inflation) ** years, "annual_irr": annual_irr,
             "real_irr": real_return(annual_irr, inflation)}
+
+
+def percentile_rank(value: float, history: list[float]) -> float:
+    """Share of observations in `history` that are ≤ value (0 = below all, 1 = at or above all)."""
+    if not history:
+        raise SeriesError("empty history")
+    return sum(1 for h in history if h <= value) / len(history)
+
+
+def window_stats(values: list[float]) -> dict:
+    """Min, max, median of a window and where its LAST value sits in it (percentile rank)."""
+    if not values:
+        raise SeriesError("empty window")
+    s = sorted(values)
+    n = len(s)
+    med = s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2
+    return {"min": s[0], "max": s[-1], "median": med, "percentile": percentile_rank(values[-1], values), "n": n}

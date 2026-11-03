@@ -913,3 +913,12 @@ def test_bes_projection_hand_computed():
     state_gain = c["state_balance"] - 360
     assert close(c["tax"], 0.10 * (own_gain + 0.5 * state_gain), 1e-9)
     assert close(c["net_exit"], c["own_balance"] + 0.5 * c["state_balance"] - c["tax"], 1e-9)
+
+
+def test_percentile_rank_and_window_stats():
+    hist = [1.0, 2.0, 3.0, 4.0, 5.0]
+    assert close(e.percentile_rank(3.0, hist), 0.6)       # 3 of 5 observations ≤ 3
+    assert close(e.percentile_rank(5.0, hist), 1.0) and close(e.percentile_rank(0.5, hist), 0.0)
+    s = e.window_stats(hist)
+    assert s == {"min": 1.0, "max": 5.0, "median": 3.0, "percentile": 1.0, "n": 5}   # latest = 5 is the highest
+    assert e.window_stats([2.0, 1.0, 4.0, 3.0])["median"] == 2.5

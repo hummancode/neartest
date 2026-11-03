@@ -1,0 +1,122 @@
+---
+import Base from "../layouts/Base.astro";
+import Sparkline from "../components/Sparkline.astro";
+import raw from "../../data/nabiz.json";
+import { DISCLAIMER } from "../config.ts";
+
+type Card = { id: string; label: string; unit: string; group: string; reading: string; period: string; value: number; freq: string;
+  change_1y: number | null; change_1y_pct: number | null; window: { from: string; to: string; min: number; max: number; median: number; percentile: number; n: number };
+  spark: [string, number][]; sample: boolean; source: string;
+  peer?: { label: string; unit: string; year: string; value: number; rank: number; n: number; median: number; highest: string; sample: boolean } | null };
+const N = raw as unknown as { groups: string[]; cards: Card[]; sample: boolean; end_month: string };
+const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+const period = (c: Card) => {
+  const [y, m] = c.period.split("-");
+  if (c.freq === "A") return y;
+  if (c.freq === "Q") return `${y} Ç${Math.ceil(Number(m) / 3)}`;
+  return `${MONTHS[Number(m) - 1]} ${y}`;
+};
+const nfd = (v: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: Math.abs(v) >= 1000 ? 0 : Math.abs(v) >= 100 ? 1 : 2 });
+const fmt = (c: { unit: string }, v: number) => {
+  const s = nfd(v).format(Math.abs(v)), sign = v < 0 ? "−" : "";
+  if (c.unit === "%") return `${sign}%${s}`;
+  if (c.unit === "bp") return `${sign}${s} baz puan`;
+  if (c.unit === "milyar $") return `${sign}${s} milyar $`;
+  if (c.unit === "$") return `${sign}${s} $`;
+  if (c.unit === "TL") return `${sign}${s} TL`;
+  return `${sign}${s}`;
+};
+const change = (c: Card) => {
+  if (c.change_1y == null) return null;
+  if (c.change_1y_pct != null) return `1 yılda ${c.change_1y_pct > 0 ? "+" : c.change_1y_pct < 0 ? "−" : ""}%${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(Math.abs(c.change_1y_pct))}`;
+  const unit = c.unit === "%" ? " puan" : c.unit === "bp" ? " baz puan" : "";
+  return `1 yılda ${c.change_1y > 0 ? "+" : c.change_1y < 0 ? "−" : ""}${nfd(c.change_1y).format(Math.abs(c.change_1y))}${unit}`;
+};
+const pos = (c: Card) => (c.window.max === c.window.min ? 50 : (100 * (c.value - c.window.min)) / (c.window.max - c.window.min));
+const medPos = (c: Card) => (c.window.max === c.window.min ? 50 : (100 * (c.window.median - c.window.min)) / (c.window.max - c.window.min));
+const years = (c: Card) => Math.round((c.window.n / ({ M: 12, Q: 4, S: 2, A: 1 } as Record<string, number>)[c.freq]) || 10);
+const high = N.cards.filter((c) => c.window.percentile >= 0.9);
+const low = N.cards.filter((c) => c.window.percentile <= 0.1);
+---
+<Base title="Ekonomik Nabız: Türkiye'nin göstergeleri" description="Büyüme, enflasyon, işsizlik, faiz, cari denge, rezerv, CDS, bütçe ve piyasalar tek sayfada: son değer, bir yıllık değişim, son 10 yıl içindeki konum ve benzer ülkeler arasındaki sıra." sample={N.sample}>
+  <h1>Ekonomik Nabız</h1>
+  <p class="lead">Türkiye ekonomisinin ana göstergeleri tek sayfada. Her biri için son değer, bir yılda ne değiştiği, <strong>son 10 yılın neresinde</strong> durduğu ve benzer ekonomiler arasındaki yeri.</p>
+  <p class="muted small">Bu sayfa göstergelere iyi ya da kötü notu vermez, bir tahmin ya da yorum yapmaz; yalnızca her rakamı kendi geçmişi ve benzerleriyle karşılaştırır. Kaynaklar her kartta; yöntem: <a href="/metodoloji#nabiz">Metodoloji</a>.</p>
+
+  <section class="card glance">
+    <h2>Bir bakışta</h2>
+    <div class="glance-grid">
+      <div><h3 class="s-title">Son 10 yılın en yüksek bölgesinde</h3><p class="muted small">değeri, son 10 yıldaki gözlemlerin en az %90'ından yüksek ya da eşit</p>
+        <ul>{high.map((c) => <li><a href={`#${c.id}`}>{c.label}</a> <span class="muted small">{fmt(c, c.value)}</span>{c.sample && <span class="tag">örnek</span>}</li>)}</ul></div>
+      <div><h3 class="s-title">Son 10 yılın en düşük bölgesinde</h3><p class="muted small">değeri, son 10 yıldaki gözlemlerin en fazla %10'undan yüksek ya da eşit</p>
+        <ul>{low.length ? low.map((c) => <li><a href={`#${c.id}`}>{c.label}</a> <span class="muted small">{fmt(c, c.value)}</span>{c.sample && <span class="tag">örnek</span>}</li>) : <li class="muted">—</li>}</ul></div>
+    </div>
+  </section>
+
+  {N.groups.map((g) => {
+    const cs = N.cards.filter((c) => c.group === g);
+    return cs.length > 0 && (
+      <section>
+        <h2>{g}</h2>
+        <div class="cards">
+          {cs.map((c) => (
+            <article class="card ind" id={c.id}>
+              <header>
+                <h3 class="i-title">{c.label}{c.sample ? <span class="tag">örnek</span> : <span class="real-tag">gerçek veri</span>}</h3>
+                <p class="muted small">{period(c)}{c.source && ` · ${c.source}`}</p>
+              </header>
+              <div class="i-row">
+                <p class="i-value">{fmt(c, c.value)}</p>
+                <Sparkline values={c.spark.map(([, v]) => v)} label={`${c.label}, son ${years(c)} yıl`} />
+              </div>
+              {change(c) && <p class="small">{change(c)}</p>}
+              <div class="range" role="img" aria-label={`Son ${years(c)} yıl: en düşük ${fmt(c, c.window.min)}, medyan ${fmt(c, c.window.median)}, en yüksek ${fmt(c, c.window.max)}; son değer ${fmt(c, c.value)}`}>
+                <span class="r-track"></span>
+                <span class="r-med" style={`left:${medPos(c)}%`}></span>
+                <span class="r-dot" style={`left:${pos(c)}%`}></span>
+              </div>
+              <p class="r-labels muted small"><span>{fmt(c, c.window.min)}</span><span>medyan {fmt(c, c.window.median)}</span><span>{fmt(c, c.window.max)}</span></p>
+              <p class="small">Son {years(c)} yılın gözlemlerinin <strong>%{Math.round(100 * c.window.percentile)}</strong> kadarı bu değere eşit ya da altında.</p>
+              {c.peer && (
+                <p class="small peer">{c.peer.label}, {c.peer.year}: {fmt(c.peer, c.peer.value)} · {c.peer.n} ekonomi içinde <strong>{c.peer.rank}.</strong> en yüksek (medyan {fmt(c.peer, c.peer.median)}){c.peer.sample && <span class="tag">örnek</span>}</p>
+              )}
+              <p class="muted small reading">{c.reading}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  })}
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li>Çubuk, göstergenin son 10 yıldaki en düşük ve en yüksek değeri arasındaki aralıktır; ince çizgi medyanı, nokta son değeri gösterir.</li>
+      <li>"Eşit ya da altında" oranı, son değerin kendi geçmişine göre ne kadar yüksek olduğunu gösterir: %100 ise son 10 yılın en yüksek değeridir, %0'a yaklaştıkça en düşük değerlere yaklaşır. Bu bir iyi/kötü değerlendirmesi değildir; örneğin işsizlik için düşük, büyüme için yüksek değerler genelde olumlu görülse de bağlam önemlidir.</li>
+      <li>Benzer ekonomiler: Dünya Bankası verisindeki 12 ülke (Brezilya, Meksika, Güney Afrika, Polonya ve diğerleri); yıllık veri olduğu için bir yıl geriden gelir ve tanımı aylık seriden biraz farklı olabilir.</li>
+      <li>"Örnek" etiketli göstergeler, resmî veri bağlantısı (TCMB EVDS) kurulana kadar sentetiktir; "gerçek veri" etiketliler doğrulanmış açık kaynaklardandır. <a href="/veri">Veri durumu</a> · Ayrıntılı grafikler: <a href="/makro">Makro Pano</a>, <a href="/ulkeler">Ülke karşılaştırması</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<style is:global>
+  .glance-grid { display: grid; gap: 16px; }
+  @media (min-width: 760px) { .glance-grid { grid-template-columns: 1fr 1fr; } }
+  .glance ul { margin: 6px 0 0; padding-left: 18px; }
+  .cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+  .ind { display: flex; flex-direction: column; gap: 4px; scroll-margin-top: 16px; }
+  .ind p { margin: 0; }
+  .i-title { font-size: 0.95rem; margin: 0; }
+  .i-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .i-value { font-family: var(--font-head); font-size: 1.9rem; line-height: 1.1; overflow-wrap: anywhere; }
+  .range { position: relative; height: 16px; margin: 8px 6px 0; }
+  .r-track { position: absolute; left: 0; right: 0; top: 7px; height: 3px; background: var(--line); border-radius: 2px; }
+  .r-med { position: absolute; top: 2px; width: 2px; height: 12px; background: var(--muted); transform: translateX(-1px); }
+  .r-dot { position: absolute; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--cat-1); border: 2px solid var(--surface); transform: translateX(-6px); }
+  .r-labels { display: flex; justify-content: space-between; gap: 6px; font-size: 0.72rem; }
+  .peer { border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
+  .reading { margin-top: 4px; }
+  .real-tag { margin-left: 6px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--good-ink); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; vertical-align: middle; }
+</style>

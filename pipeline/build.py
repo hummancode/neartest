@@ -765,6 +765,20 @@ def write_commodities() -> str:
     return "Emtia: " + ", ".join(f"{k} {v['last']}" for k, v in out["series"].items())
 
 
+OUT_NABIZ = ROOT / "site" / "data" / "nabiz.json"
+
+
+def write_nabiz(macro: dict, countries: dict) -> str:
+    """Neutral indicator board from the macro/country outputs plus the real-data JSON files already on disk."""
+    from pipeline.nabiz import build_nabiz, real_extras
+    load = lambda p: json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    extras = real_extras(load(OUT_BIGMAC), load(OUT_HOUSE_WORLD), load(OUT_COMMODITIES))
+    out = build_nabiz(macro, countries, extras)
+    out["generated_at"] = macro.get("generated_at") or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    write_if_changed(OUT_NABIZ, out)
+    return f"Nabız: {len(out['cards'])} gösterge"
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sample", action="store_true")
@@ -790,6 +804,7 @@ def main() -> int:
     print(write_longrun())
     print(write_houseprices())
     print(write_commodities())
+    print(write_nabiz(macro, countries))
     flag = "  [ÖRNEK VERİ]" if result["sample"] else ""
     print(f"yazıldı: site/data/*.json (15 dosya)  bitiş ayı: {result['end_month']}{flag}")
     return 0

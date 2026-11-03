@@ -186,4 +186,9 @@
   Motor: `capital_gain_tax`, `property_tax`, `bes_projection` (Python + TS, ortak vakalar, önce test). 14 yeni
   mevzuat parametresi (2025 değerleri, "doğrulanmadı"). Ortak tarife düzenleyici (`site/src/lib/tariff-ui.ts`).
   MTV ertelendi: resmî tarife tabloları (motor hacmi × yaş × değer) doğrulanmadan girilemez.
+- 2026-11-03 — **Ekonomik Nabız** (`/ekonomik-nabiz`): 16 gösterge (büyüme, kişi başı gelir, işsizlik, enflasyon, politika
+  ve reel faiz, cari denge, rezerv, CDS, bütçe, kur, borsa + gerçek veriyle reel konut, altın, Brent, Big Mac). Her biri
+  için son değer, 1 yıllık değişim, son 10 yıllık aralık (en düşük/medyan/en yüksek) ve yüzdelik konum, benzer
+  ekonomiler içinde sıra; "bir bakışta" 10 yılın en yüksek/en düşük bölgesindekiler. İyi/kötü puanı yok (nötr dil).
+  Veri hattı: `pipeline/nabiz.py` (önce test), motor: `percentile_rank`, `window_stats`.
 

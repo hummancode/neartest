@@ -262,6 +262,13 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="nabiz">Ekonomik Nabız</h2>
+    <ul>
+      <li>Her gösterge için: son değer; bir yıl önceki değere göre fark (oranlarda puan, düzeylerde yüzde); son 10 yılın en düşük, medyan ve en yüksek değeri; son değerin bu penceredeki yüzdelik konumu = pencerede son değere eşit ya da altındaki gözlemlerin oranı (<code>percentile_rank</code>, <code>window_stats</code>).</li>
+      <li>Benzer ekonomiler sırası: Dünya Bankası WDI'daki aynı kavramlı gösterge, Türkiye'nin son yılı için büyükten küçüğe sıra ve medyan.</li>
+      <li>Göstergelere puan, renk veya iyi/kötü etiketi verilmez; okuma notları yalnızca göstergenin ne ölçtüğünü anlatır.</li>
+    </ul>
+
     <h2 id="erken-kapama">Erken kapama ve ara ödeme</h2>
     <ul>
       <li>Eşit taksitli plan, vergiler faize eklenerek kurulur (taksit = anüite, oran r × (1 + KKDF + BSMV)). k. taksitten sonra kalan anapara B; ara ödeme A (en fazla B), erken ödeme ücreti = A × ücret oranı.</li>

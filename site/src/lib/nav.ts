@@ -10,6 +10,7 @@ export const NAV: NavGroup[] = [
     { href: "/borsa", label: "Borsa", desc: "Endeks ve hisselerin reel, dolar ve altın bazında getirisi; izleme listesi.", keywords: "bist hisse" },
   ] },
   { label: "Makro", items: [
+    { href: "/ekonomik-nabiz", label: "Ekonomik Nabız", desc: "Büyüme, enflasyon, faiz, cari denge, rezerv, CDS, bütçe: son değer, 10 yıllık konum, benzer ülkeler.", keywords: "ekonomik göstergeler sağlık cds enflasyon büyüme gösterge panosu" },
     { href: "/turkiye", label: "Türkiye profili", desc: "Ekonominin künyesi: göstergeler, dış ticaret, benzer ülkeler, iller.", keywords: "factbook ihracat ithalat" },
     { href: "/makro", label: "Makro Pano", desc: "Büyüme, enflasyon, işsizlik, cari denge, rezerv, faiz, CDS — tek sayfada.", keywords: "gsyh cds işsizlik" },
     { href: "/iliskiler", label: "İlişkiler", desc: "CDS ile borsa, faiz ile kur: göstergeler birlikte nasıl hareket etti?", keywords: "korelasyon" },
