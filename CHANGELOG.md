@@ -191,4 +191,10 @@
   için son değer, 1 yıllık değişim, son 10 yıllık aralık (en düşük/medyan/en yüksek) ve yüzdelik konum, benzer
   ekonomiler içinde sıra; "bir bakışta" 10 yılın en yüksek/en düşük bölgesindekiler. İyi/kötü puanı yok (nötr dil).
   Veri hattı: `pipeline/nabiz.py` (önce test), motor: `percentile_rank`, `window_stats`.
+- 2026-11-03 — **Finansal sağlık kontrolü** (`/saglik-kontrolu`): tasarruf oranı, borç taksiti/gelir, acil durum fonu
+  (ay), borç/yıllık gelir, net servet, varlık dağılımı (kripto dahil); yaygın referans aralıkları nötr bantla;
+  Varlıklarım'dan aktarma; isteğe bağlı tarayıcıda hatırlama. **Dövizle borçlanmanın gerçek maliyeti** (`/doviz-borc`):
+  TL eşdeğer maliyet, başabaş kur artışı, kur senaryoları, teminatlı (kripto) kredide tasfiye eşiği; platform/ürün
+  önermez, hukuki uyarı (SPK izni, döviz kredisi kısıtı). Motor: `financial_health`, `fx_borrowing`,
+  `collateral_liquidation` (Python + TS, ortak vakalar, önce test).
 

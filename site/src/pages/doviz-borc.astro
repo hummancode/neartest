@@ -1,0 +1,90 @@
+---
+import Base from "../layouts/Base.astro";
+import { DISCLAIMER } from "../config.ts";
+---
+<Base title="Dövizle borçlanmanın gerçek maliyeti" description="Dolar ya da stablecoin cinsinden borcun TL ile geri ödendiğinde gerçek maliyeti: başabaş kur artışı, kur senaryoları ve teminatlı (ör. kripto teminatlı) kredide tasfiye eşiği. Platform önermez.">
+  <h1>Dövizle borçlanmanın gerçek maliyeti</h1>
+  <p class="lead">Dolar faizi düşük görünür; ama geliriniz TL ise asıl maliyet <strong>faiz + TL'nin değer kaybıdır</strong>. Teminatlı kredilerde buna teminatın değer kaybı riski eklenir.</p>
+  <p class="card warn-note"><strong>Önce bunu okuyun.</strong> Bu sayfa hiçbir banka, kripto platformu ya da ürünü önermez veya sıralamaz; yalnızca girdiğiniz koşulların maliyetini ve riskini hesaplar. Türkiye'de tüketicilerin yurt içinde döviz kredisi kullanması kısıtlıdır; kripto varlık hizmet sağlayıcıları SPK izni ve denetimine tabidir. Yasal durumunuzu ve kullanacağınız kurumun izinli olup olmadığını (SPK'nın yayımladığı listeler) mutlaka kontrol edin; gerekirse bir hukukçuya danışın.</p>
+
+  <section class="card">
+    <h2>1. TL borcu mu, döviz borcu mu?</h2>
+    <form class="form-grid three" novalidate onsubmit="return false">
+      <div class="field"><label for="tl">TL borcun yıllık maliyeti (%)</label><input id="tl" inputmode="decimal" value="45" /><small>vergi ve masraflar dahil yıllık maliyet (bkz. <a href="/kredi">Kredinin gerçek maliyeti</a>)</small></div>
+      <div class="field"><label for="fx">Döviz borcunun yıllık faizi (%)</label><input id="fx" inputmode="decimal" value="8" /><small>dolar / stablecoin cinsinden, ücretler dahil</small></div>
+      <div class="field"><label for="dep">Beklediğiniz yıllık kur artışı (%)</label><input id="dep" inputmode="decimal" value="30" /><small>bir varsayım; kimse kesin bilemez</small></div>
+    </form>
+    <div class="stat-grid" aria-live="polite">
+      <div class="card stat"><p class="s-label">Döviz borcunun TL maliyeti</p><p class="s-value" id="o-eq">—</p><p class="muted small" id="o-eq-sub"></p></div>
+      <div class="card stat"><p class="s-label">Başabaş kur artışı</p><p class="s-value" id="o-be">—</p><p class="muted small">kur bundan fazla artarsa döviz borcu daha pahalıya gelir</p></div>
+      <div class="card stat"><p class="s-label">Fark</p><p class="s-value" id="o-diff">—</p><p class="muted small" id="o-diff-sub"></p></div>
+    </div>
+    <h3>Kur senaryoları</h3>
+    <div class="scroll-x"><table class="data sc" id="sc"><thead><tr><th scope="col">Yıllık kur artışı</th><th scope="col">Döviz borcunun TL maliyeti</th><th scope="col">TL borcuna göre</th></tr></thead><tbody></tbody></table></div>
+    <p class="muted small">Kur tek yönde ve düzgün hareket etmez: kısa sürede sert sıçramalar olabilir. Geri ödeme tarihinde kur yüksekse borç TL olarak beklenenden çok daha ağır hale gelir.</p>
+  </section>
+
+  <section class="card">
+    <h2>2. Teminatlı kredi: teminat ne kadar düşerse tasfiye edilir?</h2>
+    <p class="muted small">Kripto teminatlı borç verme ürünlerinde (ve benzer teminatlı kredilerde) borcun teminata oranı belirli bir eşiği aşınca teminat otomatik satılır.</p>
+    <form class="form-grid three" novalidate onsubmit="return false">
+      <div class="field"><label for="loan">Borç tutarı</label><input id="loan" inputmode="decimal" value="6.000" /><small>aynı birimle (ör. dolar)</small></div>
+      <div class="field"><label for="coll">Teminatın bugünkü değeri</label><input id="coll" inputmode="decimal" value="10.000" /></div>
+      <div class="field"><label for="liq">Tasfiye eşiği: borç / teminat (%)</label><input id="liq" inputmode="decimal" value="80" /><small>sözleşmede yazan oran</small></div>
+    </form>
+    <div class="stat-grid" aria-live="polite">
+      <div class="card stat"><p class="s-label">Şu anki borç / teminat</p><p class="s-value" id="o-ltv">—</p></div>
+      <div class="card stat"><p class="s-label">Tasfiyeye kadar düşüş payı</p><p class="s-value" id="o-drop">—</p><p class="muted small">teminat bu oranda değer kaybederse satılır</p></div>
+      <div class="card stat"><p class="s-label">Tasfiye değeri</p><p class="s-value" id="o-lv">—</p><p class="muted small">teminat bu değere inerse</p></div>
+    </div>
+    <p class="muted small">Kripto varlıklarda kısa sürede büyük düşüşler tarihte defalarca yaşandı; tasfiye, zararı kalıcı hale getirir. Faiz birikimi borcu artırdıkça düşüş payı zamanla azalır.</p>
+  </section>
+
+  <section>
+    <h2>Diğer riskler</h2>
+    <ul class="muted small">
+      <li><strong>Platform riski:</strong> borç veren ya da teminatı tutan kurum batarsa veya çekimleri durdurursa teminata erişim kaybolabilir. Dünyada büyük kripto borç verme platformlarının iflas ettiği örnekler var.</li>
+      <li><strong>Gelir–borç para birimi uyumsuzluğu:</strong> geliriniz TL, borcunuz döviz ise kur riski tamamen sizdedir.</li>
+      <li><strong>Vergi ve hukuk:</strong> kripto varlıkların vergilendirilmesi ve yurt dışı platformlarla işlemlerin yasal durumu değişebilir; güncel mevzuatı kontrol edin.</li>
+      <li>Formüller: döviz borcunun TL maliyeti = (1 + döviz faizi) × (1 + kur artışı) − 1; başabaş kur artışı = (1 + TL maliyeti) / (1 + döviz faizi) − 1; tasfiyeye kadar düşüş = 1 − (borç / teminat) / tasfiye eşiği. <a href="/metodoloji#saglik">Metodoloji</a></li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<script>
+  import { fxBorrowing, collateralLiquidation } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const pc = (v: number) => `${v < 0 ? "−" : ""}%${nf1.format(Math.abs(100 * v))}`;
+  const pts = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${nf1.format(Math.abs(100 * v))} puan`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  function runA() {
+    const tl = num($("tl").value), fx = num($("fx").value), dep = num($("dep").value);
+    if (tl == null || fx == null || dep == null) return;
+    const r = fxBorrowing({ tl_rate: tl / 100, fx_rate: fx / 100, expected_depreciation: dep / 100 });
+    $("o-eq").textContent = pc(r.tl_equivalent_cost);
+    $("o-eq-sub").textContent = `%${nf1.format(fx)} faiz + %${nf1.format(dep)} kur artışı`;
+    $("o-be").textContent = pc(r.breakeven_depreciation);
+    $("o-diff").textContent = pts(-r.difference);
+    $("o-diff-sub").textContent = r.difference > 0 ? "döviz borcu bu varsayımla TL borcundan ucuz" : r.difference < 0 ? "döviz borcu bu varsayımla TL borcundan pahalı" : "maliyetler eşit";
+    const rows = [0, 10, 20, 30, 40, 50, 60, 80].map((d) => { const s = fxBorrowing({ tl_rate: tl / 100, fx_rate: fx / 100, expected_depreciation: d / 100 }); return [`%${d}`, pc(s.tl_equivalent_cost), pts(-s.difference)]; });
+    document.querySelector("#sc tbody")!.replaceChildren(...rows.map((r) => { const tr = document.createElement("tr"); r.forEach((c, i) => { const el = document.createElement(i ? "td" : "th"); if (!i) el.setAttribute("scope", "row"); el.textContent = c; tr.appendChild(el); }); return tr; }));
+  }
+  function runB() {
+    const loan = parseAmount($("loan").value), coll = parseAmount($("coll").value), liq = num($("liq").value);
+    if (loan == null || coll == null || liq == null || !(liq > 0 && liq <= 100)) return;
+    const r = collateralLiquidation({ loan, collateral_value: coll, liquidation_ltv: liq / 100 });
+    $("o-ltv").textContent = pc(r.ltv);
+    $("o-drop").textContent = r.drop_to_liquidation > 0 ? pc(r.drop_to_liquidation) : "eşik aşılmış";
+    $("o-lv").textContent = nf0.format(r.liquidation_value);
+  }
+  for (const id of ["tl", "fx", "dep"]) $(id).addEventListener("input", runA);
+  for (const id of ["loan", "coll", "liq"]) $(id).addEventListener("input", runB);
+  runA(); runB();
+</script>
+<style is:global>
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  table.sc td { text-align: right; font-variant-numeric: tabular-nums; }
+</style>

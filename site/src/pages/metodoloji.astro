@@ -262,6 +262,13 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="saglik">Finansal sağlık kontrolü ve dövizle borçlanma</h2>
+    <ul>
+      <li>Tasarruf oranı = (gelir − zorunlu gider − diğer harcama − borç taksitleri) / gelir; borç servis oranı = taksitler / gelir; acil durum fonu (ay) = acil durumda kullanılabilir varlıklar / aylık zorunlu gider; borç / yıllık gelir = toplam borç / (12 × aylık gelir); dağılım = her varlık türü / toplam varlık (<code>financial_health</code>).</li>
+      <li>Referans bantları kişisel finans literatüründe sık geçen kaba ölçütlerdir (tasarruf %10+, taksit/gelir %35 altı, acil durum fonu 3–6 ay, toplam borç 1 yıllık gelirin altı); kişiye özel öneri değildir.</li>
+      <li>Döviz borcu: TL eşdeğer maliyet = (1 + döviz faizi)(1 + kur artışı) − 1; başabaş kur artışı = (1 + TL maliyeti)/(1 + döviz faizi) − 1 (<code>fx_borrowing</code>). Teminatlı kredi: borç/teminat oranı, tasfiyeye kadar düşüş = 1 − (borç/teminat)/eşik (<code>collateral_liquidation</code>). Platform, ürün veya kurum önerilmez.</li>
+    </ul>
+
     <h2 id="nabiz">Ekonomik Nabız</h2>
     <ul>
       <li>Her gösterge için: son değer; bir yıl önceki değere göre fark (oranlarda puan, düzeylerde yüzde); son 10 yılın en düşük, medyan ve en yüksek değeri; son değerin bu penceredeki yüzdelik konumu = pencerede son değere eşit ya da altındaki gözlemlerin oranı (<code>percentile_rank</code>, <code>window_stats</code>).</li>

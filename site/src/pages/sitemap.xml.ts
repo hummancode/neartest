@@ -4,7 +4,7 @@ import { paths } from "../lib/paths.ts";
 import { provinces } from "../lib/provinces.ts";
 import { provinceUrl } from "../lib/slug.ts";
 
-const ROUTES = ["/", "/turkiye/", "/ekonomik-nabiz/", "/iller/", "/nufus/", "/karsilastir/", "/mevzuat/", "/kart/", "/yapilandirma/", "/mevduat/", "/birikim/", "/ulkeler/", "/big-mac/", "/uzun-donem/", "/kredi/", "/kredi-karsilastir/", "/erken-kapama/", "/taksit/", "/maas/", "/olaylar/", "/borsa/", "/emtia/", "/portfoy/", "/varliklarim/", "/vergi/", "/vergi/maas/", "/vergi/kira/", "/vergi/deger-artis/", "/vergi/emlak/", "/bes/", "/makro/", "/iliskiler/", "/grafik/", "/konut/", "/konut-fiyatlari/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
+const ROUTES = ["/", "/turkiye/", "/ekonomik-nabiz/", "/iller/", "/nufus/", "/karsilastir/", "/mevzuat/", "/kart/", "/yapilandirma/", "/mevduat/", "/birikim/", "/ulkeler/", "/big-mac/", "/uzun-donem/", "/kredi/", "/kredi-karsilastir/", "/erken-kapama/", "/taksit/", "/maas/", "/olaylar/", "/borsa/", "/emtia/", "/portfoy/", "/varliklarim/", "/saglik-kontrolu/", "/doviz-borc/", "/vergi/", "/vergi/maas/", "/vergi/kira/", "/vergi/deger-artis/", "/vergi/emlak/", "/bes/", "/makro/", "/iliskiler/", "/grafik/", "/konut/", "/konut-fiyatlari/", "/nominal-illuzyon/", "/kisisel-enflasyon/", "/reel-faiz/", "/metodoloji/", "/veri/", "/bulten/", "/yasal-uyari/", "/gizlilik/"];
 
 export function GET() {
   const urls = SITE_URL

@@ -1,0 +1,180 @@
+---
+import Base from "../layouts/Base.astro";
+import { DISCLAIMER } from "../config.ts";
+const ASSETS: [string, string, boolean][] = [
+  ["Mevduat / nakit", "a-cash", true], ["Döviz", "a-fx", true], ["Altın", "a-gold", true], ["Kripto", "a-crypto", false],
+  ["Hisse / fon", "a-stock", false], ["Konut", "a-house", false], ["Araç", "a-car", false], ["Diğer varlık", "a-other", false],
+];
+---
+<Base title="Finansal sağlık kontrolü" description="Aylık bütçenizi ve varlıklarınızı girin: tasarruf oranı, borç taksiti / gelir, acil durum fonu kaç ay yeter, borç / yıllık gelir, varlık dağılımı (kripto dahil). Tarayıcıda çalışır.">
+  <h1>Finansal sağlık kontrolü</h1>
+  <p class="lead">Beş dakikada bütçenizin ve birikimlerinizin fotoğrafı: ne kadar biriktiriyorsunuz, borç taksitleri gelirinizin ne kadarı, bir şey olsa birikiminiz kaç ay yeter?</p>
+  <p class="privacy card">🔒 Girdiğiniz rakamlar <strong>yalnızca bu tarayıcıda</strong> işlenir; sunucuya gönderilmez. İsterseniz bu tarayıcıda hatırlanmasını seçebilirsiniz.</p>
+
+  <form class="card" novalidate onsubmit="return false">
+    <h2>Aylık bütçe</h2>
+    <div class="form-grid three">
+      <div class="field"><label for="income">Aylık net gelir (TL)</label><input id="income" inputmode="decimal" placeholder="ör. 60.000" /><small>maaş, kira geliri vb. elinize geçen toplam</small></div>
+      <div class="field"><label for="essential">Zorunlu giderler (TL/ay)</label><input id="essential" inputmode="decimal" placeholder="ör. 30.000" /><small>kira, gıda, faturalar, ulaşım, okul</small></div>
+      <div class="field"><label for="other">Diğer harcamalar (TL/ay)</label><input id="other" inputmode="decimal" placeholder="ör. 10.000" /><small>eğlence, giyim, tatil (aylık ortalama)</small></div>
+      <div class="field"><label for="debtpay">Borç taksitleri (TL/ay)</label><input id="debtpay" inputmode="decimal" placeholder="ör. 8.000" /><small>kredi taksitleri + kart asgari ödemesi</small></div>
+      <div class="field"><label for="debt">Toplam borç bakiyesi (TL)</label><input id="debt" inputmode="decimal" placeholder="ör. 150.000" /></div>
+    </div>
+    <h2>Varlıklar (bugünkü değer, TL)</h2>
+    <p class="muted small">"Acil durumda kullanılır" işaretli olanlar acil durum fonuna sayılır. <button type="button" class="linkish" id="import">Varlıklarım'dan aktar</button> <span class="muted small" id="import-msg" aria-live="polite"></span></p>
+    <div class="form-grid assets">
+      {ASSETS.map(([label, id, liq]) => (
+        <div class="field"><label for={id}>{label}</label><input id={id} inputmode="decimal" placeholder="0" data-kind={label} />
+          <small><label><input type="checkbox" class="liq" data-for={id} checked={liq} /> acil durumda kullanılır</label></small></div>
+      ))}
+    </div>
+    <p class="small"><label><input type="checkbox" id="remember" /> Bu tarayıcıda hatırla</label></p>
+  </form>
+  <p class="error" id="err" role="alert" hidden></p>
+
+  <section id="results" hidden>
+    <div class="metrics">
+      <article class="card metric" id="m-save"><h3>Tasarruf oranı</h3><p class="m-value"></p><div class="scale"></div><p class="small m-text"></p></article>
+      <article class="card metric" id="m-dsr"><h3>Borç taksiti / gelir</h3><p class="m-value"></p><div class="scale"></div><p class="small m-text"></p></article>
+      <article class="card metric" id="m-emer"><h3>Acil durum fonu</h3><p class="m-value"></p><div class="scale"></div><p class="small m-text"></p></article>
+      <article class="card metric" id="m-dti"><h3>Toplam borç / yıllık gelir</h3><p class="m-value"></p><div class="scale"></div><p class="small m-text"></p></article>
+    </div>
+    <section class="card">
+      <h2>Varlık dağılımı</h2>
+      <div class="split"><div id="donut"></div><div><p class="big" id="nw"></p><p class="small" id="crypto-note"></p><p class="small" id="fx-note"></p></div></div>
+    </section>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li>Gri bantlar, kişisel finans kaynaklarında <strong>sık kullanılan referans aralıklarıdır</strong> (ör. gelirin en az %10–20'sini biriktirmek, borç taksitlerini gelirin %35'inin altında tutmak, 3–6 aylık zorunlu gideri karşılayacak acil durum fonu). Herkes için doğru sayılar değildir; yaş, gelir istikrarı, ailedeki kişi sayısı ve hedefler bunları değiştirir.</li>
+      <li>Hesaplar: tasarruf oranı = (gelir − zorunlu − diğer − taksitler) / gelir; acil durum fonu = acil durumda kullanılabilir varlıklar / aylık zorunlu gider; borç / yıllık gelir = toplam borç / (12 × aylık gelir). Formüller: <a href="/metodoloji#saglik">Metodoloji</a>.</li>
+      <li>Kripto varlıklar, döviz ve altın da TL karşısında hızlı değer değiştirebilir; dağılım bilgisi bu yüzden ayrıca gösterilir. Bu sayfa bir ürün, platform ya da varlık önermez; yatırım tavsiyesi değildir.</li>
+      <li>İlgili araçlar: <a href="/varliklarim">Varlıklarım</a> · <a href="/kredi-karsilastir">Kredi teklifleri</a> · <a href="/erken-kapama">Erken kapama</a> · <a href="/doviz-borc">Dövizle borçlanma</a> · <a href="/birikim">Birikim hedefi</a></li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<script>
+  import { financialHealth } from "../lib/engine.ts";
+  import { renderDonut } from "../lib/charts2.ts";
+  import { parseAmount } from "../lib/card.ts";
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${v < 0 ? "−" : ""}${nf0.format(Math.abs(v))} TL`;
+  const pc = (v: number) => `${v < 0 ? "−" : ""}%${nf1.format(Math.abs(100 * v))}`;
+  const KEY = "saglik.v1";
+  const amt = (id: string) => { const s = $(id).value.trim(); return s === "" || s === "0" ? 0 : parseAmount(s); };
+  const assetInputs = () => [...document.querySelectorAll<HTMLInputElement>("input[data-kind]")];
+
+  // metric scale: bar 0..max with a grey reference band and a marker for the value
+  function scale(el: Element, value: number, max: number, band: [number, number], fmt: (v: number) => string) {
+    const box = el.querySelector(".scale")!;
+    box.replaceChildren();
+    const track = document.createElement("span"); track.className = "sc-track";
+    const b = document.createElement("span"); b.className = "sc-band";
+    b.style.left = `${(100 * Math.max(0, band[0])) / max}%`; b.style.width = `${(100 * (Math.min(max, band[1]) - Math.max(0, band[0]))) / max}%`;
+    const dot = document.createElement("span"); dot.className = "sc-dot";
+    dot.style.left = `${Math.max(0, Math.min(100, (100 * value) / max))}%`;
+    const lab = document.createElement("span"); lab.className = "sc-lab muted small"; lab.textContent = `referans: ${fmt(band[0])} – ${band[1] >= max ? `${fmt(max)}+` : fmt(band[1])}`;
+    box.append(track, b, dot, lab);
+    box.setAttribute("role", "img"); box.setAttribute("aria-label", `Değer ${fmt(value)}; yaygın referans aralığı ${lab.textContent}`);
+  }
+  function setMetric(id: string, value: string, text: string) {
+    const el = $(id); el.querySelector(".m-value")!.textContent = value; el.querySelector(".m-text")!.textContent = text;
+  }
+
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const income = amt("income"), essential = amt("essential"), other = amt("other"), debtpay = amt("debtpay"), debt = amt("debt");
+    const assets: Record<string, number> = {};
+    let liquid = 0, bad = false;
+    for (const inp of assetInputs()) {
+      const v = amt(inp.id);
+      if (v == null) { bad = true; continue; }
+      if (v > 0) assets[inp.dataset.kind!] = (assets[inp.dataset.kind!] ?? 0) + v;
+      if (v > 0 && document.querySelector<HTMLInputElement>(`.liq[data-for="${inp.id}"]`)!.checked) liquid += v;
+    }
+    if ([income, essential, other, debtpay, debt].some((x) => x == null) || bad) { err.textContent = "Tutarları TL olarak girin (ör. 60.000)."; err.hidden = false; return; }
+    save();
+    if (!income) { $("results").hidden = true; return; }
+    const h = financialHealth({ income: income!, essential: essential!, other_expenses: other!, debt_payment: debtpay!, total_debt: debt!, liquid, assets });
+    $("results").hidden = false;
+    setMetric("m-save", pc(h.savings_rate), h.savings >= 0 ? `Ayda ${tl(h.savings)} artıyor.` : `Ayda ${tl(-h.savings)} açık var: giderler ve taksitler gelirden fazla.`);
+    scale($("m-save"), Math.max(0, h.savings_rate), 0.5, [0.1, 0.5], (v) => `%${nf0.format(100 * v)}`);
+    setMetric("m-dsr", pc(h.debt_service_ratio), `Gelirin ${pc(h.debt_service_ratio)} kadarı borç taksitlerine gidiyor.`);
+    scale($("m-dsr"), h.debt_service_ratio, 0.8, [0, 0.35], (v) => `%${nf0.format(100 * v)}`);
+    if (h.emergency_months == null) setMetric("m-emer", "—", "Zorunlu gider girin.");
+    else { setMetric("m-emer", `${nf1.format(h.emergency_months)} ay`, `Gelir kesilse, acil durumda kullanılabilir birikim (${tl(liquid)}) zorunlu giderleri yaklaşık ${nf1.format(h.emergency_months)} ay karşılar.`);
+      scale($("m-emer"), h.emergency_months, 12, [3, 6], (v) => `${nf0.format(v)} ay`); }
+    setMetric("m-dti", `${nf1.format(h.debt_to_annual_income * 12)} aylık gelir`, `Toplam borç (${tl(debt!)}), ${nf1.format(h.debt_to_annual_income * 12)} aylık net gelire eşit.`);
+    scale($("m-dti"), h.debt_to_annual_income, 3, [0, 1], (v) => `${nf1.format(v)} yıl`);
+    $("nw").textContent = `Net servet: ${tl(h.net_worth)}`;
+    const parts = Object.entries(assets).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    if (parts.length) renderDonut($("donut"), parts, { format: tl, label: "Varlık dağılımı", size: 170 }); else $("donut").textContent = "Varlık girilmedi.";
+    const cs = h.shares["Kripto"] ?? 0, fxs = (h.shares["Döviz"] ?? 0) + (h.shares["Altın"] ?? 0);
+    $("crypto-note").textContent = cs > 0 ? `Kripto varlıklar toplam varlıklarınızın ${pc(cs)} kadarı. Bu varlıklar kısa sürede büyük oranda değer kaybedebilir veya kazanabilir; platform (borsa, cüzdan) riski de taşır.` : "";
+    $("fx-note").textContent = fxs > 0 ? `Döviz ve altın, varlıkların ${pc(fxs)} kadarı; TL karşılıkları kurla birlikte değişir.` : "";
+  }
+
+  function save() {
+    if (!$("remember").checked) { try { localStorage.removeItem(KEY); } catch {} return; }
+    const data: Record<string, string | boolean> = {};
+    document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => { if (x.id && x.id !== "remember") data[x.id] = x.type === "checkbox" ? x.checked : x.value; });
+    document.querySelectorAll<HTMLInputElement>(".liq").forEach((x) => (data[`liq:${x.dataset.for}`] = x.checked));
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+  }
+  function restore() {
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (!d) return;
+      $("remember").checked = true;
+      for (const [k, v] of Object.entries(d)) {
+        if (k.startsWith("liq:")) { const c = document.querySelector<HTMLInputElement>(`.liq[data-for="${k.slice(4)}"]`); if (c) c.checked = !!v; }
+        else { const el = document.getElementById(k) as HTMLInputElement | null; if (el && typeof v === "string") el.value = v; }
+      }
+    } catch {}
+  }
+  // Import latest values from the Varlıklarım page (same browser storage).
+  const MAP: Record<string, string> = { "Mevduat / nakit": "a-cash", "Döviz": "a-fx", "Altın": "a-gold", "Kripto": "a-crypto", "Hisse / fon": "a-stock", "Konut": "a-house", "Araç": "a-car" };
+  $("import").addEventListener("click", () => {
+    let items: any[] = [];
+    try { items = JSON.parse(localStorage.getItem("varliklarim.v1") || "{}").items ?? []; } catch {}
+    const active = items.filter((i) => !i.sold && Array.isArray(i.valuations) && i.valuations.length);
+    if (!active.length) { $("import-msg").textContent = "Bu tarayıcıda Varlıklarım kaydı bulunamadı."; return; }
+    const sums: Record<string, number> = {}; let debt = 0;
+    for (const it of active) {
+      const last = [...it.valuations].sort((a: any, b: any) => (a[0] < b[0] ? -1 : 1)).at(-1)[1];
+      if (it.side === "liability") debt += last;
+      else { const id = MAP[it.kind] ?? "a-other"; sums[id] = (sums[id] ?? 0) + last; }
+    }
+    for (const inp of assetInputs()) inp.value = sums[inp.id] ? nf0.format(Math.round(sums[inp.id])) : "";
+    $("debt").value = debt ? nf0.format(Math.round(debt)) : "";
+    $("import-msg").textContent = `${active.length} kalem aktarıldı.`;
+    run();
+  });
+  restore();
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener(x.type === "checkbox" ? "change" : "input", run));
+  run();
+</script>
+<style is:global>
+  .privacy { border-left: 4px solid var(--good-ink); }
+  .form-grid.assets { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 1000px) { .form-grid.assets { grid-template-columns: repeat(4, 1fr); } }
+  .metrics { display: grid; gap: 12px; grid-template-columns: 1fr; margin: 16px 0; }
+  @media (min-width: 760px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .metric h3 { margin: 0; font-size: 0.95rem; }
+  .m-value { font-family: var(--font-head); font-size: 2rem; margin: 2px 0 6px; }
+  .scale { position: relative; height: 34px; margin: 0 6px; }
+  .sc-track { position: absolute; left: 0; right: 0; top: 8px; height: 6px; background: var(--line); border-radius: 3px; }
+  .sc-band { position: absolute; top: 8px; height: 6px; background: color-mix(in srgb, var(--muted) 55%, transparent); border-radius: 3px; }
+  .sc-dot { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--cat-1); border: 2px solid var(--surface); transform: translateX(-8px); }
+  .sc-lab { position: absolute; left: 0; top: 20px; font-size: 0.72rem; }
+  .split { display: grid; gap: 16px; align-items: center; }
+  @media (min-width: 760px) { .split { grid-template-columns: 1fr 1fr; } }
+  .big { font-family: var(--font-head); font-size: 1.6rem; margin: 0 0 8px; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

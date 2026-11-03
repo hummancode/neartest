@@ -2067,6 +2067,73 @@
    "tol": 1e-07,
    "subset": true,
    "note": "monthly 1 %, start-of-month deposits"
+  },
+  {
+   "name": "financial_health ratios",
+   "fn": "financial_health",
+   "args": [
+    {
+     "income": 50000,
+     "essential": 25000,
+     "other_expenses": 10000,
+     "debt_payment": 5000,
+     "total_debt": 120000,
+     "liquid": 75000,
+     "assets": {
+      "Mevduat / nakit": 75000,
+      "Altın": 25000,
+      "Kripto": 50000,
+      "Konut": 850000
+     }
+    }
+   ],
+   "expect": {
+    "savings": 10000.0,
+    "savings_rate": 0.2,
+    "debt_service_ratio": 0.1,
+    "emergency_months": 3.0,
+    "debt_to_annual_income": 0.2,
+    "net_worth": 880000.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "50−25−10−5; 5/50; 75/25; 120/600; 1 M − 120 k"
+  },
+  {
+   "name": "fx_borrowing breakeven",
+   "fn": "fx_borrowing",
+   "args": [
+    {
+     "tl_rate": 0.45,
+     "fx_rate": 0.08,
+     "expected_depreciation": 0.3
+    }
+   ],
+   "expect": {
+    "tl_equivalent_cost": 0.40400000000000014,
+    "breakeven_depreciation": 0.34259259259259256,
+    "difference": 0.045999999999999874
+   },
+   "tol": 1e-12,
+   "note": "(1+r$)(1+kur) − 1; (1+r TL)/(1+r$) − 1"
+  },
+  {
+   "name": "collateral_liquidation drop",
+   "fn": "collateral_liquidation",
+   "args": [
+    {
+     "loan": 6000,
+     "collateral_value": 10000,
+     "liquidation_ltv": 0.8
+    }
+   ],
+   "expect": {
+    "ltv": 0.6,
+    "drop_to_liquidation": 0.25,
+    "liquidation_value": 7500.0
+   },
+   "tol": 1e-12,
+   "note": "1 − 0.6/0.8"
   }
  ]
 }

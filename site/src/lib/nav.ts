@@ -28,12 +28,14 @@ export const NAV: NavGroup[] = [
   { label: "Borç", items: [
     { href: "/kredi", label: "Kredinin gerçek maliyeti", desc: "KKDF, BSMV ve masraflarla gerçek yıllık maliyet.", keywords: "kkdf bsmv faiz" },
     { href: "/kredi-karsilastir", label: "Kredi tekliflerini karşılaştır", desc: "Faiz, masraf ve vergilerle tekliflerin gerçek yıllık maliyeti yan yana.", keywords: "kredi teklif banka karşılaştırma" },
+    { href: "/doviz-borc", label: "Dövizle borçlanmanın gerçek maliyeti", desc: "Dolar/stablecoin borcunun TL maliyeti, başabaş kur artışı, teminatlı kredide tasfiye eşiği.", keywords: "döviz dolar borç kripto stablecoin teminat tasfiye" },
     { href: "/erken-kapama", label: "Erken kapama ve ara ödeme", desc: "Krediye ara ödeme ya da erken kapama ne kazandırır? Taksit mi düşsün, vade mi kısalsın?", keywords: "erken ödeme kapama ara ödeme kredi" },
     { href: "/kart", label: "Kredi kartı: asgari ödeme, nakit avans", desc: "Yalnızca asgari ödeme yaparsanız borç kaç ayda biter?" },
     { href: "/yapilandirma", label: "Kredi yapılandırma", desc: "Krediyi kapatıp yenisine geçmek gerçekten kârlı mı?" },
     { href: "/taksit", label: "Taksitli mi, peşin mi?", desc: "“Faizsiz taksit”in gizli faizi ve bugünkü değeri." },
   ] },
   { label: "Hesapla", items: [
+    { href: "/saglik-kontrolu", label: "Finansal sağlık kontrolü", desc: "Tasarruf oranı, borç taksiti / gelir, acil durum fonu, varlık dağılımı (kripto dahil).", keywords: "bütçe tasarruf acil durum fonu borç kripto sağlık" },
     { href: "/vergi", label: "Vergi hesaplayıcıları", desc: "Brüt–net maaş, kira geliri vergisi, mevduat stopajı, kredi vergileri; oranlar mevzuat kaydından.", keywords: "vergi maaş brüt net kira gelir vergisi bordro sgk" },
     { href: "/bes", label: "BES: reel getiri ve devlet katkısı", desc: "Katkı, devlet katkısı, kesinti, hak ediş ve stopajla çıkışta ne kalır?", keywords: "bes bireysel emeklilik devlet katkısı fon" },
     { href: "/varliklarim", label: "Varlıklarım: net servet", desc: "Ev, araba, altın, birikim ve borçların; zaman içinde net servetin nominal, reel, dolar ve altın cinsinden.", keywords: "servet varlık borç mal portföy net değer" },

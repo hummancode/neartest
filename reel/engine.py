@@ -1330,3 +1330,46 @@ def window_stats(values: list[float]) -> dict:
     n = len(s)
     med = s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2
     return {"min": s[0], "max": s[-1], "median": med, "percentile": percentile_rank(values[-1], values), "n": n}
+
+
+# ---------------------------------------------------------------------------
+# Personal financial health, FX borrowing
+# ---------------------------------------------------------------------------
+
+def financial_health(*, income: float, essential: float, other_expenses: float, debt_payment: float, total_debt: float,
+                     liquid: float, assets: dict[str, float]) -> dict:
+    """Monthly budget and balance-sheet ratios (all inputs monthly TL except stocks).
+
+    savings_rate = (income − essential − other − debt payments) / income; debt_service_ratio = debt payments / income;
+    emergency_months = liquid assets / essential monthly spending; debt_to_annual_income = total debt / (12 × income);
+    net_worth = Σ assets − total debt; shares = each asset kind / Σ assets.
+    """
+    if income <= 0:
+        raise SeriesError("income must be positive")
+    savings = income - essential - other_expenses - debt_payment
+    total_assets = sum(v for v in assets.values() if v > 0)
+    return {"savings": savings, "savings_rate": savings / income, "debt_service_ratio": debt_payment / income,
+            "emergency_months": liquid / essential if essential > 0 else None,
+            "debt_to_annual_income": total_debt / (12 * income), "total_assets": total_assets,
+            "net_worth": total_assets - total_debt,
+            "shares": {k: v / total_assets for k, v in assets.items() if v > 0} if total_assets > 0 else {}}
+
+
+def fx_borrowing(*, tl_rate: float, fx_rate: float, expected_depreciation: float) -> dict:
+    """Cost of borrowing in foreign currency for someone who repays from TL income (annual, compound).
+
+    tl_equivalent_cost = (1 + fx_rate)(1 + depreciation) − 1; breakeven_depreciation = (1 + tl_rate)/(1 + fx_rate) − 1
+    (the TL depreciation at which both loans cost the same); difference = tl_rate − tl_equivalent_cost.
+    """
+    tl_eq = (1.0 + fx_rate) * (1.0 + expected_depreciation) - 1.0
+    return {"tl_equivalent_cost": tl_eq, "breakeven_depreciation": (1.0 + tl_rate) / (1.0 + fx_rate) - 1.0,
+            "difference": tl_rate - tl_eq}
+
+
+def collateral_liquidation(*, loan: float, collateral_value: float, liquidation_ltv: float) -> dict:
+    """Collateralised loan: current loan-to-value and how far the collateral can fall before liquidation."""
+    if collateral_value <= 0 or not 0 < liquidation_ltv <= 1:
+        raise SeriesError("collateral must be positive and liquidation LTV in (0, 1]")
+    ltv = loan / collateral_value
+    return {"ltv": ltv, "drop_to_liquidation": max(0.0, 1.0 - ltv / liquidation_ltv),
+            "liquidation_value": loan / liquidation_ltv}

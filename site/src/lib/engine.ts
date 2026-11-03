@@ -852,3 +852,25 @@ export function besProjection(p: { monthly: number; years: number; annual_return
   return { own_paid: ownPaid, real_own_paid: realPaid, state_paid: statePaid, own_balance: ownBal, state_balance: stateBal, vested_state: vested, tax, net_exit: netExit,
     real_net_exit: netExit / (1 + p.inflation) ** p.years, annual_irr: annualIrr, real_irr: realReturn(annualIrr, p.inflation) };
 }
+
+// --- personal financial health, FX borrowing (ports of reel.engine) ---
+export function financialHealth(p: { income: number; essential: number; other_expenses: number; debt_payment: number; total_debt: number; liquid: number; assets: Record<string, number> }) {
+  if (!(p.income > 0)) throw new SeriesError("income must be positive");
+  const savings = p.income - p.essential - p.other_expenses - p.debt_payment;
+  const total = Object.values(p.assets).filter((v) => v > 0).reduce((s, v) => s + v, 0);
+  return { savings, savings_rate: savings / p.income, debt_service_ratio: p.debt_payment / p.income,
+    emergency_months: p.essential > 0 ? p.liquid / p.essential : null, debt_to_annual_income: p.total_debt / (12 * p.income),
+    total_assets: total, net_worth: total - p.total_debt,
+    shares: total > 0 ? Object.fromEntries(Object.entries(p.assets).filter(([, v]) => v > 0).map(([k, v]) => [k, v / total])) : {} };
+}
+
+export function fxBorrowing(p: { tl_rate: number; fx_rate: number; expected_depreciation: number }) {
+  const tlEq = (1 + p.fx_rate) * (1 + p.expected_depreciation) - 1;
+  return { tl_equivalent_cost: tlEq, breakeven_depreciation: (1 + p.tl_rate) / (1 + p.fx_rate) - 1, difference: p.tl_rate - tlEq };
+}
+
+export function collateralLiquidation(p: { loan: number; collateral_value: number; liquidation_ltv: number }) {
+  if (!(p.collateral_value > 0) || !(p.liquidation_ltv > 0 && p.liquidation_ltv <= 1)) throw new SeriesError("collateral must be positive and liquidation LTV in (0, 1]");
+  const ltv = p.loan / p.collateral_value;
+  return { ltv, drop_to_liquidation: Math.max(0, 1 - ltv / p.liquidation_ltv), liquidation_value: p.loan / p.liquidation_ltv };
+}

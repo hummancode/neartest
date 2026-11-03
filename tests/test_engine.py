@@ -922,3 +922,29 @@ def test_percentile_rank_and_window_stats():
     s = e.window_stats(hist)
     assert s == {"min": 1.0, "max": 5.0, "median": 3.0, "percentile": 1.0, "n": 5}   # latest = 5 is the highest
     assert e.window_stats([2.0, 1.0, 4.0, 3.0])["median"] == 2.5
+
+
+# --- personal financial health, FX borrowing ---------------------------------------------
+
+def test_financial_health_ratios():
+    h = e.financial_health(income=50_000, essential=25_000, other_expenses=10_000, debt_payment=5_000, total_debt=120_000,
+                           liquid=75_000, assets={"Mevduat / nakit": 75_000, "Altın": 25_000, "Kripto": 50_000, "Konut": 850_000})
+    assert close(h["savings"], 10_000.0) and close(h["savings_rate"], 0.20)        # 50 − 25 − 10 − 5
+    assert close(h["debt_service_ratio"], 0.10)                                   # 5 / 50
+    assert close(h["emergency_months"], 3.0)                                      # 75 / 25
+    assert close(h["debt_to_annual_income"], 0.20)                                # 120 / (12 × 50)
+    assert close(h["net_worth"], 880_000.0)                                       # 1 000 000 − 120 000
+    assert close(h["shares"]["Kripto"], 0.05) and close(h["shares"]["Konut"], 0.85)
+    with pytest.raises(e.SeriesError):
+        e.financial_health(income=0, essential=1, other_expenses=0, debt_payment=0, total_debt=0, liquid=0, assets={})
+
+
+def test_fx_borrowing_breakeven_and_collateral():
+    f = e.fx_borrowing(tl_rate=0.45, fx_rate=0.08, expected_depreciation=0.30)
+    assert close(f["tl_equivalent_cost"], 1.08 * 1.30 - 1, 1e-12)                 # 40.4 %
+    assert close(f["breakeven_depreciation"], 1.45 / 1.08 - 1, 1e-12)             # 34.26 %: above this, FX debt costs more
+    assert close(f["difference"], 0.45 - (1.08 * 1.30 - 1), 1e-12)
+    c = e.collateral_liquidation(loan=6_000, collateral_value=10_000, liquidation_ltv=0.80)
+    assert close(c["ltv"], 0.60) and close(c["drop_to_liquidation"], 0.25)       # 1 − 0.60 / 0.80
+    assert close(c["liquidation_value"], 7_500.0)
+    assert e.collateral_liquidation(loan=9_000, collateral_value=10_000, liquidation_ltv=0.80)["drop_to_liquidation"] == 0.0
