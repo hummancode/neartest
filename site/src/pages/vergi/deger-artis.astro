@@ -1,0 +1,107 @@
+---
+import Base from "../../layouts/Base.astro";
+import { paramInfo, formatTariff, type Tariff } from "../../lib/params.ts";
+import { DISCLAIMER } from "../../config.ts";
+const t = paramInfo("gv_tarife_diger"), ex = paramInfo("dak_istisna"), th = paramInfo("dak_endeks_esik");
+const payload = { tariff: t?.value ?? null, exemption: ex?.value ?? null, threshold: th?.value ?? null };
+const unverified = [t, ex, th].some((x) => x?.status !== "verified");
+const nf = new Intl.NumberFormat("tr-TR");
+---
+<Base title="Konut satışında değer artış kazancı vergisi" description="Ev satarken değer artış kazancı vergisi: Yİ-ÜFE ile endekslenmiş maliyet, istisna, artan oranlı tarife. Basitleştirilmiş hesap, tarayıcıda çalışır.">
+  <p class="muted small crumb"><a href="/vergi">Vergi</a> / Değer artış kazancı</p>
+  <h1>Değer artış kazancı (konut satışı)</h1>
+  <p class="lead">Evinizi aldığınızdan pahalıya sattınız: kazancın ne kadarı vergiye tabi? Enflasyon (Yİ-ÜFE) ile güncellenmiş maliyet ve istisnayla hesap.</p>
+  {unverified && <p class="card warn-note"><strong>Değerleri kontrol edin.</strong> İstisna tutarı, endeksleme eşiği ve tarife {t?.year} yılına ait; resmî metinden doğrulanmadı (<a href="/mevzuat">Mevzuat</a>). Elde tutma süresine bağlı muafiyet kuralları değişebilir; satış tarihindeki mevzuatı kontrol edin.</p>}
+
+  <form class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="sale">Satış bedeli (TL)</label><input id="sale" inputmode="decimal" value="6.000.000" /></div>
+      <div class="field"><label for="sale-exp">Satış giderleri (TL)</label><input id="sale-exp" inputmode="decimal" value="0" /><small>ör. emlakçı komisyonu, satıcının ödediği tapu harcı</small></div>
+      <div class="field"><label for="cost">Alış bedeli (TL)</label><input id="cost" inputmode="decimal" value="2.500.000" /></div>
+      <div class="field"><label for="cost-exp">Alış giderleri (TL)</label><input id="cost-exp" inputmode="decimal" value="0" /><small>ör. alışta ödenen tapu harcı, komisyon</small></div>
+      <div class="field"><label for="ppi">Yİ-ÜFE artışı, alış ayından satış ayına (%)</label><input id="ppi" inputmode="decimal" value="120" /><small>alış ve satış aylarından önceki ayların endeksleri arasındaki değişim; TÜİK'ten</small></div>
+      <div class="field"><label for="ex">İstisna (TL) <span class="tag">{ex?.statusLabel} · {ex?.year}</span></label><input id="ex" inputmode="decimal" value={ex ? nf.format(ex.value as number) : ""} /></div>
+      <div class="field"><label for="th">Endeksleme eşiği (%) <span class="tag">{th?.statusLabel} · {th?.year}</span></label><input id="th" inputmode="decimal" value={String(th?.value ?? "")} /></div>
+      <div class="field check"><label><input type="checkbox" id="hold" /> Elde tutma süresi muafiyeti uygulanıyor</label><small>ör. uzun süre elde tutulan konut; şartları satış yılının mevzuatından doğrulayın</small></div>
+    </div>
+    <details class="assume"><summary>Gelir vergisi tarifesi (ücret dışı) <span class="tag">{t?.statusLabel} · {t?.year}</span></summary><div id="tariff"></div><p class="muted small">{t && formatTariff(t.value as Tariff)}</p></details>
+  </form>
+  <p class="error" id="err" role="alert" hidden></p>
+
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Değer artış kazancı</p><p class="s-value" id="o-gain">—</p><p class="muted small" id="o-gain-sub"></p></div>
+    <div class="card stat"><p class="s-label">Vergi</p><p class="s-value" id="o-tax">—</p><p class="muted small" id="o-tax-sub"></p></div>
+    <div class="card stat"><p class="s-label">Enflasyonun etkisi</p><p class="s-value" id="o-inf">—</p><p class="muted small">endekslemenin vergiden düşürdüğü kazanç</p></div>
+  </section>
+  <section class="card"><h2>Hesap adımları</h2><ol id="steps" class="steps"></ol></section>
+
+  <section>
+    <h2>Bilmeniz gerekenler</h2>
+    <ul class="muted small">
+      <li>Basitleştirilmiş hesaptır: kazanç, yılın diğer beyan edilecek gelirleriyle birlikte vergilendirilir; o durumda vergi farklı çıkabilir. Miras/bağış yoluyla edinim, ortaklık payları ve ticari faaliyet kapsamındaki satışlar farklı kurallara tabidir.</li>
+      <li>Endeksleme: maliyet bedeli, Yİ-ÜFE artışı eşik oranın üzerindeyse bu artış oranında güncellenir. Endeks değerleri TÜİK'ten alınır; site bu seriyi henüz otomatik çekmiyor.</li>
+      <li>Beyan ve ödeme için Gelir İdaresi'nin değer artış kazancı rehberini veya bir mali müşaviri esas alın. Hesap tarayıcınızda yapılır. Formül: <a href="/metodoloji#vergi">Metodoloji</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="d-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { capitalGainTax, type Brackets } from "../../lib/engine.ts";
+  import { parseAmount } from "../../lib/card.ts";
+  import { renderTariffEditor, readTariff } from "../../lib/tariff-ui.ts";
+  import { readHash, writeHash } from "../../lib/share.ts";
+  const R = JSON.parse(document.getElementById("d-data")!.textContent!) as { tariff: Brackets; exemption: number; threshold: number };
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${v < 0 ? "−" : ""}${nf0.format(Math.abs(v))} TL`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  const amt = (s: string) => (s.trim() === "" || s.trim() === "0" ? 0 : parseAmount(s));
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const sale = parseAmount($("sale").value), cost = parseAmount($("cost").value), se = amt($("sale-exp").value), ce = amt($("cost-exp").value);
+    const ppi = num($("ppi").value), ex = amt($("ex").value), th = num($("th").value), br = readTariff($("tariff"));
+    if (sale == null || cost == null || se == null || ce == null) return fail("Tutarları TL olarak girin.");
+    if (ppi == null || th == null || ex == null || !br) return fail("Oranları ve tarifeyi kontrol edin.");
+    let r;
+    try { r = capitalGainTax({ sale_price: sale, cost, purchase_expenses: ce, sale_expenses: se, ppi_increase: ppi / 100, exemption: ex, brackets: br, exempt_holding: $("hold").checked, index_threshold: th / 100 }); }
+    catch { return fail("Tarife geçersiz: dilim sınırları artan olmalı."); }
+    writeHash({ s: String(Math.round(sale)), c: String(Math.round(cost)), u: String(ppi), h: $("hold").checked ? "1" : "0" });
+    const nominalGain = sale - se - (cost + ce);
+    $("o-gain").textContent = tl(r.gain);
+    $("o-gain-sub").textContent = `nominal fark ${tl(nominalGain)}`;
+    $("o-tax").textContent = tl(r.tax);
+    $("o-tax-sub").textContent = r.exempt ? "muafiyet uygulandı" : r.gain > 0 ? `kazanca oranı %${nf1.format(100 * r.effective_rate)} · satış bedeline oranı %${nf1.format((100 * r.tax) / sale)}` : "kazanç yok";
+    $("o-inf").textContent = tl(nominalGain - r.gain);
+    const steps = [
+      `Maliyet: ${tl(cost)} + alış giderleri ${tl(ce)} = ${tl(cost + ce)}`,
+      r.indexed ? `Yİ-ÜFE artışı %${nf1.format(ppi)} ≥ %${nf1.format(th)} → maliyet endekslenir: ${tl(cost + ce)} × ${nf1.format(1 + ppi / 100)} = ${tl(r.indexed_cost)}` : `Yİ-ÜFE artışı %${nf1.format(ppi)} < %${nf1.format(th)} → endeksleme yok`,
+      `Kazanç: ${tl(sale)} − satış giderleri ${tl(se)} − ${tl(r.indexed_cost)} = ${tl(r.gain)}`,
+      r.exempt ? "Elde tutma muafiyeti seçildi → vergi yok" : `Matrah: ${tl(Math.max(0, r.gain))} − istisna ${tl(ex)} = ${tl(r.taxable)}`,
+      ...(r.exempt ? [] : [`Artan oranlı tarifeye göre vergi: ${tl(r.tax)}`]),
+    ];
+    $<HTMLOListElement>("steps").replaceChildren(...steps.map((s) => { const li = document.createElement("li"); li.textContent = s; return li; }));
+  }
+  const h = readHash();
+  if (h.get("s")) $("sale").value = nf0.format(Number(h.get("s")));
+  if (h.get("c")) $("cost").value = nf0.format(Number(h.get("c")));
+  if (h.get("u")) $("ppi").value = h.get("u")!.replace(".", ",");
+  if (h.get("h") === "1") $("hold").checked = true;
+  renderTariffEditor($("tariff"), R.tariff, run);
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  $("hold").addEventListener("change", run);
+  run();
+</script>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  .field.check { display: flex; flex-direction: column; justify-content: flex-end; }
+  .assume { margin-top: 12px; }
+  .assume summary { cursor: pointer; font-weight: 600; }
+  .t-row { display: grid; grid-template-columns: minmax(110px, auto) minmax(0, 160px) minmax(0, 70px) auto; gap: 6px; align-items: center; margin: 4px 0; font-size: 0.85rem; }
+  .t-row input { min-width: 0; }
+  .steps li { margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

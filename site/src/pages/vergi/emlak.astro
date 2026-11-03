@@ -1,0 +1,74 @@
+---
+import Base from "../../layouts/Base.astro";
+import { paramInfo } from "../../lib/params.ts";
+import { DISCLAIMER } from "../../config.ts";
+const ids = ["emlak_konut", "emlak_isyeri", "emlak_arsa", "emlak_arazi", "emlak_buyuksehir_kat"];
+const info = Object.fromEntries(ids.map((id) => [id, paramInfo(id)]));
+const payload = Object.fromEntries(ids.map((id) => [id, info[id]?.value ?? null]));
+const unverified = Object.values(info).some((x) => x?.status !== "verified");
+---
+<Base title="Emlak vergisi hesaplayıcı" description="Konut, işyeri, arsa ve arazi için yıllık emlak vergisi: vergi değeri × oran, büyükşehir çarpanı, iki taksit. Tarayıcıda çalışır.">
+  <p class="muted small crumb"><a href="/vergi">Vergi</a> / Emlak vergisi</p>
+  <h1>Emlak vergisi</h1>
+  <p class="lead">Belediyeye yılda ne kadar emlak vergisi ödersiniz? Vergi değeri, mülk türü ve büyükşehir çarpanıyla.</p>
+  {unverified && <p class="card warn-note"><strong>Oranları kontrol edin.</strong> Oranlar mevzuat kaydından gelir ve resmî metinden henüz doğrulanmadı (<a href="/mevzuat">Mevzuat</a>). Son yıllarda vergi değerinin hesaplanması ve artış sınırlarıyla ilgili düzenlemeler yapıldı; belediyenizin bildirdiği vergi değerini kullanın.</p>}
+  <form class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="kind">Mülk türü</label><select id="kind"><option value="emlak_konut">Konut</option><option value="emlak_isyeri">İşyeri / diğer bina</option><option value="emlak_arsa">Arsa</option><option value="emlak_arazi">Arazi</option></select></div>
+      <div class="field"><label for="value">Vergi değeri (TL)</label><input id="value" inputmode="decimal" value="2.000.000" /><small>belediyenin tahakkuk ettirdiği değer; piyasa değeri değildir</small></div>
+      <div class="field"><label for="share">Hisse payınız (%)</label><input id="share" inputmode="decimal" value="100" /></div>
+      <div class="field"><label for="rate">Oran (binde) <span class="tag" id="rate-tag"></span></label><input id="rate" inputmode="decimal" /></div>
+      <div class="field check"><label><input type="checkbox" id="metro" checked /> Büyükşehir belediyesi sınırlarında</label><small>çarpan: <span id="mult-val"></span> <span class="tag">{info.emlak_buyuksehir_kat?.statusLabel}</span></small></div>
+    </div>
+  </form>
+  <p class="error" id="err" role="alert" hidden></p>
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Yıllık emlak vergisi</p><p class="s-value" id="o-annual">—</p><p class="muted small" id="o-annual-sub"></p></div>
+    <div class="card stat"><p class="s-label">Taksit (Mayıs ve Kasım)</p><p class="s-value" id="o-inst">—</p><p class="muted small">iki eşit taksit</p></div>
+    <div class="card stat"><p class="s-label">Aylık karşılığı</p><p class="s-value" id="o-month">—</p><p class="muted small">bütçe planlaması için</p></div>
+  </section>
+  <section>
+    <h2>Bilmeniz gerekenler</h2>
+    <ul class="muted small">
+      <li>Vergi = vergi değeri × oran (binde) × çarpan × hisse payı. Vergi değeri belediyelerin belirlediği değerlere göre hesaplanır; tapu satış bedeli veya piyasa değeri değildir.</li>
+      <li>Bazı durumlarda (ör. tek konutu olan emekli, gazi veya engelli vatandaşlar, belirli metrekare sınırları) emlak vergisi muafiyeti ya da sıfır oran uygulanabilir. Şartları belediyenizden ve güncel mevzuattan doğrulayın.</li>
+      <li>Ödeme Mayıs ve Kasım aylarında iki taksitle yapılır. Hesap tarayıcınızda yapılır.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="em-data" set:html={JSON.stringify({ payload, status: Object.fromEntries(ids.map((id) => [id, `${info[id]?.statusLabel ?? ""} · ${info[id]?.year ?? ""}`])) })}></script>
+</Base>
+<script>
+  import { propertyTax } from "../../lib/engine.ts";
+  import { parseAmount } from "../../lib/card.ts";
+  const D = JSON.parse(document.getElementById("em-data")!.textContent!) as { payload: Record<string, number>; status: Record<string, string> };
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf2 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  const kind = $<HTMLSelectElement>("kind");
+  function setRate() { $("rate").value = nf2.format(D.payload[kind.value]); $("rate-tag").textContent = D.status[kind.value]; }
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const value = parseAmount($("value").value), share = num($("share").value), rate = num($("rate").value);
+    const mult = $("metro").checked ? D.payload.emlak_buyuksehir_kat : 1;
+    $("mult-val").textContent = `${nf2.format(D.payload.emlak_buyuksehir_kat)}×`;
+    if (value == null || share == null || !(share > 0 && share <= 100) || rate == null) { err.textContent = "Değer, pay (1–100) ve oranı kontrol edin."; err.hidden = false; return; }
+    const r = propertyTax({ value: value * share / 100, rate_per_mille: rate, multiplier: mult });
+    $("o-annual").textContent = tl(r.annual);
+    $("o-annual-sub").textContent = `${tl(value * share / 100)} × binde ${nf2.format(rate)} × ${nf2.format(mult)}`;
+    $("o-inst").textContent = tl(r.installment);
+    $("o-month").textContent = tl(r.annual / 12);
+  }
+  kind.addEventListener("change", () => { setRate(); run(); });
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  $("metro").addEventListener("change", run);
+  setRate(); run();
+</script>
+<style is:global>
+  .crumb a { color: var(--ink-2); }
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  .field.check { display: flex; flex-direction: column; justify-content: flex-end; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

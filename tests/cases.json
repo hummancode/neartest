@@ -1930,6 +1930,143 @@
     }
    ],
    "raises": true
+  },
+  {
+   "name": "capital_gain_tax indexed cost",
+   "fn": "capital_gain_tax",
+   "args": [
+    {
+     "sale_price": 1000,
+     "cost": 400,
+     "purchase_expenses": 0,
+     "sale_expenses": 0,
+     "exemption": 100,
+     "brackets": [
+      [
+       100,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ],
+     "exempt_holding": false,
+     "index_threshold": 0.1,
+     "ppi_increase": 0.5
+    }
+   ],
+   "expect": {
+    "indexed": true,
+    "indexed_cost": 600.0,
+    "gain": 400.0,
+    "taxable": 300.0,
+    "tax": 50.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "400×1.5=600; 1000−600=400; −100 → 300; 10 + 200×20 %"
+  },
+  {
+   "name": "capital_gain_tax below indexation threshold",
+   "fn": "capital_gain_tax",
+   "args": [
+    {
+     "sale_price": 1000,
+     "cost": 400,
+     "purchase_expenses": 0,
+     "sale_expenses": 0,
+     "exemption": 100,
+     "brackets": [
+      [
+       100,
+       0.1
+      ],
+      [
+       null,
+       0.2
+      ]
+     ],
+     "exempt_holding": false,
+     "index_threshold": 0.1,
+     "ppi_increase": 0.05
+    }
+   ],
+   "expect": {
+    "indexed": false,
+    "gain": 600.0,
+    "tax": 90.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "500 taxable: 10 + 400×20 %"
+  },
+  {
+   "name": "property_tax metropolitan",
+   "fn": "property_tax",
+   "args": [
+    {
+     "value": 2000000,
+     "rate_per_mille": 1.0,
+     "multiplier": 2.0
+    }
+   ],
+   "expect": {
+    "annual": 4000.0,
+    "installment": 2000.0
+   },
+   "tol": 1e-09,
+   "note": "2 M × 1‰ × 2"
+  },
+  {
+   "name": "bes_projection zero return",
+   "fn": "bes_projection",
+   "args": [
+    {
+     "monthly": 100,
+     "years": 1,
+     "annual_return": 0.0,
+     "annual_fee": 0.0,
+     "state_rate": 0.3,
+     "vesting": 1.0,
+     "withholding": 0.1,
+     "inflation": 0.0,
+     "contribution_growth": 0.0
+    }
+   ],
+   "expect": {
+    "own_paid": 1200.0,
+    "state_paid": 360.0,
+    "net_exit": 1560.0,
+    "tax": 0.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "no growth, full vesting"
+  },
+  {
+   "name": "bes_projection irr equals fund return",
+   "fn": "bes_projection",
+   "args": [
+    {
+     "monthly": 100,
+     "years": 1,
+     "annual_return": 0.12682503013196977,
+     "annual_fee": 0.0,
+     "state_rate": 0.0,
+     "vesting": 1.0,
+     "withholding": 0.0,
+     "inflation": 0.0,
+     "contribution_growth": 0.0
+    }
+   ],
+   "expect": {
+    "own_balance": 1280.9328043328946,
+    "annual_irr": 0.12682503013196977
+   },
+   "tol": 1e-07,
+   "subset": true,
+   "note": "monthly 1 %, start-of-month deposits"
   }
  ]
 }

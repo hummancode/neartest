@@ -2,10 +2,13 @@
 import Base from "../../layouts/Base.astro";
 import { mevzuat, STATUS_LABEL } from "../../lib/params.ts";
 import { DISCLAIMER } from "../../config.ts";
-const tax = mevzuat.params.filter((p) => p.group === "Vergi ve SGK" || p.group === "Kredi vergileri" || p.id.startsWith("stopaj"));
+const tax = mevzuat.params.filter((p) => ["Vergi ve SGK", "Kredi vergileri", "Emlak vergisi", "Bireysel emeklilik (BES)"].includes(p.group) || p.id.startsWith("stopaj"));
 const tools = [
   { href: "/vergi/maas", t: "Brüt–net maaş", d: "SGK, işsizlik, kümülatif gelir vergisi, damga, asgari ücret istisnası; 12 ay. Netten brüte de." },
   { href: "/vergi/kira", t: "Kira geliri vergisi", d: "Konut kira geliri: istisna, götürü/gerçek gider, artan oranlı tarife." },
+  { href: "/vergi/deger-artis", t: "Konut satışı: değer artış kazancı", d: "Yİ-ÜFE ile endekslenmiş maliyet, istisna, artan oranlı tarife." },
+  { href: "/vergi/emlak", t: "Emlak vergisi", d: "Konut, işyeri, arsa, arazi; büyükşehir çarpanı, iki taksit." },
+  { href: "/bes", t: "BES: reel getiri ve devlet katkısı", d: "Katkı, devlet katkısı, kesinti, hak ediş ve stopajla çıkışta ne kalır?" },
   { href: "/mevduat", t: "Mevduat stopajı", d: "Vadeye göre stopaj sonrası net ve reel getiri." },
   { href: "/kredi", t: "Kredi vergileri (KKDF, BSMV)", d: "Kredinin gerçek maliyeti: vergiler ve masraflarla yıllık maliyet." },
 ];

@@ -814,3 +814,41 @@ export function prepayment(p: { principal: number; monthly_rate: number; months:
   return { installment_before: pay, balance_at: balance, prepaid, full, fee, remaining_before: remainingBefore, remaining_after: remainingAfter,
     new_installment: newPay, new_months: newMonths, months_saved: p.months - p.after_payments - newMonths, saved: remainingBefore - (prepaid + fee + remainingAfter) };
 }
+
+// --- capital gains on property, property tax, BES (ports of reel.engine) ---
+export function capitalGainTax(p: { sale_price: number; cost: number; purchase_expenses: number; sale_expenses: number; ppi_increase: number; exemption: number; brackets: Brackets; exempt_holding: boolean; index_threshold: number }) {
+  const baseCost = p.cost + p.purchase_expenses;
+  const indexed = p.ppi_increase >= p.index_threshold;
+  const indexedCost = indexed ? baseCost * (1 + p.ppi_increase) : baseCost;
+  const gain = p.sale_price - p.sale_expenses - indexedCost;
+  if (p.exempt_holding) return { exempt: true, indexed, indexed_cost: indexedCost, gain, taxable: 0, tax: 0, effective_rate: 0 };
+  const taxable = Math.max(0, gain - Math.max(0, p.exemption));
+  const tax = progressiveTax(taxable, p.brackets);
+  return { exempt: false, indexed, indexed_cost: indexedCost, gain, taxable, tax, effective_rate: gain > 0 ? tax / gain : 0 };
+}
+
+export function propertyTax(p: { value: number; rate_per_mille: number; multiplier: number }) {
+  const annual = (p.value * p.rate_per_mille) / 1000 * p.multiplier;
+  return { annual, installment: annual / 2 };
+}
+
+export function besProjection(p: { monthly: number; years: number; annual_return: number; annual_fee: number; state_rate: number; vesting: number; withholding: number; inflation: number; contribution_growth: number }) {
+  if (!(p.years > 0) || !(p.monthly > 0)) throw new SeriesError("years and contribution must be positive");
+  const n = 12 * p.years;
+  const m = ((1 + p.annual_return) * (1 - p.annual_fee)) ** (1 / 12) - 1;
+  let ownPaid = 0, statePaid = 0, ownBal = 0, stateBal = 0, realPaid = 0;
+  const flows: number[] = [];
+  for (let t = 0; t < n; t++) {
+    const c = p.monthly * (1 + p.contribution_growth) ** Math.floor(t / 12);
+    const grow = (1 + m) ** (n - t);
+    ownPaid += c; realPaid += c / (1 + p.inflation) ** (t / 12); statePaid += p.state_rate * c; ownBal += c * grow; stateBal += p.state_rate * c * grow;
+    flows.push(-c);
+  }
+  const vested = p.vesting * stateBal;
+  const tax = Math.max(0, p.withholding * ((ownBal - ownPaid) + p.vesting * (stateBal - statePaid)));
+  const netExit = ownBal + vested - tax;
+  flows.push(netExit);
+  const annualIrr = (1 + irr(flows)) ** 12 - 1;
+  return { own_paid: ownPaid, real_own_paid: realPaid, state_paid: statePaid, own_balance: ownBal, state_balance: stateBal, vested_state: vested, tax, net_exit: netExit,
+    real_net_exit: netExit / (1 + p.inflation) ** p.years, annual_irr: annualIrr, real_irr: realReturn(annualIrr, p.inflation) };
+}

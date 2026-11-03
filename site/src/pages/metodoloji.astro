@@ -276,7 +276,16 @@ import { DISCLAIMER } from "../config.ts";
       <li>Artan oranlı vergi: matrahın her dilime düşen kısmı o dilimin oranıyla vergilenir; dilim üst sınırları yıllık ve kümülatiftir.</li>
       <li>Maaş: SGK ve işsizlik primi = min(brüt, SGK tavanı) × oran; gelir vergisi matrahı = brüt − primler; aylık gelir vergisi = T(yılbaşından bu aya toplam matrah) − T(önceki ayların toplamı). Asgari ücret istisnası: aynı yöntemle asgari ücretin matrahına düşen vergi ve asgari ücretin damga vergisi düşülür. Netten brüte: Ocak ayı için ikiye bölme (bisection) ile çözülür.</li>
       <li>Kira: vergiye tabi kira = yıllık kira − istisna (uygulanıyorsa); götürü gider = oran × vergiye tabi kira; gerçek gider = giderler × vergiye tabi kira / toplam kira; vergi = tarife(matrah). Diğer gelirlerle birleştirme, stopaj ve mahsuplar kapsam dışıdır.</li>
-      <li>Fonksiyonlar Python ve TypeScript'te aynı elle hesaplanmış test vakalarıyla doğrulanır (<code>progressive_tax</code>, <code>payroll_year</code>, <code>gross_for_net</code>, <code>rental_income_tax</code>).</li>
+      <li>Değer artış kazancı: maliyet (+ alış giderleri), Yİ-ÜFE artışı eşik oranın üzerindeyse bu oranda endekslenir; kazanç = satış − satış giderleri − (endekslenmiş) maliyet; matrah = kazanç − istisna; vergi = tarife(matrah). Elde tutma muafiyeti kullanıcı seçimidir.</li>
+      <li>Emlak vergisi = vergi değeri × oran (binde) × çarpan (büyükşehirde) × hisse payı; iki eşit taksit.</li>
+      <li>Fonksiyonlar Python ve TypeScript'te aynı elle hesaplanmış test vakalarıyla doğrulanır (<code>progressive_tax</code>, <code>payroll_year</code>, <code>gross_for_net</code>, <code>rental_income_tax</code>, <code>capital_gain_tax</code>, <code>property_tax</code>).</li>
+    </ul>
+
+    <h2 id="bes">BES (bireysel emeklilik)</h2>
+    <ul>
+      <li>Katkılar her ayın başında yatırılır; yıl başlarında katkı artışı uygulanır. Aylık net büyüme m = [(1 + getiri)(1 − kesinti)]<sup>1/12</sup> − 1.</li>
+      <li>Fon değeri = Σ katkı<sub>t</sub> × (1 + m)<sup>n − t</sup>; devlet katkısı = oran × katkı, aynı şekilde büyür. Çıkışta: hak edilen devlet katkısı = hak ediş oranı × devlet katkısı fon değeri; stopaj = oran × (kendi getiriniz + hak edilen devlet katkısının getirisi).</li>
+      <li>Yıllık getiri = katkılar ve çıkış tutarının aylık iç verim oranının yıllık bileşiği; reel getiri Fisher ile. Devlet katkısının yıllık üst sınırı, giriş aidatı ve fon değişiklikleri kapsam dışıdır. Fonksiyon: <code>bes_projection</code> (Python + TS).</li>
     </ul>
 
     <h2 id="emtia">Emtia fiyatları</h2>

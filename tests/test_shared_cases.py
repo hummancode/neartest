@@ -31,7 +31,7 @@ def expand(arg):
 def call(fn, args):
     args = [expand(a) for a in args]
     if fn in ("rent_vs_buy", "holding_returns", "loan_cost", "installment_vs_cash", "card_minimum_payoff",
-              "refinance_compare", "deposit_net", "required_saving", "breakeven_gross_rate", "province_wealth", "wealth_inequality", "housing_affordability", "rental_income_tax", "prepayment"):
+              "refinance_compare", "deposit_net", "required_saving", "breakeven_gross_rate", "province_wealth", "wealth_inequality", "housing_affordability", "rental_income_tax", "prepayment", "capital_gain_tax", "property_tax", "bes_projection"):
         return getattr(e, fn)(**args[0])
     if fn == "gold_allocation":
         return e.gold_allocation(args[0], args[1], **args[2])

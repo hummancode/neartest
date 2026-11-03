@@ -179,4 +179,11 @@
   ücreti; kazanç = kurtulunan faiz + KKDF + BSMV; konut kredisi seçeneği) ve `/kredi-karsilastir` (3 teklif; faiz,
   tahsis ücreti, sigorta, aylık masraf; gerçek ve reel yıllık maliyet; "en düşük faiz ≠ en ucuz" uyarısı).
   Motor: `prepayment` (Python + TS, ortak vakalar, önce test).
+- 2026-11-03 — **Vergi ve BES**: `/vergi/deger-artis` (konut satışında değer artış kazancı: Yİ-ÜFE endekslemesi, istisna,
+  elde tutma muafiyeti seçimi, adım adım hesap), `/vergi/emlak` (konut/işyeri/arsa/arazi, büyükşehir çarpanı, hisse
+  payı, taksit), `/bes` (aylık katkı + yıllık artış, devlet katkısı, fon getirisi ve kesintisi, 5 çıkış senaryosu —
+  hak ediş ve stopaj, bugünün parasıyla çıkış tutarı, reel iç verim, devlet katkısının etkisi, yıllara göre grafik).
+  Motor: `capital_gain_tax`, `property_tax`, `bes_projection` (Python + TS, ortak vakalar, önce test). 14 yeni
+  mevzuat parametresi (2025 değerleri, "doğrulanmadı"). Ortak tarife düzenleyici (`site/src/lib/tariff-ui.ts`).
+  MTV ertelendi: resmî tarife tabloları (motor hacmi × yaş × değer) doğrulanmadan girilemez.
 

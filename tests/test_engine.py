@@ -866,3 +866,50 @@ def test_prepayment_term_mode_saves_more_than_payment_mode():
     assert t["saved"] > p["saved"] > 0
     with pytest.raises(e.SeriesError):
         e.prepayment(**{**kw, "after_payments": 36}, mode="term")
+
+
+# --- capital gains on property, property tax, private pension (BES) ------------------
+
+def test_capital_gain_tax_indexed_and_not():
+    br = [[100, 0.1], [None, 0.2]]
+    kw = dict(sale_price=1000, cost=400, purchase_expenses=0, sale_expenses=0, exemption=100, brackets=br,
+              exempt_holding=False, index_threshold=0.10)
+    a = e.capital_gain_tax(**kw, ppi_increase=0.5)     # ÜFE +50 % ≥ 10 % → cost 400 × 1.5 = 600
+    assert a["indexed"] is True and close(a["indexed_cost"], 600.0) and close(a["gain"], 400.0)
+    assert close(a["taxable"], 300.0) and close(a["tax"], 50.0)                     # 10 + 200 × 20 %
+    b = e.capital_gain_tax(**kw, ppi_increase=0.05)    # below threshold → no indexation
+    assert b["indexed"] is False and close(b["gain"], 600.0) and close(b["tax"], 90.0)   # 10 + 400 × 20 %
+    c = e.capital_gain_tax(**{**kw, "exempt_holding": True}, ppi_increase=0.5)
+    assert c["tax"] == 0.0 and c["exempt"] is True
+    loss = e.capital_gain_tax(**{**kw, "sale_price": 500}, ppi_increase=0.5)
+    assert loss["gain"] < 0 and loss["tax"] == 0.0
+
+
+def test_property_tax():
+    t = e.property_tax(value=2_000_000, rate_per_mille=1.0, multiplier=2.0)     # 2 M × 1‰ × 2 = 4 000
+    assert close(t["annual"], 4000.0) and close(t["installment"], 2000.0)
+
+
+def test_bes_projection_hand_computed():
+    # 0 % return: 100/month × 12 = 1 200 own + 30 % state = 360; full vesting, nothing to tax → 1 560
+    a = e.bes_projection(monthly=100, years=1, annual_return=0.0, annual_fee=0.0, state_rate=0.30, vesting=1.0,
+                         withholding=0.10, inflation=0.0, contribution_growth=0.0)
+    assert close(a["own_paid"], 1200.0) and close(a["state_paid"], 360.0) and close(a["net_exit"], 1560.0) and a["tax"] == 0.0
+    assert close(a["real_own_paid"], 1200.0)                       # no inflation
+    # 12 % inflation: month t's 100 TL is worth 100 / 1.12^(t/12) today
+    d = e.bes_projection(monthly=100, years=1, annual_return=0.0, annual_fee=0.0, state_rate=0.0, vesting=1.0,
+                         withholding=0.0, inflation=0.12, contribution_growth=0.0)
+    assert close(d["real_own_paid"], sum(100 / 1.12 ** (t / 12) for t in range(12)), 1e-9)
+    # monthly 1 % (annual 1.01¹² − 1), paid at the start of each month: balance = 100·1.01·(1.01¹² − 1)/0.01
+    R = 1.01 ** 12 - 1
+    b = e.bes_projection(monthly=100, years=1, annual_return=R, annual_fee=0.0, state_rate=0.0, vesting=1.0,
+                         withholding=0.0, inflation=0.0, contribution_growth=0.0)
+    assert close(b["own_balance"], 100 * 1.01 * (1.01 ** 12 - 1) / 0.01, 1e-9)
+    assert close(b["annual_irr"], R, 1e-7)                         # the saver earns exactly the fund return
+    # withholding on gains and partial vesting of the state contribution
+    c = e.bes_projection(monthly=100, years=1, annual_return=R, annual_fee=0.0, state_rate=0.30, vesting=0.5,
+                         withholding=0.10, inflation=0.0, contribution_growth=0.0)
+    own_gain = c["own_balance"] - 1200
+    state_gain = c["state_balance"] - 360
+    assert close(c["tax"], 0.10 * (own_gain + 0.5 * state_gain), 1e-9)
+    assert close(c["net_exit"], c["own_balance"] + 0.5 * c["state_balance"] - c["tax"], 1e-9)

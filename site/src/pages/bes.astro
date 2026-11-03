@@ -1,0 +1,138 @@
+---
+import Base from "../layouts/Base.astro";
+import { paramInfo } from "../lib/params.ts";
+import { DISCLAIMER } from "../config.ts";
+const ids = ["bes_devlet_katkisi", "bes_hakedis_3y", "bes_hakedis_6y", "bes_hakedis_10y", "bes_stopaj_emeklilik", "bes_stopaj_10y", "bes_stopaj_diger"];
+const info = Object.fromEntries(ids.map((id) => [id, paramInfo(id)]));
+const v = (id: string) => (info[id]?.value as number) ?? 0;
+// Exit scenarios: share of the state contribution paid out and withholding rate on gains.
+const scenarios = [
+  { id: "emeklilik", label: "Emeklilik (56 yaş ve 10 yıl sistemde)", vesting: 100, withholding: v("bes_stopaj_emeklilik"), minYears: 10 },
+  { id: "10y", label: "10 yıl sonra ayrılma (emeklilik öncesi)", vesting: v("bes_hakedis_10y"), withholding: v("bes_stopaj_10y"), minYears: 10 },
+  { id: "6y", label: "6–10 yıl arası ayrılma", vesting: v("bes_hakedis_6y"), withholding: v("bes_stopaj_diger"), minYears: 6 },
+  { id: "3y", label: "3–6 yıl arası ayrılma", vesting: v("bes_hakedis_3y"), withholding: v("bes_stopaj_diger"), minYears: 3 },
+  { id: "0y", label: "3 yıldan önce ayrılma", vesting: 0, withholding: v("bes_stopaj_diger"), minYears: 1 },
+];
+const payload = { state: v("bes_devlet_katkisi"), scenarios };
+const unverified = Object.values(info).some((x) => x?.status !== "verified");
+---
+<Base title="BES: reel getiri ve devlet katkısı" description="Bireysel emeklilik sisteminde aylık katkı, devlet katkısı, fon getirisi ve kesinti, hak ediş ve stopajla çıkışta eline ne geçer; bugünün parasıyla ve yıllık iç verimle.">
+  <h1>BES: çıkışta ne kalır?</h1>
+  <p class="lead">Bireysel emeklilikte her ay ödediğiniz katkı, devlet katkısı, fon getirisi ve kesintilerle çıkışta ne olur? Sonucu bugünün parasıyla ve yıllık getiri oranıyla görün.</p>
+  {unverified && <p class="card warn-note"><strong>Oranları kontrol edin.</strong> Devlet katkısı, hak ediş ve stopaj oranları mevzuat kaydından gelir ve resmî metinden doğrulanmadı ({info.bes_devlet_katkisi?.year} değerleri, <a href="/mevzuat">Mevzuat</a>). Devlet katkısının oranı ve üst sınırı değişebilir.</p>}
+
+  <form class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="monthly">Aylık katkı payı (TL)</label><input id="monthly" inputmode="decimal" value="3.000" /></div>
+      <div class="field"><label for="years">Süre (yıl)</label><input id="years" inputmode="numeric" value="10" /></div>
+      <div class="field"><label for="growth">Katkıyı her yıl artır (%)</label><input id="growth" inputmode="decimal" value="25" /><small>ör. maaş artışıyla birlikte</small></div>
+      <div class="field"><label for="ret">Beklenen yıllık fon getirisi (%)</label><input id="ret" inputmode="decimal" value="32" /><small>varsayım — geçmiş getiri geleceği göstermez</small></div>
+      <div class="field"><label for="fee">Yıllık fon kesintisi (%)</label><input id="fee" inputmode="decimal" value="1,5" /><small>fon toplam gider kesintisi (fon bilgi formunda)</small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" value="28" /><small>varsayım</small></div>
+      <div class="field"><label for="state">Devlet katkısı (%) <span class="tag">{info.bes_devlet_katkisi?.statusLabel} · {info.bes_devlet_katkisi?.year}</span></label><input id="state" inputmode="decimal" value={String(payload.state).replace(".", ",")} /></div>
+      <div class="field"><label for="exit">Çıkış senaryosu</label><select id="exit">{scenarios.map((s) => <option value={s.id}>{s.label}</option>)}</select><small id="exit-note"></small></div>
+    </div>
+  </form>
+  <p class="error" id="err" role="alert" hidden></p>
+
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Çıkışta elinize geçen</p><p class="s-value" id="o-net">—</p><p class="muted small" id="o-net-sub"></p></div>
+    <div class="card stat"><p class="s-label">Bugünün parasıyla</p><p class="s-value" id="o-real">—</p><p class="muted small" id="o-real-sub"></p></div>
+    <div class="card stat"><p class="s-label">Yıllık getiriniz (reel)</p><p class="s-value" id="o-irr">—</p><p class="muted small" id="o-irr-sub"></p></div>
+  </section>
+
+  <section class="card">
+    <h2>Nereden geliyor?</h2>
+    <div class="scroll-x"><table class="data bes" id="tbl"><tbody></tbody></table></div>
+    <p class="muted small" id="state-note"></p>
+  </section>
+
+  <section class="card">
+    <h2>Hangi yıl çıkarsanız?</h2>
+    <p class="muted small">Seçili senaryonun kuralları (hak ediş, stopaj) her yıl için aynı varsayılarak; bugünün TL'siyle.</p>
+    <div id="chart" class="chart-box"></div>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li>Katkılar her ayın başında yatırılır; fon değeri her yıl (1 + getiri) × (1 − kesinti) oranında büyür (aylık bileşik). Devlet katkısı katkınızın belirli bir yüzdesidir; yıllık üst sınır ve diğer koşullar hesaba katılmaz.</li>
+      <li>Çıkışta devlet katkısının yalnızca hak ettiğiniz kısmı ödenir; getiri (sizin ve hak edilen devlet katkısının getirisi) üzerinden stopaj kesilir.</li>
+      <li>Yıllık getiriniz: ödediğiniz katkılar ile çıkışta elinize geçen tutar arasındaki iç verim oranı. Devlet katkısı bu oranı fon getirisinin üstüne çıkarabilir.</li>
+      <li>Bu bir hesaplamadır; bir fonu veya BES'i önermez. Fon getirileri değişkendir. Formül: <a href="/metodoloji#bes">Metodoloji</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="b-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { besProjection, SeriesError } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  type Sc = { id: string; label: string; vesting: number; withholding: number; minYears: number };
+  const D = JSON.parse(document.getElementById("b-data")!.textContent!) as { state: number; scenarios: Sc[] };
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const pc = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}%${nf1.format(Math.abs(v * 100))}`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const monthly = parseAmount($("monthly").value), years = Math.round(num($("years").value) ?? NaN);
+    const g = num($("growth").value), ret = num($("ret").value), fee = num($("fee").value), inf = num($("inf").value), st = num($("state").value);
+    const sc = D.scenarios.find((s) => s.id === $<HTMLSelectElement>("exit").value)!;
+    $("exit-note").textContent = `devlet katkısının %${nf1.format(sc.vesting)} kadarı ödenir · getiriden %${nf1.format(sc.withholding)} stopaj`;
+    if (monthly == null || !(years >= 1 && years <= 60)) return fail("Katkı tutarını ve süreyi (1–60 yıl) kontrol edin.");
+    if ([g, ret, fee, inf, st].some((x) => x == null)) return fail("Oranları kontrol edin.");
+    if (years < sc.minYears) $("exit-note").textContent += ` · bu senaryo için en az ${sc.minYears} yıl gerekir`;
+    const base = { monthly, annual_return: ret! / 100, annual_fee: fee! / 100, inflation: inf! / 100, contribution_growth: g! / 100, vesting: sc.vesting / 100, withholding: sc.withholding / 100 };
+    let r, noState;
+    try { r = besProjection({ ...base, years, state_rate: st! / 100 }); noState = besProjection({ ...base, years, state_rate: 0 }); }
+    catch (e) { return fail(e instanceof SeriesError ? "Bu değerlerle hesaplanamadı." : "Hata."); }
+    writeHash({ k: String(Math.round(monthly)), y: String(years), g: String(g), r: String(ret), c: sc.id });
+    $("o-net").textContent = tl(r.net_exit);
+    $("o-net-sub").textContent = `${years} yılda ödediğiniz: ${tl(r.own_paid)}`;
+    $("o-real").textContent = tl(r.real_net_exit);
+    $("o-real-sub").textContent = `ödediklerinizin bugünkü değeriyle kıyaslayın (enflasyon %${nf1.format(inf!)})`;
+    $("o-irr").textContent = pc(r.real_irr);
+    $("o-irr-sub").textContent = `nominal ${pc(r.annual_irr)} · devlet katkısı olmasaydı reel ${pc(noState.real_irr)}`;
+    const rows: [string, string][] = [
+      ["Ödediğiniz katkılar", tl(r.own_paid)],
+      ["Katkılarınızın fon değeri", tl(r.own_balance)],
+      ["Yatan devlet katkısı", tl(r.state_paid)],
+      ["Devlet katkısının fon değeri", tl(r.state_balance)],
+      [`Hak edilen devlet katkısı (%${nf1.format(sc.vesting)})`, tl(r.vested_state)],
+      ["Stopaj", `−${tl(r.tax)}`],
+      ["Çıkışta elinize geçen", tl(r.net_exit)],
+    ];
+    document.querySelector("#tbl tbody")!.replaceChildren(...rows.map(([a, b], i) => { const tr = document.createElement("tr"); if (i === rows.length - 1) tr.className = "key"; const th = document.createElement("th"); th.scope = "row"; th.textContent = a; const td = document.createElement("td"); td.textContent = b; tr.append(th, td); return tr; }));
+    $("state-note").textContent = `Devlet katkısı çıkıştaki tutarı ${tl(r.net_exit - noState.net_exit)} artırıyor.`;
+    // exit value by year (today's money), same scenario rules
+    const ys = Array.from({ length: years }, (_, i) => i + 1);
+    const box = $<HTMLDivElement>("chart");
+    const pts = ys.map((y) => besProjection({ ...base, years: y, state_rate: st! / 100 }));
+    renderChart(box, { months: ys.map((y) => `${2026 + y}-12`), series: [
+      { key: "net", label: "Çıkışta (bugünün TL'si)", color: "var(--cat-1)", values: pts.map((p) => p.real_net_exit) },
+      { key: "paid", label: "Ödenen katkı (bugünün TL'si)", color: "var(--cat-2)", values: pts.map((p) => p.real_own_paid) },
+    ] }, { baseline: null, allowLog: false, format: tl, xLabels: ys.map((y) => `${y}. yıl`), tickEvery: Math.max(1, Math.ceil(years / 8)) });
+  }
+  const h = readHash();
+  if (h.get("k")) $("monthly").value = nf0.format(Number(h.get("k")));
+  if (h.get("y")) $("years").value = h.get("y")!;
+  if (h.get("g")) $("growth").value = h.get("g")!.replace(".", ",");
+  if (h.get("r")) $("ret").value = h.get("r")!.replace(".", ",");
+  if (h.get("c") && D.scenarios.some((s) => s.id === h.get("c"))) $<HTMLSelectElement>("exit").value = h.get("c")!;
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  $("exit").addEventListener("change", run);
+  let w = 0;
+  new ResizeObserver(() => { const b = $<HTMLDivElement>("chart"); if (Math.abs(b.clientWidth - w) > 2) { w = b.clientWidth; run(); } }).observe($("chart"));
+</script>
+<style is:global>
+  .warn-note { border-left: 4px solid var(--warn-bg); }
+  table.bes td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.bes tr.key { font-weight: 700; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

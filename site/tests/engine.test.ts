@@ -54,6 +54,9 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   gross_for_net: e.grossForNet,
   rental_income_tax: e.rentalIncomeTax,
   prepayment: e.prepayment,
+  capital_gain_tax: e.capitalGainTax,
+  property_tax: e.propertyTax,
+  bes_projection: e.besProjection,
   housing_affordability: e.housingAffordability,
   lorenz_lognormal: e.lorenzLognormal,
 };

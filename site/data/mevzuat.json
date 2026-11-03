@@ -1181,6 +1181,706 @@
    "last_checked": "2026-11-03",
    "stale": false,
    "check_every_days": 365
+  },
+  {
+   "id": "dak_istisna",
+   "label": "Değer artış kazancı istisnası (yıllık)",
+   "unit": "TL",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/deger-artis"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 120000,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "2025 değeri; 2026 için güncel değer resmî metinden girilmeli. GVK mük. 80."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 120000,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "2025 değeri; 2026 için güncel değer resmî metinden girilmeli. GVK mük. 80."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "dak_endeks_esik",
+   "label": "Değer artışında maliyet endekslemesi için Yİ-ÜFE eşiği",
+   "unit": "%",
+   "group": "Vergi ve SGK",
+   "used_by": [
+    "/vergi/deger-artis"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 10,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "Alış ve satış arasında Yİ-ÜFE artışı bu oranın altındaysa maliyet endekslenmez."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 10,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "Alış ve satış arasında Yİ-ÜFE artışı bu oranın altındaysa maliyet endekslenmez."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "emlak_konut",
+   "label": "Emlak vergisi — konut",
+   "unit": "binde",
+   "group": "Emlak vergisi",
+   "used_by": [
+    "/vergi/emlak"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 1,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "Emlak Vergisi Kanunu. Büyükşehir belediyesi sınırlarında oranlar çarpanla artırılır."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 1,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "Emlak Vergisi Kanunu. Büyükşehir belediyesi sınırlarında oranlar çarpanla artırılır."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "emlak_isyeri",
+   "label": "Emlak vergisi — işyeri ve diğer binalar",
+   "unit": "binde",
+   "group": "Emlak vergisi",
+   "used_by": [
+    "/vergi/emlak"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 2,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 2,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "emlak_arsa",
+   "label": "Emlak vergisi — arsa",
+   "unit": "binde",
+   "group": "Emlak vergisi",
+   "used_by": [
+    "/vergi/emlak"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 3,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 3,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "emlak_arazi",
+   "label": "Emlak vergisi — arazi",
+   "unit": "binde",
+   "group": "Emlak vergisi",
+   "used_by": [
+    "/vergi/emlak"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 1,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 1,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "emlak_buyuksehir_kat",
+   "label": "Emlak vergisi — büyükşehir çarpanı",
+   "unit": "kat",
+   "group": "Emlak vergisi",
+   "used_by": [
+    "/vergi/emlak"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 2,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "Büyükşehir belediyesi sınırlarında oranlar %100 artırımlı uygulanır."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 2,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "Büyükşehir belediyesi sınırlarında oranlar %100 artırımlı uygulanır."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_devlet_katkisi",
+   "label": "BES devlet katkısı oranı",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Emeklilik Gözetim Merkezi",
+     "url": "https://www.egm.org.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 30,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.egm.org.tr"
+    },
+    "note": "2025 değeri; 2026 için güncel değer resmî metinden girilmeli. Katkı payının belirli bir oranı; yıllık üst sınır vardır (brüt asgari ücretin yıllık toplamının %30'u — doğrulanmalı)."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 30,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.egm.org.tr"
+     },
+     "note": "2025 değeri; 2026 için güncel değer resmî metinden girilmeli. Katkı payının belirli bir oranı; yıllık üst sınır vardır (brüt asgari ücretin yıllık toplamının %30'u — doğrulanmalı)."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 90
+  },
+  {
+   "id": "bes_hakedis_3y",
+   "label": "BES devlet katkısı hak edişi — 3 yıl",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Emeklilik Gözetim Merkezi",
+     "url": "https://www.egm.org.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.egm.org.tr"
+    },
+    "note": "Sistemde 3–6 yıl kalıp ayrılanlar için."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 15,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.egm.org.tr"
+     },
+     "note": "Sistemde 3–6 yıl kalıp ayrılanlar için."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_hakedis_6y",
+   "label": "BES devlet katkısı hak edişi — 6 yıl",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Emeklilik Gözetim Merkezi",
+     "url": "https://www.egm.org.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 35,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.egm.org.tr"
+    },
+    "note": "Sistemde 6–10 yıl."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 35,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.egm.org.tr"
+     },
+     "note": "Sistemde 6–10 yıl."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_hakedis_10y",
+   "label": "BES devlet katkısı hak edişi — 10 yıl",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Emeklilik Gözetim Merkezi",
+     "url": "https://www.egm.org.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 60,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.egm.org.tr"
+    },
+    "note": "10 yıl ve üzeri, emeklilik hakkı kazanmadan."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 60,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.egm.org.tr"
+     },
+     "note": "10 yıl ve üzeri, emeklilik hakkı kazanmadan."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_stopaj_emeklilik",
+   "label": "BES stopajı — emeklilik",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 5,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": "Getiri üzerinden (56 yaş ve 10 yıl)."
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 5,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": "Getiri üzerinden (56 yaş ve 10 yıl)."
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_stopaj_10y",
+   "label": "BES stopajı — 10 yıl sistemde, emeklilik öncesi",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 10,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 10,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
+  },
+  {
+   "id": "bes_stopaj_diger",
+   "label": "BES stopajı — diğer ayrılmalar",
+   "unit": "%",
+   "group": "Bireysel emeklilik (BES)",
+   "used_by": [
+    "/bes"
+   ],
+   "official_sources": [
+    {
+     "title": "Gelir İdaresi Başkanlığı",
+     "url": "https://www.gib.gov.tr"
+    },
+    {
+     "title": "Resmî Gazete",
+     "url": "https://www.resmigazete.gov.tr"
+    }
+   ],
+   "note": "",
+   "current": {
+    "value": 15,
+    "effective_from": "2025-01-01",
+    "status": "candidate",
+    "checked_at": "2026-11-03",
+    "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+    "source": {
+     "title": "Resmî metin okunmadı (eğitim bilgisi)",
+     "url": "https://www.gib.gov.tr"
+    },
+    "note": ""
+   },
+   "upcoming": null,
+   "history": [
+    {
+     "value": 15,
+     "effective_from": "2025-01-01",
+     "status": "candidate",
+     "checked_at": "2026-11-03",
+     "checked_by": "Claude (eğitim bilgisi; resmî metin bu ortamdan okunamadı — doğrulanmalı)",
+     "source": {
+      "title": "Resmî metin okunmadı (eğitim bilgisi)",
+      "url": "https://www.gib.gov.tr"
+     },
+     "note": ""
+    }
+   ],
+   "last_checked": "2026-11-03",
+   "stale": false,
+   "check_every_days": 365
   }
  ]
 }

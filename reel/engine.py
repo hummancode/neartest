@@ -1245,3 +1245,71 @@ def prepayment(*, principal: float, monthly_rate: float, months: int, kkdf: floa
             "new_installment": new_pay, "new_months": new_months,
             "months_saved": (months - after_payments) - new_months,
             "saved": remaining_before - (prepaid + fee + remaining_after)}
+
+
+# ---------------------------------------------------------------------------
+# Capital gains on property, property tax, private pension (BES)
+# ---------------------------------------------------------------------------
+
+def capital_gain_tax(*, sale_price: float, cost: float, purchase_expenses: float, sale_expenses: float,
+                     ppi_increase: float, exemption: float, brackets: list, exempt_holding: bool,
+                     index_threshold: float) -> dict:
+    """Simplified capital gains tax on selling real estate (değer artış kazancı).
+
+    Cost (+ purchase expenses) is indexed by the PPI increase when that increase is at least
+    `index_threshold`; gain = sale − sale expenses − (indexed) cost; taxable = gain − exemption;
+    tax = progressive_tax(taxable). exempt_holding=True (the caller decided the holding-period exemption applies) → 0.
+    """
+    base_cost = cost + purchase_expenses
+    indexed = ppi_increase >= index_threshold
+    indexed_cost = base_cost * (1.0 + ppi_increase) if indexed else base_cost
+    gain = sale_price - sale_expenses - indexed_cost
+    if exempt_holding:
+        return {"exempt": True, "indexed": indexed, "indexed_cost": indexed_cost, "gain": gain, "taxable": 0.0, "tax": 0.0, "effective_rate": 0.0}
+    taxable = max(0.0, gain - max(0.0, exemption))
+    tax = progressive_tax(taxable, brackets)
+    return {"exempt": False, "indexed": indexed, "indexed_cost": indexed_cost, "gain": gain, "taxable": taxable, "tax": tax,
+            "effective_rate": tax / gain if gain > 0 else 0.0}
+
+
+def property_tax(*, value: float, rate_per_mille: float, multiplier: float) -> dict:
+    """Annual property tax = value × rate (per mille) × multiplier (e.g. 2 in metropolitan municipalities); paid in 2 installments."""
+    annual = value * rate_per_mille / 1000.0 * multiplier
+    return {"annual": annual, "installment": annual / 2}
+
+
+def bes_projection(*, monthly: float, years: int, annual_return: float, annual_fee: float, state_rate: float,
+                   vesting: float, withholding: float, inflation: float, contribution_growth: float) -> dict:
+    """Private pension (BES) projection with monthly contributions paid at the start of each month.
+
+    Net fund growth: (1 + annual_return)(1 − annual_fee) per year, compounded monthly. Contributions grow by
+    `contribution_growth` once a year. State contribution = state_rate × own contribution (caps ignored), of which
+    `vesting` is paid at exit. Withholding applies to gains (own + vested state). Returns balances, exit value,
+    its value in today's money and the saver's annual IRR.
+    """
+    if years <= 0 or monthly <= 0:
+        raise SeriesError("years and contribution must be positive")
+    n = 12 * years
+    m = ((1.0 + annual_return) * (1.0 - annual_fee)) ** (1.0 / 12.0) - 1.0
+    own_paid = state_paid = own_bal = state_bal = real_paid = 0.0
+    flows = []
+    for t in range(n):
+        c = monthly * (1.0 + contribution_growth) ** (t // 12)
+        grow = (1.0 + m) ** (n - t)
+        own_paid += c
+        real_paid += c / (1.0 + inflation) ** (t / 12.0)
+        state_paid += state_rate * c
+        own_bal += c * grow
+        state_bal += state_rate * c * grow
+        flows.append(-c)
+    vested = vesting * state_bal
+    tax = withholding * ((own_bal - own_paid) + vesting * (state_bal - state_paid))
+    tax = max(0.0, tax)
+    net_exit = own_bal + vested - tax
+    flows.append(net_exit)
+    mi = irr(flows)
+    annual_irr = (1.0 + mi) ** 12 - 1.0
+    return {"own_paid": own_paid, "real_own_paid": real_paid, "state_paid": state_paid, "own_balance": own_bal, "state_balance": state_bal,
+            "vested_state": vested, "tax": tax, "net_exit": net_exit,
+            "real_net_exit": net_exit / (1.0 + inflation) ** years, "annual_irr": annual_irr,
+            "real_irr": real_return(annual_irr, inflation)}

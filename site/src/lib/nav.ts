@@ -34,6 +34,7 @@ export const NAV: NavGroup[] = [
   ] },
   { label: "Hesapla", items: [
     { href: "/vergi", label: "Vergi hesaplayıcıları", desc: "Brüt–net maaş, kira geliri vergisi, mevduat stopajı, kredi vergileri; oranlar mevzuat kaydından.", keywords: "vergi maaş brüt net kira gelir vergisi bordro sgk" },
+    { href: "/bes", label: "BES: reel getiri ve devlet katkısı", desc: "Katkı, devlet katkısı, kesinti, hak ediş ve stopajla çıkışta ne kalır?", keywords: "bes bireysel emeklilik devlet katkısı fon" },
     { href: "/varliklarim", label: "Varlıklarım: net servet", desc: "Ev, araba, altın, birikim ve borçların; zaman içinde net servetin nominal, reel, dolar ve altın cinsinden.", keywords: "servet varlık borç mal portföy net değer" },
     { href: "/portfoy", label: "Portföyüm", desc: "Kendi alımlarınızın gerçek getirisi. Veriler tarayıcınızda kalır." },
     { href: "/mevduat", label: "Mevduat: net ve reel getiri", desc: "Stopaj sonrası net ve reel getiri; enflasyonu yeniyor mu?", keywords: "faiz stopaj" },
