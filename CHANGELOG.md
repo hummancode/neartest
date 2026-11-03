@@ -175,4 +175,8 @@
   ve konut kira geliri vergisi (istisna, götürü/gerçek gider, adım adım hesap). Motor: `progressive_tax`, `payroll_year`,
   `gross_for_net`, `rental_income_tax` (Python + TS, ortak vakalar, önce test). Mevzuat kaydı artan oranlı tarifeleri
   kabul ediyor; 9 yeni parametre (2025 değerleri, durum "doğrulanmadı" — 2026 değerleri resmî metinden girilmeli).
+- 2026-11-03 — **Kredi**: `/erken-kapama` (ara ödeme veya tam kapama; "vade kısalsın" / "taksit düşsün"; erken ödeme
+  ücreti; kazanç = kurtulunan faiz + KKDF + BSMV; konut kredisi seçeneği) ve `/kredi-karsilastir` (3 teklif; faiz,
+  tahsis ücreti, sigorta, aylık masraf; gerçek ve reel yıllık maliyet; "en düşük faiz ≠ en ucuz" uyarısı).
+  Motor: `prepayment` (Python + TS, ortak vakalar, önce test).
 

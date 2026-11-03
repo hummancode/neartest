@@ -1195,3 +1195,53 @@ def rental_income_tax(*, annual_rent: float, exemption: float, method: str, actu
     tax = progressive_tax(base, brackets)
     return {"taxable_rent": taxable, "expense": expense, "base": base, "tax": tax,
             "effective_rate": tax / annual_rent if annual_rent > 0 else 0.0}
+
+
+# ---------------------------------------------------------------------------
+# Early repayment
+# ---------------------------------------------------------------------------
+
+def prepayment(*, principal: float, monthly_rate: float, months: int, kkdf: float, bsmv: float,
+               after_payments: int, amount: float, mode: str, fee_rate: float) -> dict:
+    """Partial or full early repayment after `after_payments` installments of an equal-installment loan.
+
+    mode "payment": keep the remaining term, the installment falls; mode "term": keep the installment, the term
+    shortens (last payment smaller). fee_rate: early-repayment fee as a share of the amount prepaid.
+    saved = remaining payments without prepaying − (prepaid + fee + remaining payments after prepaying).
+    """
+    if not 1 <= after_payments < months:
+        raise SeriesError("after_payments must be between 1 and term − 1")
+    if amount <= 0 or mode not in ("payment", "term"):
+        raise SeriesError("amount must be positive and mode 'payment' or 'term'")
+    plan = amortization(principal, monthly_rate, months, kkdf, bsmv)
+    pay = plan[0]["installment"]
+    balance = plan[after_payments - 1]["balance"]
+    remaining_before = sum(r["installment"] for r in plan[after_payments:])
+    prepaid = min(amount, balance)
+    full = prepaid >= balance - 1e-9
+    fee = prepaid * fee_rate
+    left = balance - prepaid
+    t_load = 1.0 + kkdf + bsmv
+    if full or left <= 1e-9:
+        new_pay, new_months, remaining_after = 0.0, 0, 0.0
+    elif mode == "payment":
+        rest = amortization(left, monthly_rate, months - after_payments, kkdf, bsmv)
+        new_pay, new_months, remaining_after = rest[0]["installment"], len(rest), sum(r["installment"] for r in rest)
+    else:
+        new_pay, new_months, remaining_after, bal = pay, 0, 0.0, left
+        while bal > 1e-9:
+            charge = bal * monthly_rate * t_load
+            new_months += 1
+            if pay - charge >= bal:
+                remaining_after += bal + charge
+                bal = 0.0
+            else:
+                remaining_after += pay
+                bal -= pay - charge
+            if new_months > 10 * months:
+                raise SeriesError("installment does not cover the interest")
+    return {"installment_before": pay, "balance_at": balance, "prepaid": prepaid, "full": full, "fee": fee,
+            "remaining_before": remaining_before, "remaining_after": remaining_after,
+            "new_installment": new_pay, "new_months": new_months,
+            "months_saved": (months - after_payments) - new_months,
+            "saved": remaining_before - (prepaid + fee + remaining_after)}

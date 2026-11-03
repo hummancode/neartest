@@ -780,3 +780,37 @@ export function rentalIncomeTax(p: { annual_rent: number; exemption: number; met
   const tax = progressiveTax(base, p.brackets);
   return { taxable_rent: taxable, expense, base, tax, effective_rate: p.annual_rent > 0 ? tax / p.annual_rent : 0 };
 }
+
+// --- early repayment (port of reel.engine.prepayment) ---
+export function prepayment(p: { principal: number; monthly_rate: number; months: number; kkdf: number; bsmv: number; after_payments: number; amount: number; mode: "payment" | "term"; fee_rate: number }) {
+  if (!(p.after_payments >= 1 && p.after_payments < p.months)) throw new SeriesError("after_payments must be between 1 and term − 1");
+  if (!(p.amount > 0) || (p.mode !== "payment" && p.mode !== "term")) throw new SeriesError("amount must be positive and mode 'payment' or 'term'");
+  const plan = amortization(p.principal, p.monthly_rate, p.months, p.kkdf, p.bsmv);
+  const pay = plan[0].installment;
+  const balance = plan[p.after_payments - 1].balance;
+  const remainingBefore = plan.slice(p.after_payments).reduce((s, r) => s + r.installment, 0);
+  const prepaid = Math.min(p.amount, balance);
+  const full = prepaid >= balance - 1e-9;
+  const fee = prepaid * p.fee_rate;
+  const left = balance - prepaid;
+  const load = 1 + p.kkdf + p.bsmv;
+  let newPay = 0, newMonths = 0, remainingAfter = 0;
+  if (!(full || left <= 1e-9)) {
+    if (p.mode === "payment") {
+      const rest = amortization(left, p.monthly_rate, p.months - p.after_payments, p.kkdf, p.bsmv);
+      newPay = rest[0].installment; newMonths = rest.length; remainingAfter = rest.reduce((s, r) => s + r.installment, 0);
+    } else {
+      newPay = pay;
+      let bal = left;
+      while (bal > 1e-9) {
+        const charge = bal * p.monthly_rate * load;
+        newMonths++;
+        if (pay - charge >= bal) { remainingAfter += bal + charge; bal = 0; }
+        else { remainingAfter += pay; bal -= pay - charge; }
+        if (newMonths > 10 * p.months) throw new SeriesError("installment does not cover the interest");
+      }
+    }
+  }
+  return { installment_before: pay, balance_at: balance, prepaid, full, fee, remaining_before: remainingBefore, remaining_after: remainingAfter,
+    new_installment: newPay, new_months: newMonths, months_saved: p.months - p.after_payments - newMonths, saved: remainingBefore - (prepaid + fee + remainingAfter) };
+}

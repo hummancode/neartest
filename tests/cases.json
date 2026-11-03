@@ -1859,6 +1859,77 @@
    },
    "tol": 1e-09,
    "note": "800 − 15 % = 680; 10 + 580×20 %"
+  },
+  {
+   "name": "prepayment zero rate, payment mode",
+   "fn": "prepayment",
+   "args": [
+    {
+     "principal": 1200,
+     "monthly_rate": 0.0,
+     "months": 12,
+     "kkdf": 0,
+     "bsmv": 0,
+     "after_payments": 4,
+     "amount": 400,
+     "mode": "payment",
+     "fee_rate": 0
+    }
+   ],
+   "expect": {
+    "balance_at": 800.0,
+    "new_installment": 50.0,
+    "new_months": 8,
+    "saved": 0.0,
+    "remaining_after": 400.0
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "1200/12=100; after 4 → 800; 400 left over 8 months"
+  },
+  {
+   "name": "prepayment full payoff saves one month of interest",
+   "fn": "prepayment",
+   "args": [
+    {
+     "principal": 1000,
+     "monthly_rate": 0.01,
+     "months": 2,
+     "kkdf": 0,
+     "bsmv": 0,
+     "after_payments": 1,
+     "amount": 10000,
+     "mode": "term",
+     "fee_rate": 0
+    }
+   ],
+   "expect": {
+    "prepaid": 502.4875621890562,
+    "full": true,
+    "new_months": 0,
+    "saved": 5.024875621890562
+   },
+   "tol": 1e-09,
+   "subset": true,
+   "note": "B = 1000 − (P − 10), P = 1000·0.01/(1−1.01⁻²); saving = B·1 %"
+  },
+  {
+   "name": "prepayment rejects payoff after the last installment",
+   "fn": "prepayment",
+   "args": [
+    {
+     "principal": 1000,
+     "monthly_rate": 0.01,
+     "months": 2,
+     "kkdf": 0,
+     "bsmv": 0,
+     "after_payments": 2,
+     "amount": 10,
+     "mode": "term",
+     "fee_rate": 0
+    }
+   ],
+   "raises": true
   }
  ]
 }

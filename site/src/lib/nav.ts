@@ -26,6 +26,8 @@ export const NAV: NavGroup[] = [
   ] },
   { label: "Borç", items: [
     { href: "/kredi", label: "Kredinin gerçek maliyeti", desc: "KKDF, BSMV ve masraflarla gerçek yıllık maliyet.", keywords: "kkdf bsmv faiz" },
+    { href: "/kredi-karsilastir", label: "Kredi tekliflerini karşılaştır", desc: "Faiz, masraf ve vergilerle tekliflerin gerçek yıllık maliyeti yan yana.", keywords: "kredi teklif banka karşılaştırma" },
+    { href: "/erken-kapama", label: "Erken kapama ve ara ödeme", desc: "Krediye ara ödeme ya da erken kapama ne kazandırır? Taksit mi düşsün, vade mi kısalsın?", keywords: "erken ödeme kapama ara ödeme kredi" },
     { href: "/kart", label: "Kredi kartı: asgari ödeme, nakit avans", desc: "Yalnızca asgari ödeme yaparsanız borç kaç ayda biter?" },
     { href: "/yapilandirma", label: "Kredi yapılandırma", desc: "Krediyi kapatıp yenisine geçmek gerçekten kârlı mı?" },
     { href: "/taksit", label: "Taksitli mi, peşin mi?", desc: "“Faizsiz taksit”in gizli faizi ve bugünkü değeri." },

@@ -53,6 +53,7 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   payroll_year: e.payrollYear,
   gross_for_net: e.grossForNet,
   rental_income_tax: e.rentalIncomeTax,
+  prepayment: e.prepayment,
   housing_affordability: e.housingAffordability,
   lorenz_lognormal: e.lorenzLognormal,
 };

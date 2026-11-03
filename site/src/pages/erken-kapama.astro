@@ -1,0 +1,122 @@
+---
+import Base from "../layouts/Base.astro";
+import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
+const kkdf = paramDefault("kkdf_tuketici"), bsmv = paramDefault("bsmv_tuketici"), kkdfK = paramDefault("kkdf_konut");
+const payload = { kkdf: kkdf?.value ?? null, bsmv: bsmv?.value ?? null, kkdf_konut: kkdfK?.value ?? null };
+---
+<Base title="Erken kapama ve ara ödeme" description="Krediyi erken kapatmak ya da ara ödeme yapmak ne kazandırır? Taksit mi düşsün, vade mi kısalsın; erken ödeme ücretiyle birlikte. Tarayıcıda çalışır.">
+  <h1>Erken kapama ve ara ödeme</h1>
+  <p class="lead">Elinize toplu para geçti: krediye mi yatırmalı? Kalan borcun ne kadarını, hangi yöntemle kapatırsanız ne kadar faiz ve vergi ödemekten kurtulursunuz?</p>
+
+  <form class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="type">Kredi türü</label>
+        <select id="type"><option value="tuketici">İhtiyaç / taşıt</option><option value="konut">Konut</option></select></div>
+      <div class="field"><label for="principal">Çekilen tutar (TL)</label><input id="principal" inputmode="decimal" value="500.000" /></div>
+      <div class="field"><label for="rate">Aylık akdi faiz (%)</label><input id="rate" inputmode="decimal" value="3,5" /></div>
+      <div class="field"><label for="months">Vade (ay)</label><input id="months" inputmode="numeric" value="36" /></div>
+      <div class="field"><label for="paid">Ödenen taksit sayısı</label><input id="paid" inputmode="numeric" value="12" /></div>
+      <div class="field"><label for="amount">Ara ödeme tutarı (TL)</label><input id="amount" inputmode="decimal" value="150.000" /><small><label><input type="checkbox" id="full" /> Tamamını kapat</label></small></div>
+      <div class="field"><label for="mode">Ara ödemeden sonra</label>
+        <select id="mode"><option value="term">Taksit aynı kalsın, vade kısalsın</option><option value="payment">Vade aynı kalsın, taksit düşsün</option></select></div>
+      <div class="field"><label for="fee">Erken ödeme ücreti (ödenen tutarın %'si)</label><input id="fee" inputmode="decimal" value="0" /><small>sözleşmenizdeki erken ödeme tazminatını girin</small></div>
+      <div class="field"><label for="kkdf">KKDF / BSMV (faizin %'si)</label><div class="two"><input id="kkdf" inputmode="decimal" aria-label="KKDF yüzde" /><input id="bsmv" inputmode="decimal" aria-label="BSMV yüzde" /></div><small id="tax-note"></small></div>
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+
+  <section class="stat-grid" aria-live="polite">
+    <div class="card stat"><p class="s-label">Kazancınız</p><p class="s-value" id="o-saved">—</p><p class="muted small" id="o-saved-sub"></p></div>
+    <div class="card stat"><p class="s-label" id="o-new-label">Yeni taksit</p><p class="s-value" id="o-new">—</p><p class="muted small" id="o-new-sub"></p></div>
+    <div class="card stat"><p class="s-label">Kalan anapara (ödeme anında)</p><p class="s-value" id="o-bal">—</p><p class="muted small" id="o-bal-sub"></p></div>
+  </section>
+
+  <section class="card">
+    <h2>Karşılaştırma</h2>
+    <div class="scroll-x">
+      <table class="data cmp" id="cmp"><thead><tr><th scope="col"></th><th scope="col">Ara ödeme yapmazsam</th><th scope="col">Ara ödeme yaparsam</th></tr></thead><tbody></tbody></table>
+    </div>
+    <p class="muted small" id="opp"></p>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li>Kazanç = ara ödeme yapmasaydınız ödeyeceğiniz kalan taksitler − (ara ödeme + erken ödeme ücreti + sonraki taksitler). Bu, kurtulduğunuz faiz, KKDF ve BSMV'dir.</li>
+      <li>"Vade kısalsın" genellikle daha çok faiz kazandırır; "taksit düşsün" aylık bütçeyi rahatlatır.</li>
+      <li>Karşılaştırma için: aynı parayı kredinin maliyetinden daha yüksek <em>net</em> getiriyle değerlendirebiliyorsanız erken ödeme her zaman en iyi seçenek olmayabilir. Bu bir hesaplamadır, öneri değildir.</li>
+      <li>Bankalar ara ödemeyi farklı kurallarla uygulayabilir (ör. küsurat, faiz günü). Kesin rakam için bankanızın vereceği yeni ödeme planı esastır. Formül: <a href="/metodoloji#erken-kapama">Metodoloji</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="e-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { prepayment, SeriesError } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  import { readHash, writeHash } from "../lib/share.ts";
+  const P = JSON.parse(document.getElementById("e-data")!.textContent!) as { kkdf: number | null; bsmv: number | null; kkdf_konut: number | null };
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  function setTaxes() {
+    const konut = $<HTMLSelectElement>("type").value === "konut";
+    $("kkdf").value = String((konut ? P.kkdf_konut : P.kkdf) ?? 0).replace(".", ",");
+    $("bsmv").value = konut ? "0" : String(P.bsmv ?? 0).replace(".", ",");
+    $("tax-note").textContent = konut ? "konut kredilerinde KKDF ve BSMV uygulanmadığı varsayıldı; ödeme planınızdakini girin" : "mevzuat kaydından (doğrulanmadı); ödeme planınızdakini girin";
+  }
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const principal = parseAmount($("principal").value), rate = num($("rate").value), months = Math.round(num($("months").value) ?? NaN);
+    const paid = Math.round(num($("paid").value) ?? NaN), full = $("full").checked;
+    const amount = full ? 1e15 : parseAmount($("amount").value);
+    const fee = num($("fee").value), kk = num($("kkdf").value), bs = num($("bsmv").value);
+    $("amount").disabled = full;
+    if (principal == null || rate == null || rate < 0 || !(months >= 2)) return fail("Tutar, faiz ve vadeyi kontrol edin.");
+    if (!(paid >= 1 && paid < months)) return fail(`Ödenen taksit sayısı 1 ile ${months - 1} arasında olmalı.`);
+    if (amount == null || fee == null || kk == null || bs == null) return fail("Ara ödeme tutarını ve oranları kontrol edin.");
+    const mode = $<HTMLSelectElement>("mode").value as "term" | "payment";
+    let r;
+    try { r = prepayment({ principal, monthly_rate: rate / 100, months, kkdf: kk / 100, bsmv: bs / 100, after_payments: paid, amount, mode, fee_rate: fee / 100 }); }
+    catch (e) { return fail(e instanceof SeriesError ? "Bu değerlerle hesaplanamadı." : "Hata."); }
+    writeHash({ t: $<HTMLSelectElement>("type").value, p: String(Math.round(principal)), r: String(rate), v: String(months), o: String(paid), a: full ? "tam" : String(Math.round(amount)), m: mode, f: String(fee) });
+    const left = months - paid;
+    $("o-saved").textContent = tl(r.saved);
+    $("o-saved-sub").textContent = r.fee > 0 ? `erken ödeme ücreti (${tl(r.fee)}) düşüldükten sonra` : "kurtulduğunuz faiz + KKDF + BSMV";
+    if (r.full) { $("o-new-label").textContent = "Kredi"; $("o-new").textContent = "kapandı"; $("o-new-sub").textContent = `${left} taksit ödenmeyecek`; }
+    else if (mode === "term") { $("o-new-label").textContent = "Yeni vade"; $("o-new").textContent = `${r.new_months} ay`; $("o-new-sub").textContent = `${r.months_saved} ay erken biter · taksit ${tl(r.new_installment)}`; }
+    else { $("o-new-label").textContent = "Yeni taksit"; $("o-new").textContent = tl(r.new_installment); $("o-new-sub").textContent = `önce ${tl(r.installment_before)} · ${r.new_months} ay`; }
+    $("o-bal").textContent = tl(r.balance_at); $("o-bal-sub").textContent = `${paid}. taksitten sonra · ödenen ${tl(r.prepaid)}`;
+    const rows: [string, string, string][] = [
+      ["Aylık taksit", tl(r.installment_before), r.full ? "—" : tl(r.new_installment)],
+      ["Kalan taksit sayısı", String(left), String(r.new_months)],
+      ["Şimdi ödenen", "—", tl(r.prepaid + r.fee)],
+      ["Bundan sonraki taksitler toplamı", tl(r.remaining_before), tl(r.remaining_after)],
+      ["Toplam çıkış", tl(r.remaining_before), tl(r.prepaid + r.fee + r.remaining_after)],
+    ];
+    document.querySelector("#cmp tbody")!.replaceChildren(...rows.map((row) => { const tr = document.createElement("tr"); row.forEach((c, i) => { const el = document.createElement(i ? "td" : "th"); if (!i) el.setAttribute("scope", "row"); el.textContent = c; tr.appendChild(el); }); return tr; }));
+    const pct = r.prepaid > 0 ? (100 * r.saved) / r.prepaid : 0;
+    $("opp").textContent = `Ödediğiniz her 100 TL, kalan vade boyunca yaklaşık ${nf1.format(pct)} TL ödemeden kurtarıyor. Bunu, aynı parayla aynı sürede elde edebileceğiniz net getiriyle karşılaştırabilirsiniz (ör. Mevduat hesaplayıcı).`;
+  }
+  const h = readHash();
+  const set = (id: string, k: string) => { const v = h.get(k); if (v) $(id).value = id === "rate" || id === "fee" ? v.replace(".", ",") : nf0.format(Number(v)); };
+  if (h.get("t") === "konut") $<HTMLSelectElement>("type").value = "konut";
+  setTaxes();
+  set("principal", "p"); set("rate", "r"); if (h.get("v")) $("months").value = h.get("v")!; if (h.get("o")) $("paid").value = h.get("o")!;
+  if (h.get("a") === "tam") $("full").checked = true; else set("amount", "a");
+  if (h.get("m") === "payment") $<HTMLSelectElement>("mode").value = "payment"; set("fee", "f");
+  $<HTMLSelectElement>("type").addEventListener("change", () => { setTaxes(); run(); });
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  for (const id of ["mode", "full"]) $(id).addEventListener("change", run);
+  run();
+</script>
+<style is:global>
+  .two { display: flex; gap: 6px; }
+  .two > * { min-width: 0; flex: 1; }
+  table.cmp td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>

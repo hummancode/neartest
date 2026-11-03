@@ -54,6 +54,10 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | Mevduat net/reel getirisi (stopaj, vade, yenileme) ve enflasyonu telafi eden brüt faiz | — |
 | ✅ | Kredinin gerçek maliyeti: KKDF, BSMV, tahsis ücreti, sigorta → iç verim oranı, ödeme planı, reel maliyet | oranlar kullanıcıdan (mevzuat değişebilir) |
 | ✅ | Kredi kartı asgari ödeme ve nakit avans maliyeti; kredi yapılandırma karşılaştırması | oranlar kullanıcıdan |
+| ✅ | Varlıklarım: kişisel net servet takibi (tarayıcıda) | Pro: otomatik değerleme, şifreli eşitleme (planlı) |
+| ✅ | Vergi: brüt–net maaş, kira geliri vergisi | oranlar mevzuat kaydından (2026 değerleri girilmeli) |
+| ✅ | Kredi: erken kapama/ara ödeme, teklif karşılaştırma | — |
+| ⬜ | Vergi: değer artış kazancı (konut satışı), MTV, emlak vergisi, serbest meslek | tarifeler mevzuat kaydına |
 | ⬜ | Emeklilik / BES reel getiri ve devlet katkısı hesaplayıcısı | BES kuralları kullanıcıdan |
 | ⬜ | Döviz/altın tevdiat vs TL mevduat: başabaş kur | kur + faiz |
 

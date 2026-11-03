@@ -835,3 +835,34 @@ def test_rental_income_tax_lump_and_actual():
     a = e.rental_income_tax(annual_rent=1000, exemption=200, method="actual", actual_expenses=300, brackets=br, lump_rate=0.15)
     assert close(a["expense"], 240.0) and close(a["tax"], 102.0)
     assert e.rental_income_tax(annual_rent=150, exemption=200, method="lump", actual_expenses=0, brackets=br, lump_rate=0.15)["tax"] == 0.0
+
+
+# --- early repayment ------------------------------------------------------------------
+
+def test_prepayment_zero_rate_saves_nothing():
+    # 1200 over 12 months at 0 % → 100/month; after 4 payments balance 800; prepay 400
+    a = e.prepayment(principal=1200, monthly_rate=0.0, months=12, kkdf=0, bsmv=0, after_payments=4, amount=400, mode="payment", fee_rate=0)
+    assert close(a["balance_at"], 800.0, 1e-9) and close(a["new_installment"], 50.0, 1e-9) and a["new_months"] == 8
+    assert close(a["saved"], 0.0, 1e-9)
+    b = e.prepayment(principal=1200, monthly_rate=0.0, months=12, kkdf=0, bsmv=0, after_payments=4, amount=400, mode="term", fee_rate=0)
+    assert close(b["new_installment"], 100.0, 1e-9) and b["new_months"] == 4 and close(b["remaining_after"], 400.0, 1e-9)
+
+
+def test_prepayment_full_payoff_saves_one_month_interest():
+    # 1000, 1 %/month, 2 months: P = 1000·0.01/(1 − 1.01⁻²) = 507.5124; after month 1 balance B = 502.4876
+    # full payoff: remaining before = P = B·1.01 → saved = B·0.01 = 5.0249; with a 1 % fee the saving is ~0
+    a = e.prepayment(principal=1000, monthly_rate=0.01, months=2, kkdf=0, bsmv=0, after_payments=1, amount=10_000, mode="term", fee_rate=0)
+    B = 1000 - (1000 * 0.01 / (1 - 1.01 ** -2) - 10)
+    assert close(a["prepaid"], B, 1e-9) and a["full"] is True and a["new_months"] == 0
+    assert close(a["saved"], B * 0.01, 1e-9)
+    f = e.prepayment(principal=1000, monthly_rate=0.01, months=2, kkdf=0, bsmv=0, after_payments=1, amount=10_000, mode="term", fee_rate=0.01)
+    assert close(f["fee"], B * 0.01, 1e-9) and close(f["saved"], 0.0, 1e-9)
+
+
+def test_prepayment_term_mode_saves_more_than_payment_mode():
+    kw = dict(principal=100_000, monthly_rate=0.03, months=36, kkdf=0.15, bsmv=0.15, after_payments=12, amount=30_000, fee_rate=0)
+    t, p = e.prepayment(**kw, mode="term"), e.prepayment(**kw, mode="payment")
+    assert t["new_months"] < 24 and p["new_months"] == 24 and p["new_installment"] < p["installment_before"]
+    assert t["saved"] > p["saved"] > 0
+    with pytest.raises(e.SeriesError):
+        e.prepayment(**{**kw, "after_payments": 36}, mode="term")

@@ -262,6 +262,14 @@ import { DISCLAIMER } from "../config.ts";
       <li>Dünya Bankası'nın Türkiye verisi ile TÜİK/TCMB verisi yöntem ve revizyon farkları nedeniyle küçük farklar gösterebilir.</li>
     </ul>
 
+    <h2 id="erken-kapama">Erken kapama ve ara ödeme</h2>
+    <ul>
+      <li>Eşit taksitli plan, vergiler faize eklenerek kurulur (taksit = anüite, oran r × (1 + KKDF + BSMV)). k. taksitten sonra kalan anapara B; ara ödeme A (en fazla B), erken ödeme ücreti = A × ücret oranı.</li>
+      <li>"Taksit düşsün": B − A, kalan vade için yeniden anüite. "Vade kısalsın": aynı taksitle B − A sıfırlanana kadar ödenir; son taksit küçüktür.</li>
+      <li>Kazanç = kalan taksitler (ara ödemesiz) − (A + ücret + yeni kalan taksitler). Fonksiyon: <code>prepayment</code> (Python + TS, ortak test vakaları).</li>
+      <li>Kredi teklifi karşılaştırma: her teklif için <code>loan_cost</code> — elde edilen tutar ile ödemeler arasındaki iç verim oranı, yıllık bileşik.</li>
+    </ul>
+
     <h2 id="vergi">Vergi hesaplayıcıları</h2>
     <ul>
       <li>Oranlar ve tarifeler <a href="/mevzuat">mevzuat kaydından</a> gelir; her birinin yürürlük tarihi ve doğrulama durumu sayfada gösterilir. Kullanıcı değiştirebilir.</li>

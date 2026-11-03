@@ -1,0 +1,117 @@
+---
+import Base from "../layouts/Base.astro";
+import { housing } from "../lib/housing.ts";
+import { DISCLAIMER } from "../config.ts";
+import { paramDefault } from "../lib/params.ts";
+const kkdf = paramDefault("kkdf_tuketici"), bsmv = paramDefault("bsmv_tuketici");
+const payload = { kkdf: kkdf?.value ?? 0, bsmv: bsmv?.value ?? 0, cpi_12m: housing.reference.cpi_12m, sample: housing.reference.sample };
+---
+<Base title="Kredi tekliflerini karşılaştır" description="Farklı bankaların kredi tekliflerini tüm vergi ve masraflarla karşılaştırın: taksit, toplam ödeme, gerçek yıllık maliyet. Tarayıcıda çalışır.">
+  <h1>Kredi tekliflerini karşılaştır</h1>
+  <p class="lead">En düşük faiz her zaman en ucuz kredi değildir. Tahsis ücreti, sigorta ve vergilerle birlikte tekliflerin <strong>gerçek yıllık maliyetini</strong> yan yana görün.</p>
+
+  <form class="card" novalidate onsubmit="return false">
+    <div class="form-grid three">
+      <div class="field"><label for="principal">Kredi tutarı (TL)</label><input id="principal" inputmode="decimal" value="300.000" /></div>
+      <div class="field"><label for="kkdf">KKDF / BSMV (faizin %'si)</label><div class="two"><input id="kkdf" inputmode="decimal" aria-label="KKDF yüzde" value={String(payload.kkdf).replace(".", ",")} /><input id="bsmv" inputmode="decimal" aria-label="BSMV yüzde" value={String(payload.bsmv).replace(".", ",")} /></div><small>{kkdf?.note ?? ""} · konut kredisinde 0 girin</small></div>
+      <div class="field"><label for="inf">Beklenen yıllık enflasyon (%)</label><input id="inf" inputmode="decimal" value={String(Math.round(payload.cpi_12m * 1000) / 10).replace(".", ",")} /><small>varsayılan: son 12 ay TÜFE{payload.sample ? " (örnek veri)" : ""}</small></div>
+    </div>
+    <div class="offers" id="offers">
+      {[["A", "3,49", "24", "1.500", "0", "0"], ["B", "3,29", "24", "4.500", "6.000", "0"], ["C", "3,69", "36", "0", "0", "150"]].map(([n, r, v, up, ins, mo], i) => (
+        <fieldset class="offer" data-i={i}>
+          <legend>Teklif <input class="o-name" value={n} aria-label={`Teklif ${i + 1} adı`} maxlength="20" /></legend>
+          <div class="field"><label>Aylık faiz (%)<input class="o-rate" inputmode="decimal" value={r} /></label></div>
+          <div class="field"><label>Vade (ay)<input class="o-months" inputmode="numeric" value={v} /></label></div>
+          <div class="field"><label>Tahsis ücreti (TL)<input class="o-fee" inputmode="decimal" value={up} /></label></div>
+          <div class="field"><label>Peşin sigorta / diğer (TL)<input class="o-ins" inputmode="decimal" value={ins} /></label></div>
+          <div class="field"><label>Aylık ek masraf (TL)<input class="o-mon" inputmode="decimal" value={mo} /></label></div>
+          {i === 2 && <label class="small"><input type="checkbox" class="o-on" checked /> karşılaştırmaya dahil</label>}
+        </fieldset>
+      ))}
+    </div>
+  </form>
+  <p id="err" class="error" role="alert" hidden></p>
+
+  <section class="card">
+    <h2>Sonuç</h2>
+    <div class="scroll-x"><table class="data res" id="res"><thead></thead><tbody></tbody></table></div>
+    <p class="muted small" id="best"></p>
+  </section>
+
+  <section>
+    <h2>Nasıl okunmalı?</h2>
+    <ul class="muted small">
+      <li><strong>Gerçek yıllık maliyet</strong>: elinize geçen tutar (kredi − peşin masraflar) ile ödediğiniz her taksit ve masraf arasındaki iç verim oranının yıllık bileşik hâli. Vadeleri farklı teklifleri karşılaştırmanın doğru yolu budur; toplam ödeme vadeye göre değişir.</li>
+      <li>Reel maliyet: gerçek yıllık maliyetin beklenen enflasyondan arındırılmış hâli. Enflasyon yüksekken negatif çıkabilir; bu, borcun reel olarak eridiği anlamına gelir, ama gelirinizin de enflasyonla artmasına bağlıdır.</li>
+      <li>Bu sayfa teklifleri aynı formülle hesaplar; bir bankayı ya da krediyi önermez. Formül: <a href="/metodoloji#kredi">Metodoloji</a>. Tek teklif için ayrıntılı plan: <a href="/kredi">Kredinin gerçek maliyeti</a>.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+</Base>
+<script>
+  import { loanCost } from "../lib/engine.ts";
+  import { parseAmount } from "../lib/card.ts";
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as unknown as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const pc = (v: number) => `${v < 0 ? "−" : ""}%${nf1.format(Math.abs(v * 100))}`;
+  const num = (s: string) => { const t = s.trim().replace(/\./g, "").replace(",", "."); const x = Number(t); return t !== "" && Number.isFinite(x) ? x : null; };
+  const amt = (s: string) => (s.trim() === "" || s.trim() === "0" ? 0 : parseAmount(s));
+  function run() {
+    const err = $<HTMLParagraphElement>("err"); err.hidden = true;
+    const fail = (m: string) => { err.textContent = m; err.hidden = false; };
+    const principal = parseAmount($("principal").value), kk = num($("kkdf").value), bs = num($("bsmv").value), inf = num($("inf").value);
+    if (principal == null || kk == null || bs == null || inf == null) return fail("Tutarı, vergi oranlarını ve enflasyonu kontrol edin.");
+    const offers = [...document.querySelectorAll<HTMLFieldSetElement>(".offer")].filter((f) => f.querySelector<HTMLInputElement>(".o-on")?.checked ?? true);
+    const res = [];
+    for (const f of offers) {
+      const q = (c: string) => f.querySelector<HTMLInputElement>(c)!.value;
+      const rate = num(q(".o-rate")), months = Math.round(num(q(".o-months")) ?? NaN), fee = amt(q(".o-fee")), ins = amt(q(".o-ins")), mon = amt(q(".o-mon"));
+      const name = q(".o-name").trim() || "Teklif";
+      if (rate == null || rate < 0 || !(months >= 1) || fee == null || ins == null || mon == null) return fail(`${name}: değerleri kontrol edin.`);
+      try { res.push({ name, months, rate, r: loanCost({ principal, monthly_rate: rate / 100, months, kkdf: kk / 100, bsmv: bs / 100, upfront_fees: fee + ins, monthly_fees: mon, inflation: inf / 100 }) }); }
+      catch { return fail(`${name}: hesaplanamadı.`); }
+    }
+    const best = res.reduce((a, b) => (b.r.annual_cost < a.r.annual_cost ? b : a));
+    const head = document.createElement("tr");
+    ["", ...res.map((x) => x.name)].forEach((t, i) => { const th = document.createElement("th"); th.scope = "col"; th.textContent = t; if (i && res[i - 1] === best) th.className = "best"; head.appendChild(th); });
+    document.querySelector("#res thead")!.replaceChildren(head);
+    const rows: [string, (x: (typeof res)[number]) => string][] = [
+      ["Aylık faiz / vade", (x) => `%${nf1.format(x.rate)} · ${x.months} ay`],
+      ["Aylık taksit (masraflar dahil)", (x) => tl(x.r.installment)],
+      ["Toplam ödeme", (x) => tl(x.r.total_paid)],
+      ["Faiz + KKDF + BSMV", (x) => tl(x.r.total_interest + x.r.total_kkdf + x.r.total_bsmv)],
+      ["Masraflar", (x) => tl(x.r.total_fees)],
+      ["İlan edilen faiz × 12", (x) => pc(x.r.advertised_annual)],
+      ["Gerçek yıllık maliyet", (x) => pc(x.r.annual_cost)],
+      ["Reel yıllık maliyet", (x) => pc(x.r.real_annual_cost)],
+    ];
+    document.querySelector("#res tbody")!.replaceChildren(...rows.map(([label, f], k) => {
+      const tr = document.createElement("tr"); if (k === 6) tr.className = "key";
+      const th = document.createElement("th"); th.scope = "row"; th.textContent = label; tr.appendChild(th);
+      res.forEach((x) => { const td = document.createElement("td"); td.textContent = f(x); if (x === best) td.className = "best"; tr.appendChild(td); });
+      return tr;
+    }));
+    const cheapestRate = res.reduce((a, b) => (b.rate < a.rate ? b : a));
+    $("best").textContent = `Gerçek yıllık maliyeti en düşük teklif: ${best.name} (${pc(best.r.annual_cost)}).` + (cheapestRate !== best ? ` Dikkat: en düşük faizli teklif (${cheapestRate.name}) masraflar nedeniyle daha pahalı.` : "");
+  }
+  document.querySelectorAll<HTMLInputElement>("form input").forEach((x) => x.addEventListener("input", run));
+  document.querySelectorAll<HTMLInputElement>(".o-on").forEach((x) => x.addEventListener("change", run));
+  run();
+</script>
+<style is:global>
+  .two { display: flex; gap: 6px; }
+  .two > * { min-width: 0; flex: 1; }
+  .offers { display: grid; gap: 12px; grid-template-columns: 1fr; margin-top: 12px; }
+  @media (min-width: 900px) { .offers { grid-template-columns: repeat(3, 1fr); } }
+  .offer { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px 12px; display: grid; gap: 6px; min-width: 0; }
+  .offer legend { font-weight: 700; }
+  .offer .o-name { width: 9em; font: inherit; font-weight: 700; }
+  .offer label { display: flex; flex-direction: column; gap: 2px; font-size: 0.85rem; font-weight: 600; color: var(--ink-2); }
+  .offer label.small { flex-direction: row; gap: 6px; font-weight: 400; }
+  table.res td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.res tr.key { font-weight: 700; }
+  table.res .best { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .error { color: var(--neg-ink, #b3121f); }
+</style>
