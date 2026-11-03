@@ -1,0 +1,414 @@
+---
+import Base from "../layouts/Base.astro";
+import { levels } from "../lib/levels.ts";
+import housew from "../../data/konut_dunya.json";
+import { DISCLAIMER } from "../config.ts";
+
+// Conversion series (monthly) and the real Türkiye nominal house price index (quarterly, BIS/TCMB) for estimates.
+const trHouse = (housew as any).countries?.find((c: any) => c.code === "TR");
+const payload = {
+  end: levels.end_month,
+  sample: levels.sample,
+  cpi: levels.series.cpi_tr, usd: levels.series.usdtry, gold: levels.series.gold_gram_tl,
+  house: trHouse ? { last: trHouse.last, points: trHouse.nominal_series } : null,
+};
+---
+<Base title="Varlıklarım: net servet takibi" description="Evinizi, arabanızı, altınınızı, birikiminizi ve borçlarınızı girin; zaman içinde net servetinizi nominal, reel, dolar ve altın cinsinden izleyin. Veriler yalnızca tarayıcınızda kalır.">
+  <h1>Varlıklarım</h1>
+  <p class="lead">Neyin var, ne kadar borcun var? Değerleri zaman içinde güncelledikçe net servetinin seyrini enflasyona, dolara ve altına göre gör.</p>
+  <p class="privacy card">🔒 Girdiklerin <strong>yalnızca bu tarayıcıda</strong> saklanır; hiçbir sunucuya gönderilmez. Başka cihazda görmek için dışa aktarıp içe aktarabilirsin. Tarayıcı verisini silersen kayıtlar da silinir — düzenli yedek almanı öneririz.</p>
+
+  <section class="summary" id="summary" aria-live="polite" hidden>
+    <div class="card stat"><p class="s-label">Net servet</p><p class="s-value" id="t-net"></p><p class="muted small" id="t-date"></p></div>
+    <div class="card stat"><p class="s-label">Varlıklar</p><p class="s-value" id="t-assets"></p><p class="muted small" id="t-acount"></p></div>
+    <div class="card stat"><p class="s-label">Borçlar</p><p class="s-value" id="t-liab"></p><p class="muted small" id="t-lcount"></p></div>
+    <div class="card stat"><p class="s-label">İlk kayda göre (reel)</p><p class="s-value" id="t-real"></p><p class="muted small" id="t-realnote"></p></div>
+  </section>
+
+  <section class="card" id="chart-card" hidden>
+    <div class="s-head">
+      <h2>Net servetin seyri</h2>
+      <label class="small">Birim: <select id="unit">
+        <option value="tl">Nominal TL</option>
+        <option value="real">Bugünün TL'si (TÜFE ile)</option>
+        <option value="usd">Dolar</option>
+        <option value="gold">Gram altın</option>
+      </select></label>
+    </div>
+    <div id="nw-chart" class="chart-box"></div>
+    <p class="muted small" id="unit-note"></p>
+    <div class="comp">
+      <div><h3 class="s-title">Varlık dağılımı (son değerler)</h3><div id="donut"></div></div>
+      <div><h3 class="s-title">Borç dağılımı</h3><div id="donut-l"></div></div>
+    </div>
+  </section>
+
+  <section class="card" id="update-card" hidden>
+    <h2>Değerleri güncelle</h2>
+    <p class="muted small">Aylık ya da istediğin aralıklarla tüm kalemlerin güncel değerini tek seferde gir. Boş bıraktığın kalem değişmez.</p>
+    <div class="field inline"><label for="u-date">Tarih</label><input id="u-date" type="date" /></div>
+    <div id="u-rows" class="u-rows"></div>
+    <div class="actions"><button class="btn" type="button" id="u-save">Değerleri kaydet</button><span class="muted small" id="u-msg" aria-live="polite"></span></div>
+  </section>
+
+  <form id="add" class="card add" novalidate onsubmit="return false">
+    <h2>Kalem ekle</h2>
+    <div class="grid">
+      <div class="field"><label for="a-side">Tür</label>
+        <select id="a-side"><option value="asset">Varlık</option><option value="liability">Borç</option></select></div>
+      <div class="field"><label for="a-kind">Çeşit</label><select id="a-kind"></select></div>
+      <div class="field"><label for="a-name">Ad</label><input id="a-name" maxlength="40" placeholder="ör. Kadıköy daire" /></div>
+      <div class="field"><label for="a-date">Değer tarihi</label><input id="a-date" type="date" /></div>
+      <div class="field"><label for="a-value">Değer / kalan borç (TL)</label><input id="a-value" inputmode="decimal" placeholder="ör. 4.500.000" /></div>
+      <div class="field" id="cost-field"><label for="a-cost">Alış fiyatı (TL, isteğe bağlı)</label><input id="a-cost" inputmode="decimal" placeholder="tahmini değer için" /></div>
+      <div class="field" id="costd-field"><label for="a-costd">Alış tarihi (isteğe bağlı)</label><input id="a-costd" type="date" /></div>
+    </div>
+    <p class="muted small" id="est-note" hidden></p>
+    <div class="actions">
+      <button class="btn" type="button" id="a-btn">Ekle</button>
+      <button class="btn btn-ghost" type="button" id="a-est" hidden>Konut endeksiyle tahmini değeri doldur</button>
+      <span class="error" id="a-err" role="alert" hidden></span>
+    </div>
+  </form>
+
+  <section class="card list">
+    <div class="list-head">
+      <h2>Kalemler</h2>
+      <div class="tools">
+        <button class="btn btn-ghost" type="button" id="demo">Örnek kayıt yükle</button>
+        <button class="btn btn-ghost" type="button" id="export">Yedek al (JSON)</button>
+        <button class="btn btn-ghost" type="button" id="export-csv">CSV</button>
+        <label class="btn btn-ghost file">Yedekten yükle<input type="file" id="import" accept="application/json" hidden /></label>
+        <button class="btn btn-ghost" type="button" id="clear">Tümünü sil</button>
+      </div>
+    </div>
+    <p class="muted" id="empty">Henüz kalem yok. Yukarıdan ekleyebilir ya da "Örnek kayıt yükle" ile deneyebilirsin.</p>
+    <div class="scroll-x"><table class="data items" id="items" hidden>
+      <thead><tr><th scope="col">Kalem</th><th scope="col">Çeşit</th><th scope="col">Son değer</th><th scope="col">Tarih</th><th scope="col">Alışa göre</th><th scope="col"><span class="sr-only">İşlemler</span></th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="card pro">
+    <h2>Pro <span class="tag est">yakında</span></h2>
+    <p>Varlıklarım bugün tamamen ücretsiz ve tarayıcında çalışıyor. İleride isteğe bağlı bir destek paketiyle şunları sunmayı planlıyoruz:</p>
+    <ul>
+      <li><strong>Otomatik değerleme:</strong> altın, döviz ve mevduatın güncel değerini resmî verilerle her ay kendiliğinden güncelleme; konut için il bazında endeks.</li>
+      <li><strong>Uçtan uca şifreli yedek:</strong> cihazlar arasında eşitleme. Veriler senin cihazında şifrelenir; anahtar sende kalır, biz göremeyiz.</li>
+      <li><strong>Yıllık rapor (PDF)</strong> ve değer güncelleme hatırlatıcısı.</li>
+    </ul>
+    <p class="muted small">Bu bir satış sayfası değildir; ödeme alınmıyor ve kayıt toplanmıyor. Sitenin kuralı gereği finansal verin hiçbir zaman şifresiz olarak sunucuda saklanmayacak.</p>
+  </section>
+
+  <section>
+    <h2>Notlar</h2>
+    <ul class="muted small">
+      <li>Net servet = varlıkların son değerleri toplamı − borçların kalan tutarları. Bir kalemin değeri, o tarihe kadar girdiğin son değerdir; "satıldı/kapandı" dediğin tarihten sonra hesaba katılmaz.</li>
+      <li>Reel TL: her tarihteki tutar, TÜFE ile son veri ayının TL'sine taşınır. Dolar ve gram altın: o ayın ortalama kuru/fiyatıyla çevrilir.</li>
+      <li>Konut tahmini: alış fiyatı × (son çeyreğin Türkiye nominal konut fiyat endeksi / alış çeyreğinin endeksi). Kaynak: BIS / TCMB Konut Fiyat Endeksi. Ülke ortalamasıdır; evinin gerçek değeri farklı olabilir.</li>
+      <li>Değerler senin girdiğin tahminlerdir; site bir değerleme veya yatırım tavsiyesi sunmaz.</li>
+    </ul>
+  </section>
+  <p><strong>{DISCLAIMER}</strong></p>
+  <script type="application/json" id="v-data" set:html={JSON.stringify(payload)}></script>
+</Base>
+<script>
+  import { netWorthTimeline, type NetWorthItem } from "../lib/engine.ts";
+  import { renderChart } from "../lib/chart.ts";
+  import { renderDonut } from "../lib/charts2.ts";
+  import { parseAmount } from "../lib/card.ts";
+
+  type Item = NetWorthItem & { name: string; cost?: number | null; cost_date?: string | null };
+  const P = JSON.parse(document.getElementById("v-data")!.textContent!) as { end: string; sample: boolean; cpi: Record<string, number>; usd: Record<string, number>; gold: Record<string, number>; house: { last: string; points: [string, number][] } | null };
+  const KEY = "varliklarim.v1";
+  const KINDS = {
+    asset: ["Konut", "Arsa / tarla", "Araç", "Altın", "Döviz", "Mevduat / nakit", "Hisse / fon", "Kripto", "Alacak", "Diğer varlık"],
+    liability: ["Konut kredisi", "Taşıt kredisi", "İhtiyaç kredisi", "Kredi kartı", "Diğer borç"],
+  };
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const nf0 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+  const tl = (v: number) => `${nf0.format(v)} TL`;
+  const today = new Date().toISOString().slice(0, 10);
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const fmtDate = (d: string) => d.split("-").reverse().join(".");
+
+  let items: Item[] = [];
+  function load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
+      items = Array.isArray(raw.items) ? raw.items.filter(valid) : [];
+    } catch { items = []; }
+  }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ version: 1, items })); } catch { /* storage unavailable: lives for this visit */ } };
+  function valid(x: any): x is Item {
+    return x && typeof x.id === "string" && (x.side === "asset" || x.side === "liability") && typeof x.kind === "string" && typeof x.name === "string"
+      && Array.isArray(x.valuations) && x.valuations.every((v: any) => Array.isArray(v) && /^\d{4}-\d{2}-\d{2}$/.test(v[0]) && Number.isFinite(v[1]) && v[1] >= 0);
+  }
+
+  // --- conversions -------------------------------------------------------------
+  const lastKey = (s: Record<string, number>, m: string) => { const ks = Object.keys(s).filter((k) => k <= m).sort(); return ks.length ? s[ks[ks.length - 1]] : null; };
+  function convert(v: number, date: string, unit: string): number | null {
+    const m = date.slice(0, 7);
+    if (unit === "tl") return v;
+    if (unit === "real") { const a = lastKey(P.cpi, m), b = P.cpi[P.end]; return a && b ? (v * b) / a : null; }
+    if (unit === "usd") { const r = lastKey(P.usd, m); return r ? v / r : null; }
+    if (unit === "gold") { const g = lastKey(P.gold, m); return g ? v / g : null; }
+    return null;
+  }
+  const unitFmt: Record<string, (v: number) => string> = { tl, real: tl, usd: (v) => `${nf0.format(v)} $`, gold: (v) => `${nf0.format(v)} g` };
+
+  // --- house price estimate (BIS/TCMB nominal index, quarterly) ----------------
+  function houseEstimate(cost: number, costDate: string): { value: number; from: string; to: string } | null {
+    if (!P.house) return null;
+    const pts = P.house.points;
+    const q = (d: string) => { const y = d.slice(0, 4), mo = Number(d.slice(5, 7)); return `${y}-${String(Math.ceil(mo / 3) * 3).padStart(2, "0")}`; };
+    const start = pts.find(([m]) => m === q(costDate)) ?? (costDate < pts[0][0] ? null : pts.filter(([m]) => m <= q(costDate)).at(-1));
+    if (!start) return null;
+    const end = pts[pts.length - 1];
+    return { value: (cost * end[1]) / start[1], from: start[0], to: end[0] };
+  }
+
+  // --- rendering ---------------------------------------------------------------
+  function render() {
+    const has = items.length > 0;
+    $("empty").hidden = has;
+    $("items").hidden = !has;
+    $("summary").hidden = !has;
+    $("chart-card").hidden = !has;
+    $("update-card").hidden = !items.some((i) => !i.sold);
+    renderTable();
+    if (!has) return;
+    const tline = netWorthTimeline(items);
+    const last = tline[tline.length - 1];
+    $("t-net").textContent = tl(last.net);
+    $("t-date").textContent = `son değer tarihi ${fmtDate(last.date)}`;
+    $("t-assets").textContent = tl(last.assets);
+    $("t-liab").textContent = tl(last.liabilities);
+    const active = items.filter((i) => !i.sold || i.sold > last.date);
+    $("t-acount").textContent = `${active.filter((i) => i.side === "asset").length} kalem`;
+    $("t-lcount").textContent = `${active.filter((i) => i.side === "liability").length} kalem`;
+    const first = tline[0];
+    const r0 = convert(first.net, first.date, "real"), r1 = convert(last.net, last.date, "real");
+    if (tline.length > 1 && r0 && r1 && r0 > 0) {
+      const ch = 100 * (r1 / r0 - 1);
+      $("t-real").textContent = `${ch > 0 ? "+" : ch < 0 ? "−" : ""}%${nf1.format(Math.abs(ch))}`;
+      $("t-realnote").textContent = `${fmtDate(first.date)} → ${fmtDate(last.date)}, TÜFE ile${P.sample ? " · örnek TÜFE" : ""}`;
+    } else { $("t-real").textContent = "—"; $("t-realnote").textContent = "en az iki farklı tarihte değer gerekir"; }
+    drawChart(tline);
+    const parts = (side: "asset" | "liability") => Object.entries(last.by_kind).filter(([, v]) => (side === "asset" ? v > 0 : v < 0)).map(([name, v]) => ({ name, value: Math.abs(v) })).sort((a, b) => b.value - a.value);
+    const pa = parts("asset"), pl = parts("liability");
+    if (pa.length) renderDonut($("donut"), pa, { format: tl, label: "Varlık dağılımı", size: 160 }); else $("donut").textContent = "—";
+    if (pl.length) renderDonut($("donut-l"), pl, { format: tl, label: "Borç dağılımı", size: 160 }); else $("donut-l").textContent = "Borç yok.";
+    renderUpdate();
+  }
+
+  function drawChart(tline = netWorthTimeline(items)) {
+    const unit = ($("unit") as HTMLSelectElement).value;
+    // one point per month: the last valuation date of that month
+    const byMonth = new Map<string, (typeof tline)[number]>();
+    for (const r of tline) byMonth.set(r.date.slice(0, 7), r);
+    const rows = [...byMonth.values()];
+    const conv = (v: number, d: string) => convert(v, d, unit);
+    const ok = rows.every((r) => conv(1, r.date) != null);
+    const box = $("nw-chart");
+    if (!ok || rows.length < 2) {
+      box.textContent = rows.length < 2 ? "Grafik için en az iki farklı ayda değer gir." : "Bu birim için seçilen aylarda çevrim verisi yok.";
+    } else {
+      renderChart(box, { months: rows.map((r) => r.date.slice(0, 7)), series: [
+        { key: "net", label: "Net servet", color: "var(--cat-1)", values: rows.map((r) => conv(r.net, r.date)!) },
+        { key: "a", label: "Varlıklar", color: "var(--cat-3)", values: rows.map((r) => conv(r.assets, r.date)!) },
+        ...(rows.some((r) => r.liabilities > 0) ? [{ key: "l", label: "Borçlar", color: "var(--cat-2)", values: rows.map((r) => conv(r.liabilities, r.date)!) }] : []),
+      ] }, { baseline: null, allowLog: false, format: unitFmt[unit] });
+    }
+    const notes: Record<string, string> = { tl: "Girdiğin TL değerleri.", real: `Her ay TÜFE ile ${P.end} TL'sine taşınır.`, usd: "O ayın ortalama USD/TRY kuruyla.", gold: "O ayın ortalama gram altın fiyatıyla." };
+    $("unit-note").textContent = notes[unit] + (unit !== "tl" && P.sample ? " Çevrim serisi şu an ÖRNEK veridir (EVDS bağlanınca gerçek olacak)." : "") + " Ayda birden çok değer varsa ayın son değeri kullanılır.";
+  }
+
+  function renderTable() {
+    const tb = document.querySelector("#items tbody")!;
+    tb.replaceChildren(...[...items].sort((a, b) => (a.side === b.side ? a.name.localeCompare(b.name, "tr") : a.side === "asset" ? -1 : 1)).map((it) => {
+      const tr = document.createElement("tr");
+      if (it.sold) tr.className = "sold";
+      const vs = [...it.valuations].sort((a, b) => (a[0] < b[0] ? -1 : 1));
+      const lastV = vs[vs.length - 1];
+      const th = document.createElement("th"); th.scope = "row"; th.textContent = it.name;
+      if (it.sold) { const s = document.createElement("span"); s.className = "tag"; s.textContent = it.side === "asset" ? "satıldı" : "kapandı"; th.appendChild(s); }
+      const hist = document.createElement("details");
+      const sm = document.createElement("summary"); sm.className = "muted small"; sm.textContent = `${vs.length} değer kaydı`;
+      const ul = document.createElement("ul"); ul.className = "hist";
+      vs.forEach(([d, v]) => {
+        const li = document.createElement("li"); li.textContent = `${fmtDate(d)}: ${tl(v)} `;
+        if (vs.length > 1) { const x = document.createElement("button"); x.type = "button"; x.className = "linkish"; x.textContent = "sil"; x.setAttribute("aria-label", `${fmtDate(d)} değerini sil`);
+          x.addEventListener("click", () => { it.valuations = it.valuations.filter((p) => !(p[0] === d && p[1] === v)); save(); render(); }); li.appendChild(x); }
+        ul.appendChild(li);
+      });
+      hist.append(sm, ul); th.appendChild(hist);
+      const cells = [it.kind, `${it.side === "liability" ? "−" : ""}${tl(lastV[1])}`, fmtDate(lastV[0])];
+      let vsCost = "—";
+      if (it.side === "asset" && it.cost) { const ch = 100 * (lastV[1] / it.cost - 1); vsCost = `${ch > 0 ? "+" : ch < 0 ? "−" : ""}%${nf1.format(Math.abs(ch))} (nominal)`; }
+      cells.push(vsCost);
+      tr.appendChild(th);
+      for (const c of cells) { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); }
+      const act = document.createElement("td"); act.className = "act";
+      if (!it.sold) {
+        const sold = document.createElement("button"); sold.type = "button"; sold.className = "linkish"; sold.textContent = it.side === "asset" ? "satıldı" : "kapandı";
+        sold.addEventListener("click", () => { const d = prompt("Hangi tarihte? (YYYY-AA-GG)", today); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) { it.sold = d; save(); render(); } });
+        act.appendChild(sold);
+      }
+      const del = document.createElement("button"); del.type = "button"; del.className = "linkish"; del.textContent = "sil";
+      del.addEventListener("click", () => { if (confirm(`"${it.name}" ve tüm değer kayıtları silinsin mi?`)) { items = items.filter((x) => x !== it); save(); render(); } });
+      act.appendChild(del);
+      tr.appendChild(act);
+      return tr;
+    }));
+  }
+
+  function renderUpdate() {
+    ($("u-date") as HTMLInputElement).value ||= today;
+    $("u-rows").replaceChildren(...items.filter((i) => !i.sold).map((it) => {
+      const row = document.createElement("div"); row.className = "field u-row";
+      const lab = document.createElement("label"); lab.htmlFor = `u-${it.id}`;
+      const lastV = [...it.valuations].sort((a, b) => (a[0] < b[0] ? -1 : 1)).at(-1)!;
+      lab.textContent = `${it.name} (${it.side === "asset" ? "değer" : "kalan borç"}, son: ${tl(lastV[1])})`;
+      const inp = document.createElement("input"); inp.id = `u-${it.id}`; inp.inputMode = "decimal"; inp.dataset.id = it.id; inp.placeholder = "değişmediyse boş bırak";
+      row.append(lab, inp); return row;
+    }));
+  }
+
+  // --- add form ------------------------------------------------------------------
+  const sideSel = $("a-side") as HTMLSelectElement, kindSel = $("a-kind") as HTMLSelectElement;
+  function fillKinds() {
+    kindSel.replaceChildren(...KINDS[sideSel.value as "asset" | "liability"].map((k) => { const o = document.createElement("option"); o.textContent = k; return o; }));
+    const asset = sideSel.value === "asset";
+    $("cost-field").hidden = !asset; $("costd-field").hidden = !asset;
+    toggleEst();
+  }
+  function toggleEst() { $("a-est").hidden = !(sideSel.value === "asset" && (kindSel.value === "Konut") && P.house); }
+  sideSel.addEventListener("change", fillKinds);
+  kindSel.addEventListener("change", toggleEst);
+  ($("a-date") as HTMLInputElement).value = today;
+  fillKinds();
+  const err = (m: string) => { const e = $("a-err"); e.textContent = m; e.hidden = !m; };
+  $("a-est").addEventListener("click", () => {
+    const cost = parseAmount(($("a-cost") as HTMLInputElement).value), cd = ($("a-costd") as HTMLInputElement).value;
+    if (!cost || !cd) return err("Tahmin için alış fiyatı ve alış tarihi gerekir.");
+    const est = houseEstimate(cost, cd);
+    if (!est) return err("Bu tarih için konut endeksi yok (endeks 2010'da başlıyor).");
+    err("");
+    ($("a-value") as HTMLInputElement).value = nf0.format(Math.round(est.value));
+    ($("a-date") as HTMLInputElement).value = today;   // the estimate is a current value
+    const n = $("est-note"); n.hidden = false;
+    n.textContent = `Tahmin: ${tl(cost)} × endeks(${est.to}) / endeks(${est.from}) = ${tl(est.value)}. Türkiye ortalaması (BIS / TCMB KFE); evinin gerçek değeri farklı olabilir. İstersen değiştir.`;
+  });
+  $("a-btn").addEventListener("click", () => {
+    const name = ($("a-name") as HTMLInputElement).value.trim() || kindSel.value;
+    const date = ($("a-date") as HTMLInputElement).value;
+    const value = parseAmount(($("a-value") as HTMLInputElement).value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return err("Geçerli bir tarih seç.");
+    if (value == null || value < 0) return err("Değeri TL olarak gir (ör. 4.500.000).");
+    const cost = parseAmount(($("a-cost") as HTMLInputElement).value);
+    const cd = ($("a-costd") as HTMLInputElement).value || null;
+    err("");
+    items.push({ id: uid(), side: sideSel.value as "asset" | "liability", kind: kindSel.value, name, valuations: [[date, value]],
+      ...(sideSel.value === "asset" && cost ? { cost, cost_date: cd } : {}) });
+    save();
+    for (const id of ["a-name", "a-value", "a-cost", "a-costd"]) ($(id) as HTMLInputElement).value = "";
+    $("est-note").hidden = true;
+    render();
+  });
+
+  $("u-save").addEventListener("click", () => {
+    const d = ($("u-date") as HTMLInputElement).value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { $("u-msg").textContent = "Tarih seç."; return; }
+    let n = 0;
+    document.querySelectorAll<HTMLInputElement>("#u-rows input").forEach((inp) => {
+      const v = parseAmount(inp.value);
+      if (v == null || v < 0) return;
+      const it = items.find((x) => x.id === inp.dataset.id)!;
+      it.valuations = it.valuations.filter(([vd]) => vd !== d).concat([[d, v]]);
+      n++;
+    });
+    save(); render();
+    $("u-msg").textContent = n ? `${n} kalem güncellendi.` : "Değer girilmedi.";
+  });
+
+  // --- import/export/demo ----------------------------------------------------------
+  function download(name: string, text: string, type: string) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  $("export").addEventListener("click", () => download(`varliklarim-${today}.json`, JSON.stringify({ version: 1, items }, null, 1), "application/json"));
+  $("export-csv").addEventListener("click", () => {
+    const rows = [["kalem", "tur", "cesit", "tarih", "deger_tl", "satildi"], ...items.flatMap((it) => it.valuations.map(([d, v]) => [it.name, it.side === "asset" ? "varlik" : "borc", it.kind, d, v, it.sold ?? ""]))];
+    download(`varliklarim-${today}.csv`, "﻿" + rows.map((r) => r.map((c) => (/[",;\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : c)).join(",")).join("\n"), "text/csv");
+  });
+  ($("import") as HTMLInputElement).addEventListener("change", async (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      const list = (Array.isArray(data) ? data : data.items) as unknown[];
+      const ok = (list || []).filter(valid) as Item[];
+      if (!ok.length) throw new Error();
+      if (!items.length || confirm(`${ok.length} kalem yüklenecek. Mevcut ${items.length} kalemin yerine mi geçsin? (İptal: ekle)`)) items = ok; else items = items.concat(ok.map((x) => ({ ...x, id: uid() })));
+      save(); render();
+    } catch { alert("Dosya okunamadı ya da geçerli kayıt yok."); }
+    (e.target as HTMLInputElement).value = "";
+  });
+  $("clear").addEventListener("click", () => { if (items.length && confirm("Tüm kalemler ve değer kayıtları silinsin mi? Bu geri alınamaz.")) { items = []; save(); render(); } });
+  $("demo").addEventListener("click", () => {
+    if (items.length && !confirm("Örnek kayıt mevcut kalemlerin yerine geçecek. Devam edilsin mi?")) return;
+    const ms = Object.keys(P.cpi).sort();
+    const end = ms[ms.length - 1];
+    const back = (n: number) => ms[Math.max(0, ms.length - 1 - n)];
+    const pts = (from: number, start: number, growth: number) => Array.from({ length: Math.floor(from / 6) + 1 }, (_, k) => {
+      const m = back(from - 6 * k);
+      return [`${m}-15`, Math.round(start * (1 + growth) ** (6 * k))] as [string, number];
+    });
+    items = [
+      { id: uid(), side: "asset", kind: "Konut", name: "Örnek daire", valuations: pts(36, 2_000_000, 0.035), cost: 2_000_000, cost_date: `${back(36)}-15` },
+      { id: uid(), side: "asset", kind: "Araç", name: "Örnek araba", valuations: pts(24, 900_000, 0.015) },
+      { id: uid(), side: "asset", kind: "Altın", name: "Örnek altın birikimi", valuations: pts(30, 150_000, 0.04) },
+      { id: uid(), side: "asset", kind: "Mevduat / nakit", name: "Örnek mevduat", valuations: pts(36, 200_000, 0.03) },
+      { id: uid(), side: "liability", kind: "Konut kredisi", name: "Örnek konut kredisi", valuations: pts(36, 1_200_000, -0.02) },
+    ];
+    save(); render();
+    void end;
+  });
+  ($("unit") as HTMLSelectElement).addEventListener("change", () => drawChart());
+  let w = 0;
+  new ResizeObserver(() => { const box = $("nw-chart"); if (!$("chart-card").hidden && Math.abs(box.clientWidth - w) > 2) { w = box.clientWidth; drawChart(); } }).observe($("nw-chart"));
+  load();
+  render();
+</script>
+<style is:global>
+  .privacy { border-left: 4px solid var(--good-ink); }
+  .summary { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 12px 0; }
+  @media (min-width: 900px) { .summary { grid-template-columns: repeat(4, 1fr); } }
+  .stat { padding: 12px; }
+  .s-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); margin: 0; }
+  .s-value { font-family: var(--font-head); font-size: 1.7rem; line-height: 1.15; margin: 2px 0; overflow-wrap: anywhere; }
+  .s-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .comp { display: grid; gap: 16px; margin-top: 12px; }
+  @media (min-width: 760px) { .comp { grid-template-columns: 1fr 1fr; } }
+  .add .grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .add .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 980px) { .add .grid { grid-template-columns: repeat(4, 1fr); } }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+  .list-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .list-head .tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  .file { cursor: pointer; }
+  .error { color: var(--neg-ink, #b3121f); font-size: 0.85rem; }
+  table.items td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.items tr.sold { opacity: 0.6; }
+  table.items .act { display: flex; gap: 10px; }
+  .hist { margin: 4px 0 0; padding-left: 16px; font-size: 0.8rem; font-weight: 400; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 0.85rem; }
+  .u-rows { display: grid; gap: 8px; grid-template-columns: 1fr; margin: 8px 0; }
+  @media (min-width: 760px) { .u-rows { grid-template-columns: 1fr 1fr; } }
+  .field.inline { max-width: 220px; }
+  .pro { border: 1px dashed var(--line); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>

@@ -165,4 +165,9 @@
   aylık, Datahub'ın GitHub kopyalarından (ODC-PDDL) günlük (`pipeline/commodities.py`, önce test). Yeni `/emtia`:
   dönem seçmeli endeksli karşılaştırma, tek seri fiyat grafiği, altın/petrol oranı (medyan çizgisiyle), 1–20 yıllık
   değişim ve zirveye uzaklık tablosu, paylaşılabilir kart. Ana sayfa "Gerçek veriyle" şeridi 5 kutuya çıktı.
+- 2026-11-03 — **Varlıklarım** (`/varliklarim`): kişisel varlık ve borç kaydı, tarihli değer güncellemeleri, net servet
+  grafiği (nominal / bugünün TL'si / dolar / gram altın), varlık ve borç dağılımı, toplu "değerleri güncelle",
+  satıldı/kapandı, JSON yedek + CSV, örnek kayıt. Konut için BIS/TCMB nominal endeksiyle tahmini güncel değer.
+  Veriler yalnızca tarayıcıda. Motor: `net_worth_timeline` (Python + TS, ortak vakalar, önce test). "Pro (yakında)"
+  bölümü: otomatik değerleme, uçtan uca şifreli eşitleme, PDF rapor — ödeme/kayıt yok.
 

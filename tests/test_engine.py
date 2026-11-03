@@ -756,3 +756,28 @@ def test_drawdown_from_peak():
     d = e.drawdown([98.7, 150.0, 216.6, 211.2])
     assert close(d["peak"], 216.6) and d["peak_index"] == 2 and close(d["drawdown_pct"], 100 * (211.2 / 216.6 - 1), 1e-9)
     assert e.drawdown([1.0, 2.0])["drawdown_pct"] == 0.0
+
+
+# --- personal net worth timeline --------------------------------------------------
+
+def test_net_worth_timeline_carries_last_value_and_subtracts_debts():
+    items = [
+        {"id": "ev", "side": "asset", "kind": "konut", "valuations": [["2025-01-01", 1000.0], ["2025-07-01", 1500.0]]},
+        {"id": "altin", "side": "asset", "kind": "altın", "valuations": [["2025-03-01", 200.0]], "sold": "2025-07-01"},
+        {"id": "kredi", "side": "liability", "kind": "konut kredisi", "valuations": [["2025-01-01", 600.0], ["2025-07-01", 500.0]]},
+    ]
+    t = e.net_worth_timeline(items)
+    assert [r["date"] for r in t] == ["2025-01-01", "2025-03-01", "2025-07-01"]
+    # 01-01: 1000 − 600 = 400; 03-01: 1000 + 200 − 600 = 600; 07-01: 1500 (gold sold) − 500 = 1000
+    assert [r["net"] for r in t] == [400.0, 600.0, 1000.0]
+    assert t[1]["assets"] == 1200.0 and t[1]["liabilities"] == 600.0
+    assert t[1]["by_kind"] == {"konut": 1000.0, "altın": 200.0, "konut kredisi": -600.0}
+    assert "altın" not in t[2]["by_kind"]
+
+
+def test_net_worth_timeline_unsorted_input_and_empty():
+    items = [{"id": "a", "side": "asset", "kind": "mevduat", "valuations": [["2025-02-01", 20.0], ["2025-01-01", 10.0]]}]
+    assert [r["net"] for r in e.net_worth_timeline(items)] == [10.0, 20.0]
+    assert e.net_worth_timeline([]) == []
+    with pytest.raises(e.SeriesError):
+        e.net_worth_timeline([{"id": "x", "side": "other", "kind": "?", "valuations": [["2025-01-01", 1.0]]}])

@@ -681,3 +681,27 @@ export function lorenzLognormal(p: number, sigma: number): number {
   if (p >= 1) return 1.0;
   return normalCdf(normalPpf(p) - sigma);
 }
+
+// --- personal net worth timeline (port of reel.engine.net_worth_timeline) ---
+export interface NetWorthItem { id: string; side: "asset" | "liability"; kind: string; valuations: [string, number][]; sold?: string | null }
+export interface NetWorthRow { date: string; assets: number; liabilities: number; net: number; by_kind: Record<string, number> }
+
+export function netWorthTimeline(items: NetWorthItem[]): NetWorthRow[] {
+  for (const it of items) if (it.side !== "asset" && it.side !== "liability") throw new SeriesError(`side must be asset or liability: ${it.id}`);
+  const vals = new Map(items.map((it) => [it.id, [...it.valuations].map(([d, v]) => [d, Number(v)] as [string, number]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]))]));
+  const dates = [...new Set([...vals.values()].flatMap((v) => v.map(([d]) => d)))].sort();
+  return dates.map((d) => {
+    let assets = 0, liabilities = 0;
+    const by_kind: Record<string, number> = {};
+    for (const it of items) {
+      if (it.sold && d >= it.sold) continue;
+      const known = vals.get(it.id)!.filter(([vd]) => vd <= d);
+      if (!known.length) continue;
+      const v = known[known.length - 1][1];
+      const sign = it.side === "asset" ? 1 : -1;
+      if (sign > 0) assets += v; else liabilities += v;
+      by_kind[it.kind] = (by_kind[it.kind] ?? 0) + sign * v;
+    }
+    return { date: d, assets, liabilities, net: assets - liabilities, by_kind };
+  });
+}

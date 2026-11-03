@@ -48,6 +48,7 @@ const FN: Record<string, (...a: any[]) => unknown> = {
   top_share_lognormal: e.topShareLognormal,
   wealth_inequality: e.wealthInequality,
   gold_allocation: e.goldAllocation,
+  net_worth_timeline: e.netWorthTimeline,
   housing_affordability: e.housingAffordability,
   lorenz_lognormal: e.lorenzLognormal,
 };

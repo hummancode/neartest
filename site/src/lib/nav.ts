@@ -31,6 +31,7 @@ export const NAV: NavGroup[] = [
     { href: "/taksit", label: "Taksitli mi, peşin mi?", desc: "“Faizsiz taksit”in gizli faizi ve bugünkü değeri." },
   ] },
   { label: "Hesapla", items: [
+    { href: "/varliklarim", label: "Varlıklarım: net servet", desc: "Ev, araba, altın, birikim ve borçların; zaman içinde net servetin nominal, reel, dolar ve altın cinsinden.", keywords: "servet varlık borç mal portföy net değer" },
     { href: "/portfoy", label: "Portföyüm", desc: "Kendi alımlarınızın gerçek getirisi. Veriler tarayıcınızda kalır." },
     { href: "/mevduat", label: "Mevduat: net ve reel getiri", desc: "Stopaj sonrası net ve reel getiri; enflasyonu yeniyor mu?", keywords: "faiz stopaj" },
     { href: "/birikim", label: "Birikim hedefi", desc: "Bugünkü parayla hedefe ulaşmak için ayda ne biriktirmeli?" },

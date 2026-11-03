@@ -1058,3 +1058,38 @@ def drawdown(values: list[float]) -> dict:
         raise SeriesError("empty series")
     k = max(range(len(values)), key=lambda i: values[i])
     return {"peak": values[k], "peak_index": k, "drawdown_pct": 100 * (values[-1] / values[k] - 1)}
+
+
+def net_worth_timeline(items: list[dict]) -> list[dict]:
+    """Net worth on every date where any item has a valuation.
+
+    items: {"id", "side": "asset"|"liability", "kind", "valuations": [[YYYY-MM-DD, value TL], ...], "sold": date|None}
+    An item's value on a date is its latest valuation on or before that date (none before its first
+    valuation); from its "sold" date on it counts as zero (excluded). Liabilities are subtracted.
+    Returns [{date, assets, liabilities, net, by_kind}] sorted by date; by_kind holds liabilities as negatives.
+    """
+    for it in items:
+        if it.get("side") not in ("asset", "liability"):
+            raise SeriesError(f"side must be asset or liability: {it.get('id')}")
+    vals = {it["id"]: sorted((d, float(v)) for d, v in it["valuations"]) for it in items}
+    dates = sorted({d for v in vals.values() for d, _ in v})
+    out = []
+    for d in dates:
+        assets = liabilities = 0.0
+        by_kind: dict[str, float] = {}
+        for it in items:
+            sold = it.get("sold")
+            if sold and d >= sold:
+                continue
+            known = [v for vd, v in vals[it["id"]] if vd <= d]
+            if not known:
+                continue
+            v = known[-1]
+            sign = 1.0 if it["side"] == "asset" else -1.0
+            if sign > 0:
+                assets += v
+            else:
+                liabilities += v
+            by_kind[it["kind"]] = by_kind.get(it["kind"], 0.0) + sign * v
+        out.append({"date": d, "assets": assets, "liabilities": liabilities, "net": assets - liabilities, "by_kind": by_kind})
+    return out

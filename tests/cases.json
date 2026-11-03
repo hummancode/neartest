@@ -1572,6 +1572,111 @@
    "expect": 0.15865525393145707,
    "tol": 1e-09,
    "note": "Phi(-1)"
+  },
+  {
+   "name": "net_worth_timeline carries last value, drops sold item, subtracts debt",
+   "fn": "net_worth_timeline",
+   "args": [
+    [
+     {
+      "id": "ev",
+      "side": "asset",
+      "kind": "konut",
+      "valuations": [
+       [
+        "2025-01-01",
+        1000
+       ],
+       [
+        "2025-07-01",
+        1500
+       ]
+      ]
+     },
+     {
+      "id": "altin",
+      "side": "asset",
+      "kind": "altın",
+      "valuations": [
+       [
+        "2025-03-01",
+        200
+       ]
+      ],
+      "sold": "2025-07-01"
+     },
+     {
+      "id": "kredi",
+      "side": "liability",
+      "kind": "konut kredisi",
+      "valuations": [
+       [
+        "2025-01-01",
+        600
+       ],
+       [
+        "2025-07-01",
+        500
+       ]
+      ]
+     }
+    ]
+   ],
+   "expect": [
+    {
+     "date": "2025-01-01",
+     "assets": 1000,
+     "liabilities": 600,
+     "net": 400,
+     "by_kind": {
+      "konut": 1000,
+      "konut kredisi": -600
+     }
+    },
+    {
+     "date": "2025-03-01",
+     "assets": 1200,
+     "liabilities": 600,
+     "net": 600,
+     "by_kind": {
+      "konut": 1000,
+      "altın": 200,
+      "konut kredisi": -600
+     }
+    },
+    {
+     "date": "2025-07-01",
+     "assets": 1500,
+     "liabilities": 500,
+     "net": 1000,
+     "by_kind": {
+      "konut": 1500,
+      "konut kredisi": -500
+     }
+    }
+   ],
+   "tol": 1e-09,
+   "note": "01-01: 1000−600; 03-01: 1000+200−600; 07-01: altın satıldı, 1500−500"
+  },
+  {
+   "name": "net_worth_timeline rejects unknown side",
+   "fn": "net_worth_timeline",
+   "args": [
+    [
+     {
+      "id": "x",
+      "side": "other",
+      "kind": "?",
+      "valuations": [
+       [
+        "2025-01-01",
+        1
+       ]
+      ]
+     }
+    ]
+   ],
+   "raises": true
   }
  ]
 }
