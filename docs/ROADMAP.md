@@ -70,6 +70,7 @@ Durum: ✅ yapıldı · 🟡 altyapı hazır, veri/karar bekliyor · ⬜ fikir
 | ✅ | Veri setlerinin CSV/JSON indirilmesi (`/indir/…`, Veri durumu sayfasında) | — |
 | ⬜ | Haftalık bülten taslağının otomatik üretimi (yalnızca rakamlar) | elle onaylanır |
 | ⬜ | E-posta uyarıları ("reel mevduat faizi pozitife döndü") | sunucu gerektirir — sonraki faz |
+| 🧪 | Üyelik, abonelik, ödeme (Pro) — prototip `account/`, araştırma `docs/UYELIK-ODEME.md` | yayında değil; sağlayıcı, hukuk ve ürün kararı bekliyor |
 | ⬜ | Açık JSON uç noktaları (site/data zaten statik) | lisanslar uygun serilerle |
 
 ## Veri kaynağı kararları (sahibin onayı gerekli)

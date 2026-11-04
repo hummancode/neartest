@@ -58,6 +58,8 @@ jobs:
         working-directory: site
       - run: npm test       # TS engine vs. tests/cases.json (same cases as Python)
         working-directory: site
+      - run: npm test       # account/billing prototype (not deployed; zero dependencies)
+        working-directory: account
       - run: npm run build
         working-directory: site
       - run: npm run check   # links, anchors, disclaimer, sample banner

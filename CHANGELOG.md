@@ -201,3 +201,8 @@
 - 2026-11-04 — Son kontrol: 134 sayfa 375/1280 px, koyu/açık temada tarandı (JS hatası,
   yatay taşma, NaN/undefined yok). Arama kutusuna erişilebilir etiket; ana sayfa, bülten,
   yasal uyarı ve gizlilik sayfalarına tam açıklama (SEO/paylaşım önizlemesi).
+- 2026-11-04 — Üyelik/abonelik/ödeme araştırması (`docs/UYELIK-ODEME.md`: iyzico, PayTR, Paddle,
+  Lemon Squeezy, Stripe; KVKK, mesafeli satış, cayma, SPK riskleri) ve yayında olmayan prototip
+  `account/`: şifresiz e-posta girişi, abonelik durum makinesi, sağlayıcı arayüzü + sahte
+  sağlayıcı, imzalı/idempotent webhook, yasal onay kaydı, hesap silme. 25 test; CI'a eklendi.
+  Sunucuda finansal kullanıcı verisi yok.
