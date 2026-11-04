@@ -27,7 +27,7 @@ function sparkLabel(row: Row) {
   return `${row.label}: son ${t.length} ayın reel (TÜFE'den arındırılmış) seyri, başlangıca göre ${pct(t[t.length - 1] / t[0] - 1)}`;
 }
 ---
-<Base title="Reel Tablo" sample={tablo.sample}>
+<Base title="Reel Tablo" description="Mevduat, kredi, dolar, euro, altın, BIST 100 ve S&P 500 getirileri son 1, 3, 5 ve 10 yılda: nominal TL, dolar ve enflasyondan arındırılmış reel TL olarak, hesabı şeffaf." sample={tablo.sample}>
   <h1>Reel Tablo</h1>
   <p class="lead">
     Nominal getiriyi herkes gösterir. Burada aynı getiriyi enflasyondan (TÜFE) ve kurdan

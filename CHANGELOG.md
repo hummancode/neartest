@@ -198,3 +198,6 @@
   önermez, hukuki uyarı (SPK izni, döviz kredisi kısıtı). Motor: `financial_health`, `fx_borrowing`,
   `collateral_liquidation` (Python + TS, ortak vakalar, önce test).
 
+- 2026-11-04 — Son kontrol: 134 sayfa 375/1280 px, koyu/açık temada tarandı (JS hatası,
+  yatay taşma, NaN/undefined yok). Arama kutusuna erişilebilir etiket; ana sayfa, bülten,
+  yasal uyarı ve gizlilik sayfalarına tam açıklama (SEO/paylaşım önizlemesi).

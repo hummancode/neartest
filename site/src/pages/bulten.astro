@@ -9,7 +9,7 @@ const issues = Object.values(
 ).sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date));
 const enabled = NEWSLETTER.formAction !== "";
 ---
-<Base title="Bülten" description={`${SITE_NAME} haftalık reel finans bülteni.`} sample={tablo.sample}>
+<Base title="Bülten" description={`${SITE_NAME} haftalık bülteni: enflasyon, kur ve faizlerin reel hâli; yorum ve yatırım tavsiyesi olmadan, yalnızca rakamlar ve kaynakları.`} sample={tablo.sample}>
   <h1>Haftalık bülten</h1>
   <p class="lead">
     Her hafta: Reel Tablo'da neler değişti, enflasyon ve faiz verilerinin reel hâli, hesabıyla birlikte.
